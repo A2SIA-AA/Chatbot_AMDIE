@@ -1,4 +1,3 @@
-```markdown
 # Chatbot AMDIE - Assistant IA avec contrôle d'accès
 
 Ce dépôt contient un chatbot intelligent développé pour l’**Agence Marocaine de Développement des Investissements et des Exportations (AMDIE)**.
