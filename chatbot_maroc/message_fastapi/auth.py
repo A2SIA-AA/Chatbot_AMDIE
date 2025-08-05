@@ -11,6 +11,7 @@ SECRET_KEY = "amdie-chatbot-secret-key-2025"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 heures
 
+#pour une authentification réussie
 security = HTTPBearer()
 
 # Base de données utilisateurs (à modif pour une vraie DB)

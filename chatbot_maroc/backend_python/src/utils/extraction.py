@@ -10,7 +10,7 @@ import re
 
 
 # =============================
-# NOUVEAU: GESTION DES PERMISSIONS
+# GESTION DES PERMISSIONS
 # =============================
 
 def detect_access_level_from_path(file_path: str) -> tuple:
