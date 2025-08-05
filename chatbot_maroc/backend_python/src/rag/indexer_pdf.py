@@ -13,7 +13,7 @@ load_dotenv()
 
 class PDFToChroma:
     def __init__(self):
-        os.chdir("/home/aissa/Bureau/Projet_Chatbot/chatbot_maroc")
+        os.chdir("/home/aissa/Bureau/Projet_Chatbot/Chatbot_AMDIE/chatbot_maroc")
         # Configuration Gemini
         self.client = genai.Client()
 
