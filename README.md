@@ -129,7 +129,7 @@ Ce fichier est exécuté par FastAPI et contient :
 
 ```
 chatbot_maroc/
-├── backend
+├── backend_python
 │   └──  chatbot_wrapper.py    # Backend IA délégué
 ├── message_fastapi/           # Frontend React (Next.js)
 │   └── main.py                # API FastAPI
