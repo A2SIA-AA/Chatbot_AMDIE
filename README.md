@@ -52,13 +52,14 @@ Utilisateur (Next.js)
 
 ```bash
 git clone https://github.com/A2SIA-AA/Chatbot_AMDIE.git
-cd Chatbot_AMDIE
+cd Chatbot_AMDIE/chatbot_maroc
 ```
 
 ### 2. Backend (FastAPI)
 
 ```bash
 pip install -r requirements.txt
+cd message_fastapi
 python main.py
 ```
 
