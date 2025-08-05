@@ -153,5 +153,3 @@ Projet sous licence MIT - libre d’utilisation et de modification.
 
 Projet développé dans le cadre d’un stage à l’AMDIE - par Assia AIT TALEB
 Lien : [github.com/A2SIA-AA/Chatbot\_AMDIE](https://github.com/A2SIA-AA/Chatbot_AMDIE)
-
-```
