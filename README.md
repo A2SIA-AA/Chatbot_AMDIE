@@ -33,7 +33,6 @@ Utilisateur (Next.js)
 * Lancement de sessions avec logs et ID persistants
 * Traitement des questions via un backend IA isolé
 * RAG vectorisé avec filtrage des documents selon les droits
-* Historique conversationnel par session
 
 ---
 
