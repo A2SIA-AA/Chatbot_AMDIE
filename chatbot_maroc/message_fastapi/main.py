@@ -60,16 +60,19 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request, call_next):
     """Log automatique de toutes les requêtes"""
+    #mesure du temp d'exécution
     start_time = time.time()
     response = await call_next(request)
     process_time = time.time() - start_time
 
+    #enregistrement des infos utiles
     logger.info(
         f"{request.method} {request.url} - "
         f"Status: {response.status_code} - "
         f"Time: {process_time:.4f}s"
     )
 
+    #ajout des infos dans l'en-tête de la requête
     response.headers["X-Process-Time"] = str(process_time)
     return response
 
