@@ -132,6 +132,7 @@ def require_permission(permission: str):
     """Décorateur pour exiger une permission"""
 
     def permission_checker(current_user: Dict = Depends(get_current_user)):
+        #exécute d'abord get_current_user puis l'injecte dans la fonction
         if not check_permission(current_user, permission):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
