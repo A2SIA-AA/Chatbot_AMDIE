@@ -13,7 +13,7 @@ import {
 import Image from "next/image"
 
 // ========================================
-// INTERFACES TYPESCRIPT ÉTENDUES
+// INTERFACES TYPESCRIPT
 // ========================================
 
 interface User {

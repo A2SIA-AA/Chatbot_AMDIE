@@ -33,12 +33,13 @@ app = FastAPI(
     title="Message API - Architecture Séparée",
     description="API REST pour orchestrer chatbot IA avec backend séparé",
     version="2.0.0",
-    docs_url="/docs",
+    docs_url="/docs", #Avec docs automatique
     redoc_url="/redoc"
 )
 
 # ========================================
 # CONFIGURATION CORS (configure les origines pouvant communiquer avec notre API)
+# Authorise les requêtes venant du frontend
 # ========================================
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +55,7 @@ app.add_middleware(
 
 # ========================================
 # MIDDLEWARE DE LOGGING
+# Permet l'envoie des messages (INFO: ...)
 # ========================================
 @app.middleware("http")
 async def log_requests(request, call_next):
@@ -117,7 +119,7 @@ async def health_check():
 @app.post("/api/v1/messages", response_model=SuccessResponse, tags=["Messages"])
 async def create_message(message: MessageRequest):
     """
-    Créer un nouveau message (utilisé par le Backend Python)
+    Créer un nouveau message (utilisé par le Backend Python chatbot_wrapper.py)
     """
     try:
         await message_store.add_message(message.sessionId, {
@@ -144,7 +146,7 @@ async def get_messages(
         since: Optional[float] = Query(0, description="Timestamp depuis lequel récupérer les messages")
 ):
     """
-    Récupérer les messages d'une session (utilisé par le Frontend)
+    Récupérer les messages d'une session (utilisé par le Frontend React)
     """
     try:
         if since > 0:
@@ -239,7 +241,7 @@ async def backend_status():
     }
 
 
-# Route de connexion
+# ROUTE DE CONNEXION
 @app.post("/api/v1/auth/login", response_model=LoginResponse, tags=["Authentication"])
 async def login(login_data: LoginRequest):
     """Connexion utilisateur avec JWT"""
@@ -273,7 +275,7 @@ async def login(login_data: LoginRequest):
 
 from fastapi import Depends
 
-# Route de déconnexion
+# ROUTE DE DECONNEXION
 @app.post("/api/v1/auth/logout", tags=["Authentication"])
 async def logout(current_user: dict = Depends(get_current_user)):
     """Déconnexion (côté client)"""
@@ -368,7 +370,7 @@ async def start_processing(
             logger.error(f"Erreur lancement backend: {e}")
             await message_store.add_message(session_id, {
                 'type': 'error',
-                'content': f'❌ Erreur lancement backend: {str(e)}',
+                'content': f' Erreur lancement backend: {str(e)}',
                 'metadata': {'source': 'api_orchestrator'}
             })
             raise HTTPException(status_code=500, detail=f"Erreur lancement backend: {str(e)}")
