@@ -1,6 +1,6 @@
 # Chatbot AMDIE - Assistant IA avec contrôle d'accès
 
-Ce dépôt contient un chatbot intelligent développé pour l’**Agence Marocaine de Développement des Investissements et des Exportations (AMDIE)**.
+Ce dépôt contient un chatbot intelligent développé dans le cadre d'un stage à l’**Agence Marocaine de Développement des Investissements et des Exportations (AMDIE)**.
 
 Le chatbot offre une interface web conversationnelle basée sur un modèle de langage (LLM) capable de :
 - répondre à des questions sur des documents internes,
@@ -76,30 +76,6 @@ npm run dev
 ## Variables d’environnement (`.env`)
 
 À créer à la racine, prendre exemple sur le fichier .env.exemple
-
----
-
-## Exemple d’utilisation
-
-### Connexion (POST)
-
-```bash
-POST /api/v1/auth/login
-{
-  "username": "admin",
-  "password": "admin123"
-}
-```
-
-### Démarrage du traitement
-
-```bash
-POST /api/v1/start-processing
-Authorization: Bearer <JWT>
-{
-  "message": "Quels sont les projets en cours ?"
-}
-```
 
 ---
 
