@@ -79,30 +79,6 @@ npm run dev
 
 ---
 
-## Exemple d’utilisation
-
-### Connexion (POST)
-
-```bash
-POST /api/v1/auth/login
-{
-  "username": "admin",
-  "password": "admin123"
-}
-```
-
-### Démarrage du traitement
-
-```bash
-POST /api/v1/start-processing
-Authorization: Bearer <JWT>
-{
-  "message": "Quels sont les projets en cours ?"
-}
-```
-
----
-
 ## Principaux Endpoints FastAPI
 
 | Méthode | Endpoint                   | Description                |
