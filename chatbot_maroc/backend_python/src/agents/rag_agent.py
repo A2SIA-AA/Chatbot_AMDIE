@@ -15,12 +15,10 @@ class RAGAgent:
         """Point d'entrée principal de l'agent"""
         return self.agent_rag(state)
 
-    # Corrections à appliquer dans rag_agent.py
 
     def agent_rag(self, state: ChatbotState) -> ChatbotState:
         """
         Agent RAG avec gestion d'erreurs et permissions JWT
-        CORRECTION: Gérer le cas où 0 documents sont accessibles
         """
 
         self.chatbot._log("Agent RAG: Démarrage de la recherche", state)

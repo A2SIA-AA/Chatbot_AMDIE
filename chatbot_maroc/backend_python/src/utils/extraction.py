@@ -122,7 +122,7 @@ def enrich_metadata_with_permissions(metadata: dict, file_path: str) -> dict:
     # Enrichir les métadonnées
     enriched_metadata = {
         **metadata,
-        # Nouvelles informations de permissions
+        # informations de permissions
         'access_level': access_level,
         'document_type': document_type,
         'required_permissions': ','.join(required_permissions),  # String pour ChromaDB
@@ -137,7 +137,7 @@ def enrich_metadata_with_permissions(metadata: dict, file_path: str) -> dict:
 
 
 # =============================
-# 1. EXTRACTION DES TABLEAUX (MODIFIÉE)
+# 1. EXTRACTION DES TABLEAUX
 # =============================
 
 def sheet_to_presence_matrix(sheet):
@@ -165,7 +165,7 @@ def find_blocks(matrix):
     Détecte les blocs connexes de cellules non vides dans la matrice (2D connexité).
     Chaque bloc représente potentiellement un tableau ou un titre.
     """
-    structure = np.ones((3, 3))  # Connexité 8
+    structure = np.ones((3, 3))
     labeled, num_features = label(matrix, structure=structure)
     blocks = []
     for block_id in range(1, num_features + 1):
