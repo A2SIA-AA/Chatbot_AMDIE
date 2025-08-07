@@ -428,6 +428,204 @@ async def list_users(current_user: dict = Depends(require_permission("manage_use
 
 
 # ========================================
+# ROUTES KEYCLOAK
+# ========================================
+
+from pydantic import BaseModel
+
+# Import du nouveau système Keycloak
+from auth_keycloack import (
+    get_current_user_keycloak,
+    check_permission_keycloak,
+    get_keycloak_login_url,
+    exchange_code_for_token
+)
+
+
+# Nouveaux modèles pour Keycloak
+class KeycloakAuthUrl(BaseModel):
+    auth_url: str
+
+
+class TokenExchangeRequest(BaseModel):
+    code: str
+    redirect_uri: str
+
+
+# Route pour obtenir l'URL de connexion Keycloak
+@app.get("/api/v1/auth/keycloak/login-url", response_model=KeycloakAuthUrl, tags=["Keycloak"])
+async def get_keycloak_auth_url():
+    """Obtenir l'URL de connexion Keycloak"""
+    auth_url = get_keycloak_login_url()
+    return KeycloakAuthUrl(auth_url=auth_url)
+
+
+from fastapi import Request
+
+
+# Route pour échanger le code OAuth2 contre un token (POST)
+@app.post("/api/v1/auth/keycloak/callback", tags=["Keycloak"])
+async def keycloak_callback_post(request: TokenExchangeRequest):
+    """Callback POST après connexion Keycloak"""
+    return await process_keycloak_callback(request.code, request.redirect_uri)
+
+
+# Route pour gérer les GET sur callback (redirection navigateur)
+@app.get("/api/v1/auth/keycloak/callback", tags=["Keycloak"])
+async def keycloak_callback_get(request: Request):
+    """Callback GET - redirection depuis navigateur"""
+    code = request.query_params.get("code")
+    if not code:
+        raise HTTPException(status_code=400, detail="Code manquant")
+
+    # Construire l'URL de redirection
+    redirect_uri = str(request.base_url).rstrip('/') + '/'
+
+    return await process_keycloak_callback(code, redirect_uri)
+
+
+# Fonction commune pour traiter le callback
+async def process_keycloak_callback(code: str, redirect_uri: str):
+    """Traitement commun du callback Keycloak"""
+    try:
+        # Échanger le code contre un token
+        token_response = exchange_code_for_token(code, redirect_uri)
+
+        # Décoder le token pour avoir les infos utilisateur
+        from jose import jwt
+        from auth_keycloack import keycloak_openid
+
+        public_key = keycloak_openid.public_key()
+        keycloak_public_key = f"-----BEGIN PUBLIC KEY-----\n{public_key}\n-----END PUBLIC KEY-----"
+
+        token_info = jwt.decode(
+            token_response["access_token"],
+            keycloak_public_key,
+            algorithms=["RS256"],
+            audience="account"
+        )
+
+        # DEBUG - Afficher les rôles détectés
+        keycloak_roles = token_info.get('realm_access', {}).get('roles', [])
+        logger.info(f"DEBUG - Rôles Keycloak détectés: {keycloak_roles}")
+
+        # Convertir vers le format de ton User model existant
+        from auth_keycloack import keycloak_role_to_amdie_role, get_permissions_from_role
+
+        amdie_role = keycloak_role_to_amdie_role(keycloak_roles)
+        logger.info(f" DEBUG - Rôle AMDIE mappé: {amdie_role}")
+
+        user_response = User(
+            username=token_info.get('preferred_username', 'unknown'),
+            email=token_info.get('email', ''),
+            role=amdie_role,
+            permissions=get_permissions_from_role(amdie_role),
+            full_name=f"{token_info.get('given_name', '')} {token_info.get('family_name', '')}".strip(),
+            department="External" if amdie_role == "public" else "Internal" if amdie_role == "employee" else "Management"
+        )
+
+        logger.info(f" Connexion Keycloak réussie: {user_response.full_name} ({user_response.role})")
+
+        return LoginResponse(
+            access_token=token_response["access_token"],
+            token_type="bearer",
+            user=user_response,
+            expires_in=token_response.get("expires_in", 3600)
+        )
+
+    except Exception as e:
+        logger.error(f"Erreur callback Keycloak: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+# Route pour tester Keycloak (identique à ton /api/v1/auth/me mais avec Keycloak)
+@app.get("/api/v1/auth/keycloak/me", response_model=User, tags=["Keycloak"])
+async def get_me_keycloak(current_user: dict = Depends(get_current_user_keycloak)):
+    """Profil utilisateur Keycloak (même format que l'existant)"""
+    return User(
+        username=current_user["username"],
+        email=current_user["email"],
+        role=current_user["role"],
+        permissions=current_user["permissions"],
+        full_name=current_user["full_name"],
+        department=current_user["department"]
+    )
+
+
+# Route de traitement avec Keycloak (copie de ta route existante)
+@app.post("/api/v1/start-processing-keycloak", tags=["Keycloak"])
+async def start_processing_keycloak(
+        request: dict,
+        current_user: dict = Depends(get_current_user_keycloak)
+):
+    """Version Keycloak de start-processing"""
+    try:
+        # Même code que ton start-processing existant
+        if not check_permission_keycloak(current_user, "chat_basic"):
+            raise HTTPException(
+                status_code=403,
+                detail="Permission de chat requise"
+            )
+
+        question = request.get("question", "")
+        if not question.strip():
+            raise HTTPException(status_code=400, detail="Question requise")
+
+        session_id = f"session_keycloak_{current_user['role']}_{int(time.time())}_{os.urandom(4).hex()}"
+
+        await message_store.add_message(session_id, {
+            'type': 'progress',
+            'content': f'Connexion Keycloak réussie - Utilisateur: {current_user["full_name"]} ({current_user["role"]})',
+            'metadata': {
+                'source': 'api_orchestrator',
+                'user_role': current_user['role'],
+                'user_permissions': current_user['permissions'],
+                'auth_type': 'keycloak'
+            }
+        })
+
+        backend_path = "../backend_python"
+        script_path = os.path.join(backend_path, "chatbot_wrapper.py")
+
+        if not os.path.exists(script_path):
+            raise HTTPException(status_code=500, detail=f"Backend non trouvé: {script_path}")
+
+        user_permissions_str = ",".join(current_user['permissions'])
+
+        process = await asyncio.create_subprocess_exec(
+            "python3", script_path,
+            question,
+            session_id,
+            user_permissions_str,
+            current_user['role'],
+            cwd=backend_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        logger.info(f"Backend IA Keycloak démarré pour {current_user['username']} (session {session_id})")
+
+        return {
+            "sessionId": session_id,
+            "status": "processing_started",
+            "message": "Traitement IA Keycloak démarré avec succès",
+            "user": {
+                "role": current_user['role'],
+                "permissions": current_user['permissions'],
+                "name": current_user['full_name'],
+                "auth_type": "keycloak"
+            },
+            "process_id": process.pid
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erreur démarrage traitement Keycloak: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========================================
 # LANCEMENT DU SERVEUR
 # ========================================
 if __name__ == "__main__":

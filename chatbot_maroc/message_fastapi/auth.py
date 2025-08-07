@@ -2,9 +2,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import Dict, Optional
 import bcrypt
-from models import User, UserRole, LoginRequest, LoginResponse
 
 # Configuration JWT
 SECRET_KEY = "amdie-chatbot-secret-key-2025"
