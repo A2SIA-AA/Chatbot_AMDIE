@@ -4,13 +4,10 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { 
-  Loader, Send, Bot, User, Ellipsis, Server, Trash2, 
-  LogOut, Shield, Eye, EyeOff, Lock, UserCheck 
+import {
+  Loader, Send, Bot, User, Ellipsis, Server, Trash2,
+  LogOut, Shield, UserCheck, Key
 } from "lucide-react"
-import Image from "next/image"
 
 // ========================================
 // INTERFACES TYPESCRIPT
@@ -56,86 +53,135 @@ interface AuthState {
 }
 
 // ========================================
-// COMPOSANT DE CONNEXION
+// COMPOSANT DE CONNEXION KEYCLOAK
 // ========================================
 
-const LoginForm = ({ onLogin, isLoading }) => {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
+const KeycloakLoginForm = ({ onLogin, isLoading }) => {
   const [loginError, setLoginError] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
 
-  // Comptes de démonstration
-  const demoAccounts = [
-    {
-      email: "public@demo.ma",
-      password: "public123",
-      role: "Public",
-      description: "Accès aux données publiques uniquement",
-      color: "bg-blue-100 text-blue-800"
-    },
-    {
-      email: "salarie@amdie.ma",
-      password: "salarie123",
-      role: "Employé",
-      description: "Accès aux données publiques + internes",
-      color: "bg-green-100 text-green-800"
-    },
-    {
-      email: "admin@amdie.ma",
-      password: "admin123", 
-      role: "Admin",
-      description: "Accès complet à toutes les données",
-      color: "bg-purple-100 text-purple-800"
-    }
-  ]
+  const FASTAPI_BASE_URL = "http://0.0.0.0:8000"
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email || !password) {
-      setLoginError("Email et mot de passe requis")
-      return
-    }
+  // Gérer le callback Keycloak
+  useEffect(() => {
+    const handleKeycloakCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      const error = urlParams.get('error')
 
-    setIsSubmitting(true)
-    setLoginError("")
-    const FASTAPI_BASE_URL = "http://0.0.0.0:8000"
-
-    try {
-      const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: email.trim(), password })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Erreur de connexion')
+      if (error) {
+        setLoginError(`Erreur Keycloak: ${error}`)
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        return
       }
 
-      const data: LoginResponse = await response.json()
-      
-      // Stocker le token
-      localStorage.setItem('amdie_token', data.access_token)
-      localStorage.setItem('amdie_user', JSON.stringify(data.user))
-      
-      console.log(` Connexion réussie: ${data.user.full_name} (${data.user.role})`)
-      onLogin(data)
+      if (code) {
+        // Vérifier si on a déjà traité ce code (éviter la double exécution)
+        const processedCode = sessionStorage.getItem('processed_keycloak_code')
+        if (processedCode === code) {
+          console.log('️ Code déjà traité, ignore...')
+          window.history.replaceState({}, document.title, window.location.pathname)
+          return
+        }
+
+        setIsConnecting(true)
+
+        try {
+          console.log(" Échange du code Keycloak...")
+
+          // Marquer le code comme traité
+          sessionStorage.setItem('processed_keycloak_code', code)
+
+          const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/keycloak/callback`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              code: code,
+              redirect_uri: window.location.origin + window.location.pathname
+            })
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+
+            // Si le code est invalide, c'est probablement une réutilisation
+            if (errorData.detail && errorData.detail.includes('Code invalide')) {
+              setLoginError('Code de connexion expiré. Veuillez vous reconnecter.')
+              // Nettoyer et permettre une nouvelle tentative
+              sessionStorage.removeItem('processed_keycloak_code')
+            } else {
+              throw new Error(errorData.detail || 'Erreur callback Keycloak')
+            }
+            return
+          }
+
+          const data: LoginResponse = await response.json()
+
+          // Stocker le token Keycloak
+          localStorage.setItem('amdie_token', data.access_token)
+          localStorage.setItem('amdie_user', JSON.stringify(data.user))
+          localStorage.setItem('amdie_auth_type', 'keycloak')
+
+          console.log(` Connexion Keycloak réussie: ${data.user.full_name} (${data.user.role})`)
+
+          // Nettoyer l'URL et le code traité
+          window.history.replaceState({}, document.title, window.location.pathname)
+          sessionStorage.removeItem('processed_keycloak_code')
+
+          onLogin(data)
+
+        } catch (error) {
+          console.error(' Erreur callback Keycloak:', error)
+          setLoginError(error instanceof Error ? error.message : 'Erreur de connexion Keycloak')
+          // Nettoyer en cas d'erreur
+          window.history.replaceState({}, document.title, window.location.pathname)
+          sessionStorage.removeItem('processed_keycloak_code')
+        } finally {
+          setIsConnecting(false)
+        }
+      }
+    }
+
+    handleKeycloakCallback()
+  }, [onLogin])
+
+  const handleKeycloakLogin = async () => {
+    setIsConnecting(true)
+    setLoginError("")
+
+    try {
+      console.log(" Récupération URL Keycloak...")
+
+      const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/keycloak/login-url`)
+
+      if (!response.ok) {
+        throw new Error('Erreur récupération URL Keycloak')
+      }
+
+      const data = await response.json()
+      console.log(" Redirection vers Keycloak...")
+
+      // Rediriger vers Keycloak
+      window.location.href = data.auth_url
 
     } catch (error) {
-      console.error(' Erreur login:', error)
+      console.error(' Erreur login Keycloak:', error)
       setLoginError(error instanceof Error ? error.message : 'Erreur de connexion')
-    } finally {
-      setIsSubmitting(false)
+      setIsConnecting(false)
     }
   }
 
-  const quickLogin = (account) => {
-    setEmail(account.email)
-    setPassword(account.password)
+  const testConnection = async () => {
+    try {
+      const response = await fetch(`${FASTAPI_BASE_URL}/health`)
+      const data = await response.json()
+      alert(` Connexion API: ${data.status}`)
+    } catch (error) {
+      alert(" API non accessible")
+    }
   }
 
   return (
@@ -163,103 +209,69 @@ const LoginForm = ({ onLogin, isLoading }) => {
              Connexion Sécurisée
           </h1>
           <p className="text-gray-600 text-sm">
-            Assistant IA avec contrôle d'accès
+            Assistant IA avec authentification Keycloak
           </p>
         </div>
 
-        {/* Formulaire de connexion */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="votre@email.ma"
-              disabled={isSubmitting}
-              className="w-full"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">Mot de passe</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Votre mot de passe"
-                disabled={isSubmitting}
-                className="w-full pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                disabled={isSubmitting}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {loginError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
-              ❌ {loginError}
-            </div>
-          )}
-
-          <Button 
-            type="submit" 
-            className="w-full"
-            disabled={isSubmitting || isLoading}
+        {/* Bouton de connexion Keycloak */}
+        <div className="space-y-4">
+          <Button
+            onClick={handleKeycloakLogin}
+            className="w-full h-12 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+            disabled={isConnecting || isLoading}
           >
-            {isSubmitting ? (
+            {isConnecting ? (
               <>
-                <Loader className="w-4 h-4 mr-2 animate-spin" />
-                Connexion...
+                <Loader className="w-5 h-5 mr-2 animate-spin" />
+                Connexion en cours...
               </>
             ) : (
               <>
-                <Lock className="w-4 h-4 mr-2" />
-                Se connecter
+                <Key className="w-5 h-5 mr-2" />
+                Se connecter avec Keycloak
               </>
             )}
           </Button>
-        </form>
 
-        {/* Comptes de démonstration */}
+          {loginError && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+               {loginError}
+            </div>
+          )}
+        </div>
+
+        {/* Informations sur les rôles */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <h3 className="text-sm font-medium text-gray-700 mb-3 text-center">
-             Comptes de démonstration
+             Rôles disponibles sur Keycloak
           </h3>
-          <div className="space-y-2">
-            {demoAccounts.map((account, index) => (
-              <button
-                key={index}
-                onClick={() => quickLogin(account)}
-                className="w-full text-left p-2 rounded-md border border-gray-200 hover:bg-gray-50 transition-colors text-xs"
-                disabled={isSubmitting}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${account.color}`}>
-                      {account.role}
-                    </span>
-                    <p className="text-gray-600 mt-1">{account.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono text-xs text-gray-500">{account.email}</p>
-                  </div>
-                </div>
-              </button>
-            ))}
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between p-2 bg-blue-50 rounded">
+              <span className="font-medium text-blue-800">public-user</span>
+              <span className="text-blue-600">Accès données publiques</span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-green-50 rounded">
+              <span className="font-medium text-green-800">amdie-employee</span>
+              <span className="text-green-600">Accès données internes</span>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-purple-50 rounded">
+              <span className="font-medium text-purple-800">amdie-admin</span>
+              <span className="text-purple-600">Accès complet</span>
+            </div>
           </div>
-          <p className="text-xs text-gray-500 text-center mt-2">
-            Cliquez sur un compte pour remplir automatiquement
-          </p>
+        </div>
+
+        {/* Test de connexion */}
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <Button
+            onClick={testConnection}
+            variant="outline"
+            size="sm"
+            className="w-full"
+          >
+            <Server className="w-4 h-4 mr-2" />
+            Tester la connexion API
+          </Button>
         </div>
       </Card>
     </div>
@@ -267,7 +279,7 @@ const LoginForm = ({ onLogin, isLoading }) => {
 }
 
 // ========================================
-// COMPOSANT PRINCIPAL AVEC AUTHENTIFICATION
+// COMPOSANT PRINCIPAL AVEC KEYCLOAK
 // ========================================
 
 export default function ChatbotMarocPage() {
@@ -294,15 +306,39 @@ export default function ChatbotMarocPage() {
   // Vérification du token au chargement
   useEffect(() => {
     const checkAuthStatus = async () => {
+      // Vérifier si on revient d'un logout Keycloak
+      const urlParams = new URLSearchParams(window.location.search)
+      const isLogout = urlParams.get('logout')
+
+      if (isLogout) {
+        console.log('🔄 Retour après logout Keycloak détecté')
+        // Nettoyer l'URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        // Forcer l'état de déconnexion
+        setAuthState({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false
+        })
+        return
+      }
+
       const token = localStorage.getItem('amdie_token')
       const userStr = localStorage.getItem('amdie_user')
-      
+      const authType = localStorage.getItem('amdie_auth_type') || 'classic'
+
       if (token && userStr) {
         try {
           const user = JSON.parse(userStr)
-          
+
+          // Choisir le bon endpoint selon le type d'auth
+          const endpoint = authType === 'keycloak'
+            ? `${FASTAPI_BASE_URL}/api/v1/auth/keycloak/me`
+            : `${FASTAPI_BASE_URL}/api/v1/auth/me`
+
           // Vérifier la validité du token
-          const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/me`, {
+          const response = await fetch(endpoint, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -316,17 +352,19 @@ export default function ChatbotMarocPage() {
               isAuthenticated: true,
               isLoading: false
             })
-            console.log(` Session restaurée: ${currentUser.full_name}`)
+            console.log(`✅ Session ${authType} restaurée: ${currentUser.full_name}`)
           } else {
             // Token expiré ou invalide
             localStorage.removeItem('amdie_token')
             localStorage.removeItem('amdie_user')
+            localStorage.removeItem('amdie_auth_type')
             setAuthState(prev => ({ ...prev, isLoading: false }))
           }
         } catch (error) {
-          console.error(' Erreur vérification token:', error)
+          console.error('❌ Erreur vérification token:', error)
           localStorage.removeItem('amdie_token')
           localStorage.removeItem('amdie_user')
+          localStorage.removeItem('amdie_auth_type')
           setAuthState(prev => ({ ...prev, isLoading: false }))
         }
       } else {
@@ -349,8 +387,36 @@ export default function ChatbotMarocPage() {
 
   // Gestion de la déconnexion
   const handleLogout = async () => {
+    const authType = localStorage.getItem('amdie_auth_type') || 'classic'
+
+    if (authType === 'keycloak') {
+      console.log(' Déconnexion Keycloak locale...')
+
+      // Nettoyage immédiat
+      localStorage.removeItem('amdie_token')
+      localStorage.removeItem('amdie_user')
+      localStorage.removeItem('amdie_auth_type')
+      sessionStorage.clear()
+
+      // Mise à jour de l'état React immédiatement
+      setAuthState({
+        user: null,
+        token: null,
+        isAuthenticated: false,
+        isLoading: false
+      })
+
+      // Reset du chat
+      setMessages([])
+      setSession({ sessionId: null, isActive: false, lastTimestamp: 0 })
+      setIsLoading(false)
+
+      console.log(' Déconnexion locale réussie')
+      return
+    }
+
+    // Déconnexion classique
     try {
-      // Appeler l'API de déconnexion
       await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/logout`, {
         method: 'POST',
         headers: {
@@ -358,28 +424,30 @@ export default function ChatbotMarocPage() {
         }
       })
     } catch (error) {
-      console.error(' Erreur déconnexion:', error)
-    } finally {
-      // Nettoyer le localStorage et l'état
-      localStorage.removeItem('amdie_token')
-      localStorage.removeItem('amdie_user')
-      setAuthState({
-        user: null,
-        token: null,
-        isAuthenticated: false,
-        isLoading: false
-      })
-      
-      // Reset du chat
-      setMessages([])
-      setSession({ sessionId: null, isActive: false, lastTimestamp: 0 })
-      setIsLoading(false)
-      
-      console.log(' Déconnexion réussie')
+      console.error(' Erreur déconnexion API:', error)
     }
+
+    // Nettoyer le localStorage et l'état pour auth classique
+    localStorage.removeItem('amdie_token')
+    localStorage.removeItem('amdie_user')
+    localStorage.removeItem('amdie_auth_type')
+
+    setAuthState({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false
+    })
+
+    // Reset du chat
+    setMessages([])
+    setSession({ sessionId: null, isActive: false, lastTimestamp: 0 })
+    setIsLoading(false)
+
+    console.log(' Déconnexion classique réussie')
   }
 
-  // Fonction d'envoi de message MODIFIÉE pour inclure l'auth
+  // Fonction d'envoi de message avec authentification
   const sendMessage = async (message: string) => {
     if (!message.trim() || isLoading || !authState.isAuthenticated) return
 
@@ -396,14 +464,20 @@ export default function ChatbotMarocPage() {
     setIsLoading(true)
 
     try {
-      console.log(` Envoi question avec rôle: ${authState.user?.role}`)
+      console.log(`🚀 Envoi question avec rôle: ${authState.user?.role}`)
 
-      const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/start-processing`, {
+      // Utiliser l'endpoint Keycloak si c'est une session Keycloak
+      const authType = localStorage.getItem('amdie_auth_type') || 'classic'
+      const endpoint = authType === 'keycloak'
+        ? `${FASTAPI_BASE_URL}/api/v1/start-processing-keycloak`
+        : `${FASTAPI_BASE_URL}/api/v1/start-processing`
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Bearer ${authState.token}` // TOKEN JWT
+          'Authorization': `Bearer ${authState.token}`
         },
         body: JSON.stringify({ question: message.trim() }),
         mode: 'cors'
@@ -424,7 +498,7 @@ export default function ChatbotMarocPage() {
       const data = await response.json()
       const { sessionId } = data
 
-      console.log(` Session démarrée: ${sessionId} pour ${authState.user?.role}`)
+      console.log(`✅ Session démarrée: ${sessionId} pour ${authState.user?.role}`)
 
       setSession({
         sessionId,
@@ -436,10 +510,10 @@ export default function ChatbotMarocPage() {
       startPolling(sessionId)
 
     } catch (error) {
-      console.error(" Erreur envoi:", error)
+      console.error("❌ Erreur envoi:", error)
       const errorMessage: Message = {
         role: 'assistant',
-        content: ` ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        content: `❌ ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
         timestamp: new Date(),
         messageId: generateMessageId()
       }
@@ -451,7 +525,7 @@ export default function ChatbotMarocPage() {
   // Fonction utilitaire
   const generateMessageId = () => `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 
-  // Polling (identique à votre version existante)
+  // Polling (identique à la version existante)
   const startPolling = (sessionId: string) => {
     let lastTimestamp = 0
     let isFinished = false
@@ -471,9 +545,9 @@ export default function ChatbotMarocPage() {
           `${FASTAPI_BASE_URL}/api/v1/messages/${sessionId}?since=${lastTimestamp}`,
           {
             method: 'GET',
-            headers: { 
+            headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${authState.token}` // TOKEN JWT
+              'Authorization': `Bearer ${authState.token}`
             },
             mode: 'cors'
           }
@@ -547,7 +621,7 @@ export default function ChatbotMarocPage() {
         }
 
       } catch (error) {
-        console.error(" Erreur polling:", error)
+        console.error("❌ Erreur polling:", error)
         if (!isFinished) {
           setTimeout(pollMessages, 2000)
         }
@@ -562,7 +636,7 @@ export default function ChatbotMarocPage() {
         setIsLoading(false)
         const timeoutMessage: Message = {
           role: 'assistant',
-          content: ' Le traitement prend trop de temps. Veuillez réessayer.',
+          content: '⏱️ Le traitement prend trop de temps. Veuillez réessayer.',
           timestamp: new Date(),
           messageId: generateMessageId()
         }
@@ -605,14 +679,14 @@ export default function ChatbotMarocPage() {
       try {
         await fetch(`${FASTAPI_BASE_URL}/api/v1/messages/${session.sessionId}`, {
           method: 'DELETE',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authState.token}`
           },
           mode: 'cors'
         })
       } catch (err) {
-        console.error(" Erreur nettoyage session:", err)
+        console.error("❌ Erreur nettoyage session:", err)
       }
     }
 
@@ -636,9 +710,9 @@ export default function ChatbotMarocPage() {
     try {
       const response = await fetch(`${FASTAPI_BASE_URL}/health`, { mode: 'cors' })
       const data = await response.json()
-      alert(` Connexion API: ${data.status}`)
+      alert(`✅ Connexion API: ${data.status}`)
     } catch (error) {
-      alert(" API non accessible")
+      alert("❌ API non accessible")
     }
   }
 
@@ -646,7 +720,7 @@ export default function ChatbotMarocPage() {
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'public': return 'bg-blue-100 text-blue-800'
-      case 'employee': return 'bg-green-100 text-green-800'  
+      case 'employee': return 'bg-green-100 text-green-800'
       case 'admin': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
@@ -664,12 +738,14 @@ export default function ChatbotMarocPage() {
     )
   }
 
-  // Si non authentifié, afficher le formulaire de connexion
+  // Si non authentifié, afficher le formulaire de connexion Keycloak
   if (!authState.isAuthenticated) {
-    return <LoginForm onLogin={handleLogin} isLoading={authState.isLoading} />
+    return <KeycloakLoginForm onLogin={handleLogin} isLoading={authState.isLoading} />
   }
 
   // Interface principale avec utilisateur connecté
+  const authType = localStorage.getItem('amdie_auth_type') || 'classic'
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
       <div className="container mx-auto p-4 h-screen flex flex-col max-w-4xl">
@@ -706,6 +782,11 @@ export default function ChatbotMarocPage() {
               <span className={`px-2 py-1 rounded text-xs font-medium ${getRoleColor(authState.user?.role || '')}`}>
                 {authState.user?.role?.toUpperCase()}
               </span>
+              {authType === 'keycloak' && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
+                  KEYCLOAK
+                </span>
+              )}
             </div>
 
             {/* Info session */}
@@ -727,18 +808,35 @@ export default function ChatbotMarocPage() {
               <Server className="w-3 h-3 mr-1" />
               Test
             </Button>
-            
+
             {messages.length > 0 && (
               <Button onClick={clearChat} variant="outline" size="sm" disabled={isLoading}>
                 <Trash2 className="w-3 h-3 mr-1" />
                 Reset
               </Button>
             )}
-            
-            <Button onClick={handleLogout} variant="outline" size="sm">
-              <LogOut className="w-3 h-3 mr-1" />
-              Déconnexion
-            </Button>
+
+            {/* Bouton déconnexion Keycloak complète */}
+            {authType === 'keycloak' && (
+              <Button
+                onClick={() => {
+                  // Marquer la déconnexion en cours
+                  localStorage.setItem('keycloak_logout_pending', 'true')
+
+                  // Déconnexion complète Keycloak
+                  localStorage.clear()
+                  sessionStorage.clear()
+
+                  // Rédiriger vers logout Keycloak puis revenir
+                  window.location.href = `http://localhost:8080/realms/AMDIE_CHATBOT/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent(window.location.origin + '?logout=true')}`
+                }}
+                variant="destructive"
+                size="sm"
+              >
+                <Key className="w-3 h-3 mr-1" />
+                Déconnexion
+              </Button>
+            )}
           </div>
         </div>
 
@@ -753,12 +851,12 @@ export default function ChatbotMarocPage() {
               <div className="text-center space-y-6">
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-gray-800">
-                     Assistant IA AMDIE
+                    🤖 Assistant IA AMDIE
                   </h2>
                   <div className="flex items-center justify-center gap-2">
                     <Shield className="w-4 h-4 text-green-600" />
                     <span className="text-sm text-gray-600">
-                      Connecté avec niveau d'accès: 
+                      Connecté via {authType === 'keycloak' ? 'Keycloak' : 'Auth classique'} avec niveau d'accès:
                       <span className={`ml-1 px-2 py-1 rounded text-xs font-medium ${getRoleColor(authState.user?.role || '')}`}>
                         {authState.user?.role?.toUpperCase()}
                       </span>
@@ -782,7 +880,7 @@ export default function ChatbotMarocPage() {
 
                 {/* Permissions actuelles */}
                 <div className="bg-gray-50 rounded-lg p-4 text-xs">
-                  <h4 className="font-medium text-gray-700 mb-2"> Vos permissions actuelles:</h4>
+                  <h4 className="font-medium text-gray-700 mb-2">🔐 Vos permissions actuelles:</h4>
                   <div className="flex flex-wrap gap-1">
                     {authState.user?.permissions.map((perm, idx) => (
                       <span key={idx} className="bg-white px-2 py-1 rounded border text-gray-600">
@@ -872,7 +970,7 @@ export default function ChatbotMarocPage() {
               <Textarea
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder={`Posez votre question (accès niveau ${authState.user?.role})...`}
+                placeholder={`Posez votre question (accès niveau ${authState.user?.role} via ${authType})...`}
                 rows={1}
                 disabled={isLoading}
                 className="resize-none"

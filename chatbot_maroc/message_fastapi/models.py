@@ -58,13 +58,31 @@ class UserRole(str, Enum):
     EMPLOYEE = "employee"
     ADMIN = "admin"
 
+from pydantic import BaseModel
+from typing import List, Optional
+
 class User(BaseModel):
     username: str
     email: str
-    role: UserRole
-    permissions: list[str]
+    role: str
+    permissions: List[str]
     full_name: str
     department: str
+
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: User
+    expires_in: int
+    refresh_token: Optional[str] = None
+
+class KeycloakAuthUrl(BaseModel):
+    auth_url: str
+    state: Optional[str] = None
+
+class TokenExchangeRequest(BaseModel):
+    code: str
+    redirect_uri: str
 
 class LoginRequest(BaseModel):
     email: str
