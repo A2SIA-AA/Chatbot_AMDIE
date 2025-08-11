@@ -69,12 +69,6 @@ class User(BaseModel):
     full_name: str
     department: str
 
-class LoginResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-    user: User
-    expires_in: int
-    refresh_token: Optional[str] = None
 
 class KeycloakAuthUrl(BaseModel):
     auth_url: str
