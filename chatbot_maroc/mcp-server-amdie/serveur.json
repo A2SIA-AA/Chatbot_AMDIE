@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "amdie_stdio": {
+      "type": "stdio",
+      "command": "/home/aissa/Bureau/Projet_Chatbot/.venv/bin/python",
+      "args": ["mcp-server-amdie/server.py", "--transport", "stdio"],
+      "description": "AMDIE RAG via STDIO"
+    },
+    "amdie_http": {
+      "type": "http",
+      "url": "http://127.0.0.1:8765/mcp/",
+      "description": "AMDIE RAG via HTTP streamable"
+    }
+  }
+}

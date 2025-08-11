@@ -60,7 +60,7 @@ const KeycloakLoginForm = ({ onLogin, isLoading }) => {
   const [loginError, setLoginError] = useState("")
   const [isConnecting, setIsConnecting] = useState(false)
 
-  const FASTAPI_BASE_URL = "http://0.0.0.0:8000"
+  const FASTAPI_BASE_URL = "http://localhost:8000"
 
   // Gérer le callback Keycloak
   useEffect(() => {
@@ -155,7 +155,11 @@ const KeycloakLoginForm = ({ onLogin, isLoading }) => {
     try {
       console.log(" Récupération URL Keycloak...")
 
-      const response = await fetch(`${FASTAPI_BASE_URL}/api/v1/auth/keycloak/login-url`)
+      const redirectUri = window.location.origin + window.location.pathname
+        const response = await fetch(
+  `${FASTAPI_BASE_URL}/api/v1/auth/keycloak/login-url?redirect_uri=${encodeURIComponent(redirectUri)}`
+        )
+
 
       if (!response.ok) {
         throw new Error('Erreur récupération URL Keycloak')
@@ -464,7 +468,7 @@ export default function ChatbotMarocPage() {
     setIsLoading(true)
 
     try {
-      console.log(`🚀 Envoi question avec rôle: ${authState.user?.role}`)
+      console.log(` Envoi question avec rôle: ${authState.user?.role}`)
 
       // Utiliser l'endpoint Keycloak si c'est une session Keycloak
       const authType = localStorage.getItem('amdie_auth_type') || 'classic'

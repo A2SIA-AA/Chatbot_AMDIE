@@ -45,10 +45,10 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://10.35.100.119:3000",
+        "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -452,12 +452,11 @@ class TokenExchangeRequest(BaseModel):
     redirect_uri: str
 
 
-# Route pour obtenir l'URL de connexion Keycloak
 @app.get("/api/v1/auth/keycloak/login-url", response_model=KeycloakAuthUrl, tags=["Keycloak"])
-async def get_keycloak_auth_url():
-    """Obtenir l'URL de connexion Keycloak"""
-    auth_url = get_keycloak_login_url()
-    return KeycloakAuthUrl(auth_url=auth_url)
+async def get_keycloak_auth_url(redirect_uri: str | None = Query(None)):
+    # si le front fournit ?redirect_uri=..., on le respecte
+    auth_url = get_keycloak_login_url(redirect_uri=redirect_uri)
+    return {"auth_url": auth_url}
 
 
 from fastapi import Request
@@ -478,8 +477,8 @@ async def keycloak_callback_get(request: Request):
     if not code:
         raise HTTPException(status_code=400, detail="Code manquant")
 
-    # Construire l'URL de redirection
-    redirect_uri = str(request.base_url).rstrip('/') + '/'
+    # IMPORTANT: le redirect_uri doit être le même que celui utilisé au login
+    redirect_uri = "http://localhost:8000/api/v1/auth/keycloak/callback"
 
     return await process_keycloak_callback(code, redirect_uri)
 
@@ -633,7 +632,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        host="localhost",
         port=8000,
         reload=True,
         log_level="info"
