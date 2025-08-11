@@ -158,10 +158,14 @@ def require_permission_keycloak(permission: str):
     return permission_checker
 
 
-def get_keycloak_login_url() -> str:
-    """URL pour rediriger vers Keycloak"""
+def get_keycloak_login_url(redirect_uri: str | None = None) -> str:
+    if not redirect_uri:
+        # valeur par défaut (si tu veux garder le flow côté API)
+        redirect_uri = "http://localhost:8000/api/v1/auth/keycloak/callback"
+
     return keycloak_openid.auth_url(
-        redirect_uri="http://localhost:3000/"
+        redirect_uri=redirect_uri,
+        scope="openid"
     )
 
 
