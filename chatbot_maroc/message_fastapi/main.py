@@ -551,7 +551,7 @@ async def get_me_keycloak(current_user: dict = Depends(get_current_user_keycloak
     )
 
 
-# Route de traitement avec Keycloak (copie de ta route existante)
+# Route de traitement avec Keycloak
 @app.post("/api/v1/start-processing-keycloak", tags=["Keycloak"])
 async def start_processing_keycloak(
         request: dict,
@@ -559,7 +559,6 @@ async def start_processing_keycloak(
 ):
     """Version Keycloak de start-processing"""
     try:
-        # Même code que ton start-processing existant
         if not check_permission_keycloak(current_user, "chat_basic"):
             raise HTTPException(
                 status_code=403,

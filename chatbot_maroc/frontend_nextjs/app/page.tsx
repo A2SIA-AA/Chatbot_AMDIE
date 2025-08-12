@@ -640,7 +640,7 @@ export default function ChatbotMarocPage() {
         setIsLoading(false)
         const timeoutMessage: Message = {
           role: 'assistant',
-          content: '⏱️ Le traitement prend trop de temps. Veuillez réessayer.',
+          content: ' Le traitement prend trop de temps. Veuillez réessayer.',
           timestamp: new Date(),
           messageId: generateMessageId()
         }
