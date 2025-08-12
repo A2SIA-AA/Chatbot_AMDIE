@@ -58,7 +58,8 @@ def setup_environment():
 # COMMUNICATION AVEC FASTAPI
 # ========================================
 
-FASTAPI_URL = "http://localhost:8000/api/v1/messages"
+FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/api/v1/messages")
+
 
 
 def send_to_fastapi(session_id: str, message_type: str, content: str, metadata: dict = None):

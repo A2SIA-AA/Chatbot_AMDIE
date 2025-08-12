@@ -18,6 +18,9 @@ from models import LoginRequest, LoginResponse, User
 from models import MessageRequest, MessagesResponse, SuccessResponse, MessageResponse
 from message_store import message_store
 
+from mcp_client_utils import mcp_start_backend
+
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # ========================================
@@ -343,28 +346,28 @@ async def start_processing(
 
         # LANCER LE BACKEND avec les permissions utilisateur
         try:
-            # Passer les permissions comme argument supplémentaire
-            user_permissions_str = ",".join(current_user['permissions'])
+            # permissions_csv : adapte selon ton code (liste -> csv)
+            permissions_csv = ",".join(current_user['permissions']) if isinstance(current_user['permissions'], list) else str(current_user['permissions'])
 
-            process = await asyncio.create_subprocess_exec(
-                "python3", script_path,
-                question,
-                session_id,
-                user_permissions_str,
-                current_user['role'],
-                cwd=backend_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-
-            logger.info(f"Backend IA démarré pour {current_user['username']} (session {session_id})")
+            # Appel du serveur MCP (tool "start_backend")
+            try:
+                mcp_res = await mcp_start_backend(
+                    question=question,
+                    session_id=session_id,
+                    permissions_csv=permissions_csv,
+                    role=current_user['role'],  # "public" | "employee" | "admin"
+                )
+                # Log optionnel
+                print("[API] MCP start_backend ->", mcp_res)
+            except Exception as e:
+                # Si le serveur MCP n'est pas joignable, renvoyer une 502
+                raise HTTPException(status_code=502, detail=f"MCP backend indisponible: {e}")
 
             await message_store.add_message(session_id, {
                 'type': 'progress',
                 'content': f'Backend IA initialisé avec permissions {current_user["role"]}',
                 'metadata': {
                     'source': 'api_orchestrator',
-                    'process_id': process.pid,
                     'user_role': current_user['role']
                 }
             })
@@ -386,8 +389,7 @@ async def start_processing(
                 "role": current_user['role'],
                 "permissions": current_user['permissions'],
                 "name": current_user['full_name']
-            },
-            "process_id": process.pid
+            }
         }
 
     except HTTPException:
@@ -582,24 +584,20 @@ async def start_processing_keycloak(
             }
         })
 
-        backend_path = "../backend_python"
-        script_path = os.path.join(backend_path, "chatbot_wrapper.py")
+        permissions_csv = ",".join(current_user['permissions']) if isinstance(current_user['permissions'],
+                                                                              list) else str(
+            current_user['permissions'])
 
-        if not os.path.exists(script_path):
-            raise HTTPException(status_code=500, detail=f"Backend non trouvé: {script_path}")
-
-        user_permissions_str = ",".join(current_user['permissions'])
-
-        process = await asyncio.create_subprocess_exec(
-            "python3", script_path,
-            question,
-            session_id,
-            user_permissions_str,
-            current_user['role'],
-            cwd=backend_path,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE
-        )
+        try:
+            mcp_res = await mcp_start_backend(
+                question=question,
+                session_id=session_id,
+                permissions_csv=permissions_csv,
+                role=current_user['role'],
+            )
+            logger.info(f"[API] MCP start_backend -> {mcp_res}")
+        except Exception as e:
+            raise HTTPException(status_code=502, detail=f"MCP backend indisponible: {e}")
 
         logger.info(f"Backend IA Keycloak démarré pour {current_user['username']} (session {session_id})")
 
@@ -612,8 +610,7 @@ async def start_processing_keycloak(
                 "permissions": current_user['permissions'],
                 "name": current_user['full_name'],
                 "auth_type": "keycloak"
-            },
-            "process_id": process.pid
+            }
         }
 
     except HTTPException:

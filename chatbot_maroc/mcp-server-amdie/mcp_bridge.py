@@ -44,7 +44,7 @@ async def poll_messages(session_id: str, since: float = 0.0) -> Dict[str, Any]:
     """
     Récupère les messages d'une session.
     - Appelle GET /api/v1/messages/{session_id}?since=...
-    - Retourne { messages: [...] }
+    - Retourne {messages: [...]}
     """
     return await _call("GET", f"/api/v1/messages/{session_id}", params={"since": since})
 
