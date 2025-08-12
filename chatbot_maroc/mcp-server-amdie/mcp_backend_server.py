@@ -43,7 +43,7 @@ async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, r
     )
     PROCS[session_id] = proc
 
-    # lecture asynchrone minimaliste pour log (non bloquant)
+    # lecture asynchrone minimaliste pour log
     async def _drain(name, stream):
         try:
             while True:
@@ -84,14 +84,6 @@ async def start_backend(question: str, session_id: str, permissions_csv: str, ro
     return await _spawn_wrapper(question, session_id, permissions_csv, role)
 
 @mcp.tool
-async def cancel_session(session_id: str) -> Dict[str, Any]:
-    """
-    Arrête proprement le process backend associé à la session.
-    """
-    print(f"[MCP] cancel_session session={session_id}")
-    return await _cancel_session(session_id)
-
-@mcp.tool
 async def health() -> Dict[str, Any]:
     """
     Santé du serveur MCP backend.
@@ -107,5 +99,5 @@ async def health() -> Dict[str, Any]:
 # --------- RUN ----------
 if __name__ == "__main__":
     port = int(os.getenv("MCP_BACKEND_PORT", "8090"))
-    # serveur MCP (HTTP+SSE)
+    # serveur MCP
     mcp.run(transport="http", host="0.0.0.0", port=port, path="/mcp")
