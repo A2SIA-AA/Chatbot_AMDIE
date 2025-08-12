@@ -35,6 +35,7 @@ async def run_chat_keycloak(question: str, token: str) -> Dict[str, Any]:
     - Appelle POST /api/v1/start-processing-keycloak
     - Retourne au minimum: { sessionId, status, message, user }
     """
+    print("fonction run_chat_keycloak")
     payload = {"question": question}
     return await _call("POST", "/api/v1/start-processing-keycloak", token=token, json=payload)
 

@@ -191,7 +191,7 @@ def process_question_with_permissions(chatbot, question: str, session_id: str, u
     """
     Traite la question avec les agents en utilisant les permissions JWT
 
-    CORRECTION: Capture robuste des outputs et gestion d'erreurs
+    Capture robuste des outputs et gestion d'erreurs
     """
     try:
         send_progress(session_id, f"Traitement avec niveau d'accès pour: '{question[:50]}...'")
