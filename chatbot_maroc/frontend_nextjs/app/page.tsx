@@ -305,7 +305,7 @@ export default function ChatbotMarocPage() {
     lastTimestamp: 0
   })
 
-  const FASTAPI_BASE_URL = "http://0.0.0.0:8000"
+  const FASTAPI_BASE_URL = "http://localhost:8000"
 
   // Vérification du token au chargement
   useEffect(() => {
