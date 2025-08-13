@@ -356,7 +356,7 @@ export default function ChatbotMarocPage() {
               isAuthenticated: true,
               isLoading: false
             })
-            console.log(`✅ Session ${authType} restaurée: ${currentUser.full_name}`)
+            console.log(` Session ${authType} restaurée: ${currentUser.full_name}`)
           } else {
             // Token expiré ou invalide
             localStorage.removeItem('amdie_token')
@@ -365,7 +365,7 @@ export default function ChatbotMarocPage() {
             setAuthState(prev => ({ ...prev, isLoading: false }))
           }
         } catch (error) {
-          console.error('❌ Erreur vérification token:', error)
+          console.error(' Erreur vérification token:', error)
           localStorage.removeItem('amdie_token')
           localStorage.removeItem('amdie_user')
           localStorage.removeItem('amdie_auth_type')
@@ -502,7 +502,7 @@ export default function ChatbotMarocPage() {
       const data = await response.json()
       const { sessionId } = data
 
-      console.log(`✅ Session démarrée: ${sessionId} pour ${authState.user?.role}`)
+      console.log(` Session démarrée: ${sessionId} pour ${authState.user?.role}`)
 
       setSession({
         sessionId,
@@ -514,10 +514,10 @@ export default function ChatbotMarocPage() {
       startPolling(sessionId)
 
     } catch (error) {
-      console.error("❌ Erreur envoi:", error)
+      console.error(" Erreur envoi:", error)
       const errorMessage: Message = {
         role: 'assistant',
-        content: `❌ ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
+        content: ` ${error instanceof Error ? error.message : 'Erreur inconnue'}`,
         timestamp: new Date(),
         messageId: generateMessageId()
       }
@@ -625,7 +625,7 @@ export default function ChatbotMarocPage() {
         }
 
       } catch (error) {
-        console.error("❌ Erreur polling:", error)
+        console.error(" Erreur polling:", error)
         if (!isFinished) {
           setTimeout(pollMessages, 2000)
         }
@@ -690,7 +690,7 @@ export default function ChatbotMarocPage() {
           mode: 'cors'
         })
       } catch (err) {
-        console.error("❌ Erreur nettoyage session:", err)
+        console.error(" Erreur nettoyage session:", err)
       }
     }
 
@@ -714,9 +714,9 @@ export default function ChatbotMarocPage() {
     try {
       const response = await fetch(`${FASTAPI_BASE_URL}/health`, { mode: 'cors' })
       const data = await response.json()
-      alert(`✅ Connexion API: ${data.status}`)
+      alert(` Connexion API: ${data.status}`)
     } catch (error) {
-      alert("❌ API non accessible")
+      alert(" API non accessible")
     }
   }
 
