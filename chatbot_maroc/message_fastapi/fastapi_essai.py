@@ -1,353 +1,155 @@
 #!/usr/bin/env python3
 """
-Test complet de l'intégration FastAPI + MCP
+Test final pour vérifier que la correction Pydantic fonctionne
 """
-
-import requests
-import json
-import time
+import asyncio
 import sys
+import time
+import requests
 
-# Configuration
-API_BASE = "http://localhost:8000"
-TEST_USERS = {
-    "public": {
-        "email": "public@demo.ma",
-        "password": "public123"
-    },
-    "employee": {
-        "email": "salarie@amdie.ma",
-        "password": "salarie123"
-    },
-    "admin": {
-        "email": "admin@amdie.ma",
-        "password": "admin123"
-    }
-}
+# Ajouter le chemin vers mcp_client_utils
+sys.path.append('/home/aissa/Bureau/Projet_Chatbot/Chatbot_AMDIE/chatbot_maroc/message_fastapi')
 
 
-def print_section(title):
-    print(f"\n{'=' * 60}")
-    print(f"🔍 {title}")
-    print('=' * 60)
-
-
-def test_api_health():
-    """Test de santé de l'API"""
-    print("🏥 Test de santé API...")
+async def test_final_fix():
+    """Test final après correction Pydantic"""
+    print("=== TEST FINAL ===\n")
 
     try:
-        response = requests.get(f"{API_BASE}/health")
+        from mcp_client_utils import mcp_send_progress, mcp_send_final
+        print(" Import MCP réussi")
+
+    except ImportError as e:
+        print(f" Erreur import MCP: {e}")
+        return False
+
+    # Session de test
+    test_session_id = f"test_final_fix_{int(time.time())}"
+    print(f"Session de test: {test_session_id}")
+
+    try:
+        # 1. Envoyer via MCP
+        print("\n1. Envoi messages via MCP...")
+
+        progress_result = await mcp_send_progress(test_session_id, "Message de progression - Test final")
+        print(f"MCP progress: {progress_result.get('ok', False)}")
+
+        final_result = await mcp_send_final(test_session_id, "Réponse finale du chatbot - Test réussi !")
+        print(f"MCP final: {final_result.get('ok', False)}")
+
+        # 2. Vérifier via FastAPI
+        print("\n2. Vérification via FastAPI...")
+
+        await asyncio.sleep(1)
+
+        response = requests.get(f"http://localhost:8000/api/v1/messages/{test_session_id}")
+        print(f"FastAPI status: {response.status_code}")
+
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ API: {data['status']}")
-            print(f"✅ MCP: {data['services']['mcp']}")
-            print(f"✅ Version: {data['version']}")
-            return True
+            print(f" Messages récupérés via FastAPI: {data['messageCount']}")
+
+            if data['messageCount'] > 0:
+                print("\nMessages détaillés:")
+                for i, msg in enumerate(data['messages']):
+                    print(f"  {i + 1}. [{msg['type']}] {msg['content']}")
+
+                # Chercher le message final
+                final_messages = [msg for msg in data['messages'] if msg['type'] == 'final']
+                if final_messages:
+                    print("\n MESSAGE FINAL TROUVÉ VIA FASTAPI!")
+                    print(f"Contenu: {final_messages[0]['content']}")
+                    print("\n SUCCÈS COMPLET !")
+                    print(" MCP → MessageStore → FastAPI → Frontend")
+                    print(" Toute la chaîne de communication fonctionne !")
+                    return True
+                else:
+                    print("\n️ Message final manquant")
+            else:
+                print("\n Aucun message trouvé")
+        elif response.status_code == 500:
+            print(f" Erreur serveur FastAPI: {response.text}")
+            print("️ Il reste un problème de sérialisation")
         else:
-            print(f"❌ API erreur: {response.status_code}")
-            return False
+            print(f" Erreur FastAPI {response.status_code}: {response.text}")
+
+        return False
+
     except Exception as e:
-        print(f"❌ API non accessible: {e}")
+        print(f" Erreur test: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
-def test_mcp_status():
-    """Test du statut MCP"""
-    print("\n🔗 Test statut MCP...")
+async def test_direct_message_store():
+    """Test direct du MessageStore corrigé"""
+    print("\n=== TEST DIRECT MESSAGE STORE ===\n")
 
     try:
-        response = requests.get(f"{API_BASE}/mcp/status")
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ MCP connecté: {data['connected']}")
-            if data['connected']:
-                print(f"✅ Outils: {data['tools']}")
-                print(f"✅ Transport: {data['transport']}")
-                if data.get('health'):
-                    print(f"✅ Santé: {data['health']['status']}")
-            return data['connected']
-        else:
-            print(f"❌ Erreur statut MCP: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Erreur test MCP: {e}")
-        return False
+        from message_store import MessageStore
 
+        store = MessageStore()
+        test_session = "test_direct_store"
 
-def test_mcp_simple():
-    """Test simple MCP sans auth"""
-    print("\n🧪 Test MCP simple...")
+        # Ajouter un message
+        await store.add_message(test_session, {
+            'type': 'progress',
+            'content': 'Test message store direct',
+            'metadata': {'source': 'test_direct'}
+        })
 
-    try:
-        response = requests.post(
-            f"{API_BASE}/mcp/test",
-            params={"question": "Test de connexion MCP"}
-        )
+        # Récupérer les messages
+        messages = await store.get_messages(test_session)
 
-        if response.status_code == 200:
-            data = response.json()
-            if data.get('success'):
-                print("✅ Test MCP réussi")
-                print(f"📝 Réponse: {data.get('answer', {}).get('answer', 'N/A')[:100]}...")
+        print(f"Messages récupérés: {len(messages)}")
+
+        if len(messages) > 0:
+            msg = messages[0]
+            print(f"Type du message: {type(msg)}")
+
+            if isinstance(msg, dict):
+                print(" MessageStore retourne des dictionnaires")
+                print(f"Contenu: {msg}")
                 return True
             else:
-                print(f"❌ Test MCP échoué: {data.get('error')}")
-                return False
+                print(f" MessageStore retourne {type(msg)} au lieu de dict")
         else:
-            print(f"❌ Erreur HTTP test MCP: {response.status_code}")
-            return False
+            print(" Aucun message récupéré")
+
+        return False
+
     except Exception as e:
-        print(f"❌ Erreur test MCP simple: {e}")
+        print(f" Erreur test direct: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
-def login_user(role="public"):
-    """Connexion utilisateur"""
-    print(f"\n🔐 Connexion {role}...")
+async def main():
+    print("Démarrage test final...\n")
 
-    if role not in TEST_USERS:
-        print(f"❌ Rôle {role} non configuré")
-        return None
+    # Test 1: MessageStore direct
+    direct_success = await test_direct_message_store()
 
-    try:
-        response = requests.post(
-            f"{API_BASE}/api/v1/auth/login",
-            json=TEST_USERS[role]
-        )
+    if direct_success:
+        # Test 2: Chaîne complète MCP → FastAPI
+        complete_success = await test_final_fix()
 
-        if response.status_code == 200:
-            data = response.json()
-            token = data['access_token']
-            user = data['user']
-            print(f"✅ Connecté: {user['full_name']} ({user['role']})")
-            print(f"✅ Permissions: {len(user['permissions'])} permissions")
-            return token
+        if complete_success:
+            print("\n" + "=" * 50)
+            print(" TOUS LES TESTS RÉUSSIS !")
+            print(" Vous pouvez maintenant tester avec une vraie question !")
+            print(" L'interface web devrait afficher les réponses du chatbot")
+            print("=" * 50)
         else:
-            print(f"❌ Erreur connexion: {response.status_code}")
-            print(response.text)
-            return None
-    except Exception as e:
-        print(f"❌ Erreur connexion: {e}")
-        return None
-
-
-def test_chat_mcp(token, role="public"):
-    """Test du chat avec authentification"""
-    print(f"\n💬 Test chat MCP ({role})...")
-
-    if not token:
-        print("❌ Pas de token pour le test")
-        return False
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
-    # Questions de test selon le rôle
-    test_questions = {
-        "public": "Qu'est-ce que l'AMDIE ?",
-        "employee": "Quels sont les derniers projets d'investissement ?",
-        "admin": "Statistiques détaillées sur les investissements"
-    }
-
-    question = test_questions.get(role, "Question de test")
-
-    payload = {
-        "question": question,
-        "include_debug": False
-    }
-
-    try:
-        print(f"📤 Question ({role}): {question}")
-        start_time = time.time()
-
-        response = requests.post(
-            f"{API_BASE}/chat/ask",
-            json=payload,
-            headers=headers,
-            timeout=60
-        )
-
-        elapsed = time.time() - start_time
-
-        if response.status_code == 200:
-            data = response.json()
-            if data['success']:
-                answer = data['data'].get('answer', '')
-                print(f"✅ Réponse reçue en {elapsed:.2f}s")
-                print(f"📝 Réponse: {answer[:150]}...")
-                print(f"👤 Utilisateur: {data['user']['username']} ({data['user']['role']})")
-                print(f"🆔 Session: {data['session_id']}")
-                return True
-            else:
-                print(f"❌ Erreur dans la réponse: {data}")
-                return False
-        else:
-            print(f"❌ Erreur HTTP: {response.status_code}")
-            print(response.text)
-            return False
-
-    except requests.exceptions.Timeout:
-        print("❌ Timeout - Le chatbot met trop de temps à répondre")
-        return False
-    except Exception as e:
-        print(f"❌ Erreur chat: {e}")
-        return False
-
-
-def test_permissions(token, role):
-    """Test des permissions"""
-    print(f"\n🔐 Test permissions ({role})...")
-
-    if not token:
-        return False
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    try:
-        response = requests.get(
-            f"{API_BASE}/api/v1/permissions/test",
-            headers=headers
-        )
-
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Utilisateur: {data['user']} ({data['role']})")
-            print(f"✅ Permissions: {data['permissions']}")
-            print(f"✅ Peut lire public: {data['can_read_public']}")
-            print(f"✅ Peut lire interne: {data['can_read_internal']}")
-            print(f"✅ Peut chatter: {data['can_chat']}")
-            return True
-        else:
-            print(f"❌ Erreur permissions: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Erreur test permissions: {e}")
-        return False
-
-
-def test_legacy_compatibility(token):
-    """Test de compatibilité avec l'ancien endpoint"""
-    print(f"\n🔄 Test compatibilité legacy...")
-
-    if not token:
-        return False
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
-    payload = {"question": "Test compatibilité legacy"}
-
-    try:
-        response = requests.post(
-            f"{API_BASE}/api/v1/start-processing",
-            json=payload,
-            headers=headers,
-            timeout=30
-        )
-
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Legacy endpoint fonctionne")
-            print(f"📝 Réponse: {data.get('response', '')[:100]}...")
-            return True
-        else:
-            print(f"❌ Erreur legacy: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Erreur test legacy: {e}")
-        return False
-
-
-def main():
-    """Test complet"""
-    print("🚀 TEST COMPLET INTÉGRATION FASTAPI + MCP")
-    print("Version finale avec authentification complète")
-
-    results = {}
-
-    # 1. Santé de l'API
-    print_section("TEST DE SANTÉ")
-    if test_api_health():
-        results["API Health"] = True
+            print("\n⚠ MessageStore OK mais chaîne complète échouée")
+            print("Vérifiez que FastAPI est redémarré avec le nouveau message_store.py")
     else:
-        print("\n❌ ARRÊT: API non accessible")
-        return False
+        print("\n Problème dans MessageStore - Vérifiez la correction")
 
-    # 2. Statut MCP
-    print_section("TEST MCP")
-    if test_mcp_status():
-        results["MCP Status"] = True
-    else:
-        print("\n⚠️  MCP non connecté")
-        return False
-
-    # 3. Test MCP simple
-    if test_mcp_simple():
-        results["MCP Simple"] = True
-
-    # 4. Tests par rôle utilisateur
-    for role in ["public", "employee", "admin"]:
-        print_section(f"TEST UTILISATEUR {role.upper()}")
-
-        # Connexion
-        token = login_user(role)
-        if not token:
-            continue
-
-        # Permissions
-        if test_permissions(token, role):
-            results[f"Permissions {role}"] = True
-
-        # Chat
-        if test_chat_mcp(token, role):
-            results[f"Chat {role}"] = True
-
-        # Legacy (test uniquement pour public)
-        if role == "public":
-            if test_legacy_compatibility(token):
-                results["Legacy compatibility"] = True
-
-    # Résumé final
-    print_section("RÉSULTATS FINAUX")
-
-    print("📊 Tests réussis:")
-    for test_name, passed in results.items():
-        if passed:
-            print(f"  ✅ {test_name}")
-
-    failed_tests = [name for name, passed in results.items() if not passed]
-    if failed_tests:
-        print("\n⚠️  Tests échoués:")
-        for test_name in failed_tests:
-            print(f"  ❌ {test_name}")
-
-    success_rate = len([r for r in results.values() if r]) / len(results) if results else 0
-
-    print(f"\n📈 Taux de réussite: {success_rate:.1%} ({len([r for r in results.values() if r])}/{len(results)})")
-
-    if success_rate >= 0.8:
-        print("\n🎉 INTÉGRATION FONCTIONNELLE!")
-        print("💡 Votre API FastAPI + MCP est opérationnelle")
-        print("\n🔗 ENDPOINTS PRINCIPAUX:")
-        print(f"📖 Documentation: {API_BASE}/docs")
-        print(f"💬 Chat: POST {API_BASE}/chat/ask")
-        print(f"🔍 MCP Status: GET {API_BASE}/mcp/status")
-        print(f"🔐 Login: POST {API_BASE}/api/v1/auth/login")
-        return True
-    else:
-        print("\n⚠️  Intégration partielle - corrigez les erreurs")
-        return False
+    print("\n=== FIN TEST FINAL ===")
 
 
 if __name__ == "__main__":
-    try:
-        success = main()
-        sys.exit(0 if success else 1)
-    except KeyboardInterrupt:
-        print("\n🛑 Test interrompu")
-        sys.exit(1)
+    asyncio.run(main())

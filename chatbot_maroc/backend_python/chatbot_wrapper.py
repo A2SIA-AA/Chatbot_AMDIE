@@ -1,25 +1,19 @@
 #!/usr/bin/env python3
 """
-Backend IA Chatbot - Architecture Séparée avec JWT
-Ce script fonctionne de manière totalement indépendante et communique uniquement via FastAPI
-
-1. Validation robuste des arguments JWT
-2. Gestion sécurisée des permissions
-3. Communication FastAPI avec retry
-4. Logging amélioré sans crash
+Backend IA Chatbot - Architecture avec MCP
 """
 
 import sys
 import json
 import os
 import logging
-import requests
 import time
 import traceback
+import asyncio
 from contextlib import redirect_stdout
 import io
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Optional
 
 
 # ========================================
@@ -55,187 +49,341 @@ def setup_environment():
 
 
 # ========================================
-# COMMUNICATION AVEC FASTAPI
+# COMMUNICATION MCP CORRIGÉE
 # ========================================
 
-FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/api/v1/messages")
+# Variables globales pour MCP
+MCP_BACKEND_URL = os.getenv("MCP_BACKEND_URL", "http://localhost:8090/mcp")
+FALLBACK_FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/api/v1/messages")
 
 
+def setup_mcp_path():
+    """Ajoute le chemin vers mcp_client_utils si nécessaire"""
+    # Chercher mcp_client_utils dans les répertoires parents
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dirs = [
+        current_dir,
+        os.path.join(current_dir, '..'),
+        os.path.join(current_dir, '../message_fastapi'),
+        os.path.join(current_dir, '../../message_fastapi'),
+        '/home/aissa/Bureau/Projet_Chatbot/Chatbot_AMDIE/chatbot_maroc/message_fastapi',  # Chemin absolu de secours
+    ]
 
-def send_to_fastapi(session_id: str, message_type: str, content: str, metadata: dict = None):
-    """
-    Envoie un message vers FastAPI avec gestion d'erreur robuste
+    for parent_dir in parent_dirs:
+        mcp_client_path = os.path.join(parent_dir, 'mcp_client_utils.py')
+        if os.path.exists(mcp_client_path):
+            if parent_dir not in sys.path:
+                sys.path.insert(0, parent_dir)
+            print(f"[MCP] Client trouvé: {mcp_client_path}", file=sys.stderr)
+            return True
 
-    Args:
-        session_id: ID de session
-        message_type: 'progress', 'final', 'error'
-        content: Le message à envoyer
-        metadata: Métadonnées optionnelles
-    """
-    if not session_id:
-        print("Pas de session_id, message non envoyé", file=sys.stderr)
+    print(f"[MCP] ATTENTION: mcp_client_utils.py non trouvé", file=sys.stderr)
+    return False
+
+
+# Setup MCP au niveau module
+MCP_AVAILABLE = setup_mcp_path()
+
+if MCP_AVAILABLE:
+    try:
+        #  IMPORT CORRIGÉ DES FONCTIONS MCP DIRECTES
+        from mcp_client_utils import (
+            mcp_send_progress, mcp_send_final, mcp_send_error, mcp_send_log,
+            MCPCommunicator
+        )
+
+        print(f"[MCP] Communication MCP disponible", file=sys.stderr)
+    except ImportError as e:
+        print(f"[MCP] Erreur import MCP: {e}", file=sys.stderr)
+        MCP_AVAILABLE = False
+        mcp_send_progress = mcp_send_final = mcp_send_error = mcp_send_log = None
+        MCPCommunicator = None
+else:
+    mcp_send_progress = mcp_send_final = mcp_send_error = mcp_send_log = None
+    MCPCommunicator = None
+
+
+# ========================================
+# COMMUNICATION CORRIGÉE AVEC DEBUG RENFORCÉ
+# ========================================
+
+async def send_progress(session_id: str, message: str) -> bool:
+    """Envoie un message de progression via MCP - VERSION CORRIGÉE"""
+    print(f"[WRAPPER] send_progress appelé: {session_id} - {message[:50]}...", file=sys.stderr)
+
+    if not MCP_AVAILABLE or not mcp_send_progress:
+        print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'progress', message)
+
+    try:
+        print(f"[WRAPPER] Tentative envoi MCP progress...", file=sys.stderr)
+        result = await mcp_send_progress(session_id, message)
+        print(f"[WRAPPER] Résultat MCP progress: {result}", file=sys.stderr)
+
+        if result and result.get("ok", False):
+            print(f"[WRAPPER]  send_progress via MCP réussi", file=sys.stderr)
+            return True
+        else:
+            print(f"[WRAPPER]  send_progress MCP échoué: {result}", file=sys.stderr)
+            return await send_via_http_fallback(session_id, 'progress', message)
+
+    except Exception as e:
+        print(f"[WRAPPER]  Erreur send_progress MCP: {e}", file=sys.stderr)
+        print(f"[WRAPPER] Traceback: {traceback.format_exc()}", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'progress', message)
+
+
+async def send_final(session_id: str, message: str) -> bool:
+    """Envoie la réponse finale via MCP - VERSION CORRIGÉE"""
+    print(f"[WRAPPER] send_final appelé: {session_id} - {message[:50]}...", file=sys.stderr)
+
+    if not MCP_AVAILABLE or not mcp_send_final:
+        print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'final', message)
+
+    try:
+        print(f"[WRAPPER] Tentative envoi MCP final...", file=sys.stderr)
+        result = await mcp_send_final(session_id, message)
+        print(f"[WRAPPER] Résultat MCP final: {result}", file=sys.stderr)
+
+        if result and result.get("ok", False):
+            print(f"[WRAPPER]  send_final via MCP réussi", file=sys.stderr)
+            return True
+        else:
+            print(f"[WRAPPER]  send_final MCP échoué: {result}", file=sys.stderr)
+            return await send_via_http_fallback(session_id, 'final', message)
+
+    except Exception as e:
+        print(f"[WRAPPER]  Erreur send_final MCP: {e}", file=sys.stderr)
+        print(f"[WRAPPER] Traceback: {traceback.format_exc()}", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'final', message)
+
+
+async def send_error(session_id: str, error: str) -> bool:
+    """Envoie un message d'erreur via MCP - VERSION CORRIGÉE"""
+    print(f"[WRAPPER] send_error appelé: {session_id} - {error[:50]}...", file=sys.stderr)
+
+    if not MCP_AVAILABLE or not mcp_send_error:
+        print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'error', error)
+
+    try:
+        result = await mcp_send_error(session_id, error)
+        print(f"[WRAPPER] Résultat MCP error: {result}", file=sys.stderr)
+
+        if result and result.get("ok", False):
+            print(f"[WRAPPER]  send_error via MCP réussi", file=sys.stderr)
+            return True
+        else:
+            print(f"[WRAPPER]  send_error MCP échoué: {result}", file=sys.stderr)
+            return await send_via_http_fallback(session_id, 'error', error)
+
+    except Exception as e:
+        print(f"[WRAPPER]  Erreur send_error MCP: {e}", file=sys.stderr)
+        return await send_via_http_fallback(session_id, 'error', error)
+
+
+async def send_log(session_id: str, log_message: str, log_level: str = "INFO") -> bool:
+    """Envoie un log détaillé via MCP - VERSION CORRIGÉE"""
+    if not MCP_AVAILABLE or not mcp_send_log:
+        print(f"[{log_level}] {log_message}", file=sys.stderr)
+        return True
+
+    try:
+        result = await mcp_send_log(session_id, log_message, log_level)
+        return result and result.get("ok", False)
+    except Exception as e:
+        print(f"[{log_level}] {log_message} (MCP failed: {e})", file=sys.stderr)
         return False
+
+
+async def send_via_http_fallback(session_id: str, message_type: str, content: str) -> bool:
+    """
+    Fallback HTTP en cas d'échec MCP - VERSION AMÉLIORÉE
+    """
+    import requests
 
     try:
         payload = {
             'sessionId': session_id,
             'type': message_type,
             'content': content,
-            'metadata': metadata or {
+            'metadata': {
                 'timestamp': time.time(),
-                'source': 'backend_chatbot'
+                'source': 'backend_fallback_http'
             }
         }
 
+        print(f"[WRAPPER] Fallback HTTP: {message_type} vers {FALLBACK_FASTAPI_URL}", file=sys.stderr)
+
         response = requests.post(
-            FASTAPI_URL,
+            FALLBACK_FASTAPI_URL,
             json=payload,
             timeout=10,
             headers={'Content-Type': 'application/json'}
         )
 
         if response.status_code == 200:
-            print(f"Message envoyé: {message_type} - {content[:50]}...", file=sys.stderr)
+            print(f"[WRAPPER]  {message_type} envoyé via HTTP fallback", file=sys.stderr)
             return True
         else:
-            print(f"Erreur FastAPI {response.status_code}: {response.text}", file=sys.stderr)
+            print(f"[WRAPPER]  Erreur fallback {response.status_code}: {response.text}", file=sys.stderr)
             return False
 
-    except requests.exceptions.ConnectionError:
-        print(f"FastAPI non accessible sur {FASTAPI_URL}", file=sys.stderr)
-        return False
     except Exception as e:
-        print(f"Erreur envoi FastAPI: {e}", file=sys.stderr)
+        print(f"[WRAPPER]  Erreur fallback: {e}", file=sys.stderr)
         return False
 
 
-def send_progress(session_id: str, message: str):
-    """Envoie un message de progression"""
-    return send_to_fastapi(session_id, 'progress', message)
-
-
-def send_final(session_id: str, message: str):
-    """Envoie la réponse finale"""
-    return send_to_fastapi(session_id, 'final', message)
-
-
-def send_error(session_id: str, error: str):
-    """Envoie un message d'erreur"""
-    return send_to_fastapi(session_id, 'error', f"ERREUR: {error}")
-
-
-def send_log(session_id: str, log_message: str, log_level: str = "INFO"):
-    """
-    Envoie un log détaillé vers le frontend
-
-    Args:
-        session_id: ID de session
-        log_message: Le vrai log de votre backend
-        log_level: INFO, ERROR, WARNING, SUCCESS
-    """
-    formatted_message = f"{log_message}"
-
-    return send_to_fastapi(session_id, 'progress', formatted_message, {
-        'log_level': log_level,
-        'timestamp': time.time(),
-        'source': 'backend_log'
-    })
-
-
 # ========================================
-# INTÉGRATION AVEC LES AGENTS ET JWT
+# INTÉGRATION AVEC LES AGENTS ET JWT (IDENTIQUE)
 # ========================================
 
-def initialize_chatbot_with_permissions(session_id: str, user_permissions: List[str], user_role: str):
+async def initialize_chatbot_with_permissions(session_id: str, user_permissions: Optional[List[str]], user_role: str):
     """
-    Initialise le chatbot avec prise en compte des permissions JWT
-
-    Validation robuste des permissions et gestion d'erreurs
+    Initialise le chatbot avec prise en compte des permissions JWT - VERSION SÉCURISÉE
     """
     try:
-        from src.core.chatbot import ChatbotMarocSessionId
-        from src.rag.indexer import RAGTableIndex
+        #  VALIDATION DES PERMISSIONS
+        if user_permissions is None:
+            user_permissions = ["read_public_docs"]  # Sécurité par défaut
+            await send_log(session_id, f"Permissions None détectées, défaut à : {user_permissions}", "WARNING")
 
-        send_progress(session_id, f"Chargement base vectorielle (niveau: {user_role})...")
+        if not isinstance(user_permissions, list):
+            user_permissions = ["read_public_docs"]  # Sécurité par défaut
+            await send_log(session_id, f"Permissions non-liste détectées, défaut à : {user_permissions}", "WARNING")
+
+        # Validation du rôle
+        if not user_role or user_role not in ['public', 'employee', 'admin']:
+            user_role = 'public'
+            await send_log(session_id, f"Rôle invalide, défaut à : {user_role}", "WARNING")
+
+        await send_progress(session_id, f"Chargement base vectorielle (niveau: {user_role})...")
+
+        #  IMPORT SÉCURISÉ DES MODULES
+        try:
+            from src.core.chatbot import ChatbotMarocSessionId
+            from src.rag.indexer import RAGTableIndex
+            await send_log(session_id, "Modules IA importés avec succès", "INFO")
+        except ImportError as e:
+            await send_error(session_id, f"Modules IA non trouvés: {e}")
+            await send_error(session_id, "Vérifiez que vous êtes dans le bon répertoire et que les modules existent")
+            raise
 
         # Configuration RAG avec permissions
         chroma_db_path = "./chroma_db"
         if not os.path.exists(chroma_db_path):
             chroma_db_path = "../chroma_db"
 
+        if not os.path.exists(chroma_db_path):
+            await send_error(session_id, f"Base vectorielle non trouvée: {chroma_db_path}")
+            raise FileNotFoundError(f"Chroma DB non trouvé: {chroma_db_path}")
+
         # Passer les permissions au RAG
         rag_index = RAGTableIndex(
             db_path=str(chroma_db_path)
         )
 
-        send_progress(session_id, f"Agents IA configurés pour rôle: {user_role}")
+        await send_progress(session_id, f"Agents IA configurés pour rôle: {user_role}")
 
-        # Créer chatbot avec permissions JWT
-        chatbot = ChatbotMarocSessionId(
-            rag_index,
-            user_permissions=user_permissions,
-            user_role=user_role
-        )
+        #  CRÉATION CHATBOT AVEC VALIDATION
+        try:
+            chatbot = ChatbotMarocSessionId(
+                rag_index,
+                user_permissions=user_permissions,
+                user_role=user_role
+            )
+            await send_log(session_id, f"Chatbot créé avec {len(user_permissions)} permissions", "INFO")
+        except Exception as e:
+            await send_error(session_id, f"Erreur création chatbot: {e}")
+            raise
 
-        send_progress(session_id, f"Chatbot prêt - Accès niveau {user_role}")
+        await send_progress(session_id, f"Chatbot prêt - Accès niveau {user_role}")
         return chatbot
 
     except ImportError as e:
-        send_error(session_id, f"Module non trouvé: {e}")
+        await send_error(session_id, f"Module non trouvé: {e}")
         raise
     except Exception as e:
-        send_error(session_id, f"Erreur initialisation avec permissions: {e}")
+        await send_error(session_id, f"Erreur initialisation avec permissions: {e}")
         raise
 
 
-def process_question_with_permissions(chatbot, question: str, session_id: str, user_permissions: List[str]):
+async def process_question_with_permissions(chatbot, question: str, session_id: str,
+                                            user_permissions: Optional[List[str]]):
     """
-    Traite la question avec les agents en utilisant les permissions JWT
-
-    Capture robuste des outputs et gestion d'erreurs
+    Traite la question avec les agents en utilisant les permissions JWT - VERSION SÉCURISÉE
     """
     try:
-        send_progress(session_id, f"Traitement avec niveau d'accès pour: '{question[:50]}...'")
+        #  VALIDATION DES PARAMÈTRES
+        if not question or not question.strip():
+            await send_error(session_id, "Question vide reçue")
+            raise ValueError("Question vide")
+
+        if user_permissions is None:
+            user_permissions = ["read_public_docs"]
+            await send_log(session_id, "Permissions None lors du traitement, défaut appliqué", "WARNING")
+
+        if not isinstance(user_permissions, list):
+            user_permissions = ["read_public_docs"]
+            await send_log(session_id, "Permissions non-liste lors du traitement, défaut appliqué", "WARNING")
+
+        await send_progress(session_id, f"Traitement avec niveau d'accès pour: '{question[:50]}...'")
+
+        #  VÉRIFICATION DE LA MÉTHODE DU CHATBOT
+        if not hasattr(chatbot, 'poser_question_with_permissions'):
+            await send_error(session_id, "Méthode 'poser_question_with_permissions' non trouvée dans le chatbot")
+            raise AttributeError("Méthode chatbot manquante")
 
         # Capturer les sorties des agents
         captured_output = io.StringIO()
 
         with redirect_stdout(captured_output):
-            response = chatbot.poser_question_with_permissions(
-                question,
-                session_id=session_id,
-                user_permissions=user_permissions
-            )
+            try:
+                response = chatbot.poser_question_with_permissions(
+                    question,
+                    session_id=session_id,
+                    user_permissions=user_permissions
+                )
+            except TypeError as e:
+                await send_error(session_id, f"Erreur paramètres chatbot: {e}")
+                # Tentative avec paramètres simplifiés
+                response = chatbot.poser_question_with_permissions(question, user_permissions)
 
         # Récupérer les logs capturés
         captured_text = captured_output.getvalue()
         if captured_text.strip():
-            # Envoyer les logs capturés ligne par ligne
+            # Envoyer les logs capturés ligne par ligne via MCP
             for line in captured_text.strip().split('\n'):
                 if line.strip():
-                    send_log(session_id, line.strip(), "INFO")
+                    await send_log(session_id, line.strip(), "INFO")
 
-        send_progress(session_id, "Génération de la réponse finale terminée")
+        await send_progress(session_id, "Génération de la réponse finale terminée")
+
+        #  VALIDATION DE LA RÉPONSE
+        if not response:
+            await send_error(session_id, "Réponse vide générée par le chatbot")
+            response = "Désolé, je n'ai pas pu générer une réponse appropriée."
+
+        if not isinstance(response, str):
+            response = str(response)
 
         return response
 
     except Exception as e:
-        send_error(session_id, f"Erreur traitement avec permissions: {str(e)}")
+        error_msg = f"Erreur traitement avec permissions: {str(e)}"
+        await send_error(session_id, error_msg)
+        await send_log(session_id, f"Traceback: {traceback.format_exc()}", "ERROR")
         raise
 
 
 # ========================================
-# VALIDATION DES ARGUMENTS JWT
+# VALIDATION DES ARGUMENTS JWT (IDENTIQUE)
 # ========================================
 
 def valider_arguments_jwt(args):
     """
-    NOUVEAU: Valide les arguments JWT de manière robuste
-
-    Votre format: python chatbot_wrapper.py <question> <session_id> <permissions> <role>
-
-    Returns:
-        Dict avec les arguments validés ou erreur
+    Valide les arguments JWT de manière robuste - VERSION SÉCURISÉE
     """
     if len(args) < 5:
         return {
@@ -244,10 +392,10 @@ def valider_arguments_jwt(args):
         }
 
     try:
-        user_message = args[1].strip()
-        session_id = args[2].strip()
-        user_permissions_str = args[3].strip()
-        user_role = args[4].strip()
+        user_message = args[1].strip() if args[1] else ""
+        session_id = args[2].strip() if args[2] else ""
+        user_permissions_str = args[3].strip() if args[3] else ""
+        user_role = args[4].strip() if args[4] else ""
 
         # Validation de la question
         if not user_message or len(user_message) > 2000:
@@ -257,15 +405,20 @@ def valider_arguments_jwt(args):
         if not session_id:
             return {'error': True, 'message': "Session ID invalide"}
 
-        # Parsing des permissions JWT
-        if user_permissions_str and user_permissions_str.lower() != 'none':
-            user_permissions = [p.strip() for p in user_permissions_str.split(",") if p.strip()]
+        #  PARSING ROBUSTE DES PERMISSIONS JWT
+        if user_permissions_str and user_permissions_str.lower() not in ['none', 'null', '']:
+            try:
+                user_permissions = [p.strip() for p in user_permissions_str.split(",") if p.strip()]
+                if not user_permissions:  # Liste vide après nettoyage
+                    user_permissions = ["read_public_docs"]
+            except Exception:
+                user_permissions = ["read_public_docs"]
         else:
             user_permissions = ["read_public_docs"]  # Défaut sécurisé
 
-        # Validation du rôle JWT
+        #  VALIDATION ROBUSTE DU RÔLE JWT
         roles_valides = ['public', 'employee', 'admin']
-        if user_role.lower() not in roles_valides:
+        if not user_role or user_role.lower() not in roles_valides:
             print(f"Rôle '{user_role}' non reconnu, défaut à 'public'", file=sys.stderr)
             user_role = 'public'
 
@@ -282,11 +435,11 @@ def valider_arguments_jwt(args):
 
 
 # ========================================
-# FONCTION PRINCIPALE AVEC JWT
+# FONCTION PRINCIPALE AVEC MCP CORRIGÉE
 # ========================================
 
-def main():
-    """Point d'entrée principal du backend séparé avec JWT"""
+async def main_async():
+    """Point d'entrée principal asynchrone du backend avec MCP - VERSION COMMUNICATION CORRIGÉE"""
 
     # Validation robuste des arguments JWT
     validation_result = valider_arguments_jwt(sys.argv)
@@ -295,10 +448,10 @@ def main():
         error_response = {
             "success": False,
             "error": validation_result['message'],
-            "backend": "separated_with_auth"
+            "backend": "enterprise_with_mcp_communication_fixed"
         }
         print(json.dumps(error_response, ensure_ascii=False))
-        sys.exit(1)
+        return False
 
     # Extraction des arguments validés
     user_message = validation_result['user_message']
@@ -308,59 +461,69 @@ def main():
 
     original_dir = None
 
-    print(f"Chatbot démarré pour {user_role} - Session: {session_id}", file=sys.stderr)
-    print(f"Permissions: {user_permissions}", file=sys.stderr)
+    print(f"[BACKEND] Démarré pour {user_role} - Session: {session_id}", file=sys.stderr)
+    print(f"[BACKEND] Permissions: {user_permissions}", file=sys.stderr)
+    print(f"[BACKEND] Communication: {'MCP' if MCP_AVAILABLE else 'HTTP Fallback'}", file=sys.stderr)
 
     try:
         # 1. Setup de l'environnement
         original_dir = setup_environment()
-        send_progress(session_id, f"Chatbot initialisé pour utilisateur {user_role}")
 
-        # 2. Test de connexion FastAPI
-        if not send_progress(session_id, "Test de connexion à FastAPI..."):
-            raise Exception("Impossible de communiquer avec FastAPI")
+        #  TEST INITIAL DE COMMUNICATION MCP
+        print(f"[BACKEND] Test initial communication MCP...", file=sys.stderr)
+        test_success = await send_progress(session_id, f"Backend MCP initialisé pour {user_role}")
+        if not test_success:
+            print(f"[BACKEND]  Communication MCP échouée, utilisation fallback HTTP", file=sys.stderr)
 
-        # 3. Initialisation du chatbot AVEC permissions JWT
-        chatbot = initialize_chatbot_with_permissions(session_id, user_permissions, user_role)
+        # 2. Initialisation du chatbot AVEC permissions JWT
+        chatbot = await initialize_chatbot_with_permissions(session_id, user_permissions, user_role)
 
-        # 4. Traitement de la question avec permissions JWT
-        send_progress(session_id, f"Traitement avec niveau d'accès: {user_role}")
-        response = process_question_with_permissions(chatbot, user_message, session_id, user_permissions)
+        # 3. Traitement de la question avec permissions JWT
+        await send_progress(session_id, f"Traitement MCP avec niveau d'accès: {user_role}")
+        response = await process_question_with_permissions(chatbot, user_message, session_id, user_permissions)
 
-        # 5. Envoi de la réponse finale
-        send_final(session_id, response)
+        # 4. Envoi de la réponse finale via MCP
+        print(f"[BACKEND] Envoi réponse finale...", file=sys.stderr)
+        final_success = await send_final(session_id, response)
 
-        # 6. Succès
+        if final_success:
+            print(f"[BACKEND]  Réponse finale envoyée avec succès", file=sys.stderr)
+        else:
+            print(f"[BACKEND]  Problème envoi réponse finale", file=sys.stderr)
+
+        # 5. Succès
         result = {
             "success": True,
             "response": response,
             "session_id": session_id,
             "user_role": user_role,
             "permissions_used": user_permissions,
-            "backend": "separated_with_auth"
+            "backend": "enterprise_with_mcp_communication_fixed",
+            "communication": "MCP" if MCP_AVAILABLE else "HTTP_FALLBACK"
         }
         print(json.dumps(result, ensure_ascii=False))
 
-        print(f"Traitement terminé avec succès pour {user_role} - Session: {session_id}", file=sys.stderr)
+        print(f"[BACKEND]  Traitement MCP terminé pour {user_role} - Session: {session_id}", file=sys.stderr)
+        return True
 
     except Exception as e:
         # Gestion d'erreur globale
-        error_msg = f"Erreur backend: {str(e)}"
-        send_error(session_id, error_msg)
+        error_msg = f"Erreur backend MCP: {str(e)}"
+        await send_error(session_id, error_msg)
 
         # Log détaillé pour debugging
-        print(f"Erreur complète: {traceback.format_exc()}", file=sys.stderr)
+        print(f"[BACKEND]  Erreur complète: {traceback.format_exc()}", file=sys.stderr)
 
         error_result = {
             "success": False,
             "error": error_msg,
             "session_id": session_id,
             "user_role": user_role,
-            "backend": "separated_with_auth"
+            "backend": "enterprise_with_mcp_communication_fixed"
         }
         print(json.dumps(error_result, ensure_ascii=False))
 
-        sys.exit(1)
+        return False
 
     finally:
         # Nettoyage
@@ -369,6 +532,23 @@ def main():
                 os.chdir(original_dir)
             except Exception:
                 pass
+
+
+def main():
+    """Point d'entrée synchrone qui lance la version asynchrone"""
+    try:
+        # Lancer la version asynchrone
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        success = loop.run_until_complete(main_async())
+        loop.close()
+
+        if not success:
+            sys.exit(1)
+
+    except Exception as e:
+        print(f"[BACKEND] Erreur critique: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
