@@ -7,7 +7,7 @@ from fastmcp import FastMCP
 mcp = FastMCP("AMDIE-Backend-MCP")
 
 # --------- CONFIG ----------
-PROJECT_DIR = os.getenv("PROJECT_DIR")  # DOIT être ABSOLU
+PROJECT_DIR = os.getenv("PROJECT_DIR")
 WRAPPER_PATH = os.getenv("WRAPPER_PATH", "chatbot_wrapper.py")
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
@@ -108,7 +108,7 @@ else:
 
 
 # --------- HELPER FUNCTIONS (LOGIQUE MÉTIER) ----------
-async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, role: str) -> Dict[str, Any]:
+async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]:
     """Lance le wrapper backend"""
     if session_id in PROCS and PROCS[session_id].returncode is None:
         return {"ok": False, "error": f"Session déjà en cours: {session_id}"}
@@ -121,6 +121,8 @@ async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, r
         session_id,
         permissions_csv,
         role,
+        username,
+        email
     ]
     env = os.environ.copy()
     env["MCP_BACKEND_URL"] = "http://localhost:8090/mcp"
@@ -294,12 +296,12 @@ Dict[str, Any]:
 
 # --------- TOOLS ORIGINAUX ----------
 @mcp.tool
-async def start_backend(question: str, session_id: str, permissions_csv: str, role: str) -> Dict[str, Any]:
+async def start_backend(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]:
     """
     Lance le backend (wrapper) pour une session donnée.
     """
     print(f"[MCP] start_backend session={session_id} role={role}")
-    return await _spawn_wrapper(question, session_id, permissions_csv, role)
+    return await _spawn_wrapper(question, session_id, permissions_csv, role, username, email)
 
 
 @mcp.tool

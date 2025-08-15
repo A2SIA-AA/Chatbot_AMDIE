@@ -7,11 +7,13 @@ from ..core.state import ChatbotState
 from dotenv import load_dotenv
 import os
 from ..utils.message_to_front import _send_to_frontend
+from ..core.memory_store import conversation_memory, get_user_context
 
 load_dotenv()
 
+
 class AnalyzerAgent:
-    """Agent analyseur pour déterminer le type de réponse nécessaire"""
+    """Agent analyseur pour déterminer le type de réponse nécessaire avec historique utilisateur"""
 
     def __init__(self, gemini_model, chatbot_instance):
         self.gemini_model = gemini_model
@@ -22,11 +24,15 @@ class AnalyzerAgent:
         return self.agent_analyseur(state)
 
     def agent_analyseur(self, state: ChatbotState) -> ChatbotState:
-        """Agent analyseur avec validation"""
+        """Agent analyseur avec validation et historique utilisateur"""
 
-        self.chatbot._log("Agent Analyseur: Début de l'analyse", state)
+        self.chatbot._log("Agent Analyseur: Début de l'analyse avec historique", state)
         session_id = state['session_id']
-        _send_to_frontend(session_id, f"Agent Analyse: Début Analyse sur '{state['question_utilisateur'][:50]}...'")
+        _send_to_frontend(session_id,
+                          f"Agent Analyse: Début Analyse avec historique sur '{state['question_utilisateur'][:50]}...'")
+
+        # Récupérer les informations utilisateur
+        username, email = self._extract_user_info(state)
 
         # Validation des prérequis
         if not state['tableaux_pour_upload']:
@@ -50,15 +56,26 @@ class AnalyzerAgent:
         # Préparation du contexte enrichi avec métadonnées
         contexte_complet = self._preparer_contexte_avec_metadata(state)
 
+        # Récupérer l'historique utilisateur
+        historique_contexte = ""
+        if username and email:
+            historique_contexte = get_user_context(username, email)
+            if historique_contexte and "Aucune conversation précédente" not in historique_contexte:
+                self.chatbot._log(f"📜 Historique utilisateur récupéré pour {username}", state)
+                _send_to_frontend(session_id, f"Historique des conversations récupéré pour {username}")
+            else:
+                self.chatbot._log(f"📝 Première conversation pour {username}", state)
+
         fichier_csv = self._creer_csvs_pour_gemini(state['dataframes'], state)
         fichier_gemini, client = self._upload_fichier_to_gemini(fichier_csv, state)
         state['fichiers_gemini'] = fichier_gemini
 
-        # Prompt enrichi avec métadonnées
-        prompt_unifie = f"""Tu es un expert en analyse de données du Maroc.
+        # Prompt enrichi avec métadonnées ET historique
+        prompt_unifie = f"""Tu es un expert en analyse de données du Maroc avec accès à l'historique des conversations.
 
-QUESTION UTILISATEUR: {state['question_utilisateur']}
+{historique_contexte}
 
+QUESTION UTILISATEUR ACTUELLE: {state['question_utilisateur']}
 
 {contexte_complet}
 
@@ -66,26 +83,32 @@ SÉLECTION INTELLIGENTE:
 {state.get('explication_selection', 'Tableaux sélectionnés automatiquement')}
 
 INSTRUCTIONS STRICTES:
-1. Utilise les TITRES et CONTEXTES ci-dessus pour comprendre chaque dataframe
-2. Choisis les dataframes selon leur PERTINENCE à la question
-3. Si la réponse est évidente : choisis REPONSE_DIRECTE  
-4. Si tu dois croiser, calculer, filtrer : choisis CALCULS_NECESSAIRES
+1. PRENDS EN COMPTE L'HISTORIQUE pour comprendre le contexte de la question actuelle
+2. Si l'utilisateur fait référence à "la question précédente", "comme avant", "par rapport à ce qu'on a vu", utilise l'historique
+3. Utilise les TITRES et CONTEXTES ci-dessus pour comprendre chaque dataframe
+4. Choisis les dataframes selon leur PERTINENCE à la question ET au contexte historique
+5. Si la réponse est évidente et directe : choisis REPONSE_DIRECTE  
+6. Si tu dois croiser, calculer, filtrer ou faire des analyses complexes : choisis CALCULS_NECESSAIRES
+7. Si la question fait référence à des résultats précédents, utilise l'historique pour contextualiser
 
 FORMAT DE RÉPONSE OBLIGATOIRE:
 DECISION: [CALCULS_NECESSAIRES ou REPONSE_DIRECTE]
 
 === SI CALCULS_NECESSAIRES ===
+CONTEXTE_HISTORIQUE: [Mentionner comment l'historique influence l'analyse]
 SOURCES_UTILISEES: [Mentionner les titres des dataframes à utiliser]
-ETAPES: [Décrire les étapes en référençant les sources]
+ETAPES: [Décrire les étapes en référençant les sources ET l'historique si pertinent]
 ALGORITHME: [Pseudo-code avec df0, df1... ET leurs titres]
 
 === SI REPONSE_DIRECTE ===
+CONTEXTE_HISTORIQUE: [Mentionner comment l'historique influence la réponse]
 SOURCES_UTILISEES: [Mentionner les sources des données]
-REPONSE: [Réponse complète avec références aux sources]
+REPONSE: [Réponse complète avec références aux sources ET continuité avec l'historique si applicable]
 """
 
         try:
-            _send_to_frontend(session_id, "début de la génération de réponse de l'agent analyseur...")
+            _send_to_frontend(session_id,
+                              "Début de la génération de réponse de l'agent analyseur avec contexte historique...")
             content = [prompt_unifie]
             content.extend(fichier_gemini)
 
@@ -98,7 +121,7 @@ REPONSE: [Réponse complète avec références aux sources]
                     )
                 )
             )
-            _send_to_frontend(session_id, "Réponse de l'analyseur généré")
+            _send_to_frontend(session_id, "Réponse de l'analyseur générée avec historique")
 
             answer = []
             thought = []
@@ -118,16 +141,14 @@ REPONSE: [Réponse complète avec références aux sources]
 
             # Parsing avec validation
             if "CALCULS_NECESSAIRES" in answer:
-                _send_to_frontend(session_id, "calculs nécessaires: extraction des étapes et algorithme")
+                _send_to_frontend(session_id, "Calculs nécessaires: extraction des étapes et algorithme")
                 etapes, algorithme = self._extraire_etapes_et_algo(answer)
 
                 if etapes and algorithme:
                     state['besoin_calculs'] = True
                     state['instruction_calcul'] = etapes
                     state['algo_genere'] = algorithme
-                    self.chatbot._log("Analyseur: Calculs nécessaires - algo extrait", state)
-                    #self.chatbot._log(f"ETAPE : {etapes}", state)
-                    #self.chatbot._log(f"ALGO : {algorithme}", state)
+                    self.chatbot._log("Analyseur: Calculs nécessaires - algo extrait avec historique", state)
                 else:
                     # Fallback intelligent
                     etapes_fallback, algo_fallback = self._extraction_fallback(answer)
@@ -135,29 +156,34 @@ REPONSE: [Réponse complète avec références aux sources]
                         state['besoin_calculs'] = True
                         state['instruction_calcul'] = etapes_fallback
                         state['algo_genere'] = algo_fallback
-                        self.chatbot._log("Analyseur: Extraction fallback réussie", state)
+                        self.chatbot._log("Analyseur: Extraction fallback réussie avec historique", state)
                     else:
                         state['besoin_calculs'] = False
                         state['reponse_finale'] = "Impossible d'extraire l'algorithme de calcul."
 
             elif "REPONSE_DIRECTE" in answer:
-                _send_to_frontend(session_id,"réponse direct: extraction de la réponse directe")
+                _send_to_frontend(session_id, "Réponse direct: extraction de la réponse directe")
                 reponse = self._extraire_reponse_directe(answer)
                 if reponse:
                     state['besoin_calculs'] = False
                     state['reponse_finale'] = reponse
-                    self.chatbot._log("Analyseur: Réponse directe extraite", state)
+                    self.chatbot._log("Analyseur: Réponse directe extraite avec contexte historique", state)
                 else:
                     state['besoin_calculs'] = False
                     state['reponse_finale'] = "Impossible d'extraire la réponse."
 
             else:
-                # Analyse contextuelle de la question
+                # Analyse contextuelle de la question avec historique
                 if self._question_necessite_calculs(state['question_utilisateur']):
                     state['besoin_calculs'] = True
-                    state['instruction_calcul'] = f"Analyser les données pour répondre à: {state['question_utilisateur']}"
-                    state['algo_genere'] = "# Analyser les dataframes appropriés selon la question"
-                    self.chatbot._log("Analyseur: Fallback vers calculs détecté", state)
+                    # Enrichir les instructions avec le contexte historique s'il existe
+                    instruction_base = f"Analyser les données pour répondre à : {state['question_utilisateur']}"
+                    if username and email and "Aucune conversation précédente" not in historique_contexte:
+                        instruction_base += " (en tenant compte de l'historique des conversations)"
+
+                    state['instruction_calcul'] = instruction_base
+                    state['algo_genere'] = "# Analyser les dataframes appropriés selon la question et l'historique"
+                    self.chatbot._log("Analyseur: Fallback vers calculs détecté avec historique", state)
                 else:
                     state['besoin_calculs'] = False
                     state['reponse_finale'] = "Format de réponse non reconnu de l'analyseur."
@@ -169,12 +195,47 @@ REPONSE: [Réponse complète avec références aux sources]
 
         finally:
             # Nettoyage sécurisé
-            #if 'fichiers_csv' in locals() and fichiers_csv:
-            #    self._nettoyer_csvs_temporaires(fichiers_csv, state)
             if 'fichiers_gemini' in locals():
                 self._nettoyer_fichiers_gemini(fichier_gemini, client, state)
 
         return state
+
+    def _extract_user_info(self, state: ChatbotState) -> tuple:
+        """
+        Extrait les informations utilisateur du state
+
+        Returns:
+            tuple: (username, email) ou (None, None) si non disponible
+        """
+        try:
+            # Récupérer depuis les permissions/état utilisateur
+            session_id = state.get('session_id', '')
+
+            # Vérifier si les infos utilisateur sont directement dans le state
+            # (Tu devras les ajouter lors de la création du state initial)
+            username = state.get('username')
+            email = state.get('email')
+
+            if username and email:
+                return username, email
+
+            # Fallback temporaire basé sur le session_id et le rôle
+            user_role = state.get('user_role', '')
+
+            if session_id:
+                # Logique temporaire - à remplacer par tes vraies données utilisateur
+                if 'admin' in session_id or user_role == 'admin':
+                    return 'admin_user', 'admin@amdie.ma'
+                elif 'employee' in session_id or user_role == 'employee':
+                    return 'employee_user', 'employee@amdie.ma'
+                else:
+                    return 'public_user', 'public@amdie.ma'
+
+            return None, None
+
+        except Exception as e:
+            self.chatbot._log_error(f"Erreur extraction info utilisateur: {e}", state)
+            return None, None
 
     def _preparer_contexte_avec_metadata(self, state: ChatbotState) -> str:
         """Prépare un contexte enrichi avec toutes les métadonnées"""
@@ -198,7 +259,7 @@ REPONSE: [Réponse complète avec références aux sources]
    Source: {source} -> Feuille "{feuille}" 
    Contenu: {df_attrs.get('description', 'Données statistiques')}
    Structure: {len(df)} lignes × {len(df.columns)} colonnes
-   Colonnes: {', '.join(df.columns.astype(str))}
+
 
 """
 
@@ -206,7 +267,7 @@ REPONSE: [Réponse complète avec références aux sources]
         contexte += "APERÇU DES DONNÉES:\n"
         for i, df in enumerate(dataframes_a_analyser[:3]):
             if not df.empty:
-                contexte += f"   df{i} (premiers éléments): {df.iloc[0].to_dict()}\n"
+                contexte += f"   df{i} (premiers éléments): {', '.join(str(col) for col in df.columns[:3])}{'...' if len(df.columns) > 3 else ''}\n"
 
         return contexte
 
@@ -216,7 +277,8 @@ REPONSE: [Réponse complète avec références aux sources]
         question_lower = question.lower()
 
         calcul_keywords = ['total', 'combien', 'pourcentage', 'compare', 'plus', 'moins',
-                           'moyenne', 'maximum', 'minimum', 'évolution', 'tendance']
+                           'moyenne', 'maximum', 'minimum', 'évolution', 'tendance',
+                           'calcul', 'analyser', 'statistiques']
 
         return any(keyword in question_lower for keyword in calcul_keywords)
 
@@ -225,8 +287,8 @@ REPONSE: [Réponse complète avec références aux sources]
 
         # Méthode 1: Recherche de mots-clés
         if "calcul" in texte.lower() or "pandas" in texte.lower():
-            etapes = "Analyser les données selon les instructions détectées"
-            algo = "# Analyser les dataframes selon la question posée"
+            etapes = "Analyser les données selon les instructions détectées et l'historique"
+            algo = "# Analyser les dataframes selon la question posée et le contexte historique"
             return etapes, algo
 
         # Méthode 2: Extraction par lignes
@@ -410,8 +472,8 @@ REPONSE: [Réponse complète avec références aux sources]
             except Exception as e:
                 self.chatbot._log_error(f"Erreur upload {fichier_csv}: {str(e)}", state)
                 raise e
-        #suppression immédiate des csvs
-        self._nettoyer_csvs_temporaires(fichiers_csv,state)
+        # suppression immédiate des csvs
+        self._nettoyer_csvs_temporaires(fichiers_csv, state)
         return fichiers_gemini, client
 
     def _nettoyer_fichiers_gemini(self, fichiers_gemini: List, client, state: ChatbotState):
@@ -423,7 +485,6 @@ REPONSE: [Réponse complète avec références aux sources]
                 self.chatbot._log(f"Fichier Gemini supprimé: {fichier.name}", state)
             except Exception as e:
                 self.chatbot._log_error(f"Erreur suppression Gemini {fichier.name}: {str(e)}", state)
-
 
     def _nettoyer_csvs_temporaires(self, fichiers_csv: List[str], state: ChatbotState):
         """Supprime les fichiers CSV temporaires"""
