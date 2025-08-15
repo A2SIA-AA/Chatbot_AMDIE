@@ -310,12 +310,13 @@ async def initialize_chatbot_with_permissions(session_id: str, user_permissions:
 
 
 async def process_question_with_permissions(chatbot, question: str, session_id: str,
-                                            user_permissions: Optional[List[str]]):
+                                            user_permissions: Optional[List[str]],
+                                            username: str = None, email: str = None):  # NOUVEAUX PARAMÈTRES
     """
-    Traite la question avec les agents en utilisant les permissions JWT - VERSION SÉCURISÉE
+    Traite la question avec les agents en utilisant les permissions JWT + historique utilisateur
     """
     try:
-        #  VALIDATION DES PARAMÈTRES
+        # VALIDATION DES PARAMÈTRES (identique)
         if not question or not question.strip():
             await send_error(session_id, "Question vide reçue")
             raise ValueError("Question vide")
@@ -328,9 +329,18 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
             user_permissions = ["read_public_docs"]
             await send_log(session_id, "Permissions non-liste lors du traitement, défaut appliqué", "WARNING")
 
-        await send_progress(session_id, f"Traitement avec niveau d'accès pour: '{question[:50]}...'")
+        # VALIDATION HISTORIQUE UTILISATEUR
+        if not username:
+            username = f"user_{session_id[:8]}"
+            await send_log(session_id, f"Username manquant, défaut: {username}", "WARNING")
 
-        #  VÉRIFICATION DE LA MÉTHODE DU CHATBOT
+        if not email:
+            email = f"{username}@amdie.ma"
+            await send_log(session_id, f"Email manquant, défaut: {email}", "WARNING")
+
+        await send_progress(session_id, f"Traitement avec historique pour {username} (niveau: {user_permissions})")
+
+        # VÉRIFICATION DE LA MÉTHODE DU CHATBOT
         if not hasattr(chatbot, 'poser_question_with_permissions'):
             await send_error(session_id, "Méthode 'poser_question_with_permissions' non trouvée dans le chatbot")
             raise AttributeError("Méthode chatbot manquante")
@@ -340,27 +350,29 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
 
         with redirect_stdout(captured_output):
             try:
+                # APPEL AVEC HISTORIQUE UTILISATEUR
                 response = chatbot.poser_question_with_permissions(
                     question,
                     session_id=session_id,
-                    user_permissions=user_permissions
+                    user_permissions=user_permissions,
+                    username=username,  # NOUVEAU
+                    email=email  # NOUVEAU
                 )
             except TypeError as e:
                 await send_error(session_id, f"Erreur paramètres chatbot: {e}")
-                # Tentative avec paramètres simplifiés
-                response = chatbot.poser_question_with_permissions(question, user_permissions)
+                # Tentative avec paramètres simplifiés (sans historique)
+                response = chatbot.poser_question_with_permissions(question, session_id, user_permissions)
 
-        # Récupérer les logs capturés
+        # Récupérer les logs capturés (identique)
         captured_text = captured_output.getvalue()
         if captured_text.strip():
-            # Envoyer les logs capturés ligne par ligne via MCP
             for line in captured_text.strip().split('\n'):
                 if line.strip():
                     await send_log(session_id, line.strip(), "INFO")
 
-        await send_progress(session_id, "Génération de la réponse finale terminée")
+        await send_progress(session_id, f"Réponse générée avec historique pour {username}")
 
-        #  VALIDATION DE LA RÉPONSE
+        # VALIDATION DE LA RÉPONSE (identique)
         if not response:
             await send_error(session_id, "Réponse vide générée par le chatbot")
             response = "Désolé, je n'ai pas pu générer une réponse appropriée."
@@ -371,7 +383,7 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
         return response
 
     except Exception as e:
-        error_msg = f"Erreur traitement avec permissions: {str(e)}"
+        error_msg = f"Erreur traitement avec permissions + historique: {str(e)}"
         await send_error(session_id, error_msg)
         await send_log(session_id, f"Traceback: {traceback.format_exc()}", "ERROR")
         raise
@@ -383,12 +395,12 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
 
 def valider_arguments_jwt(args):
     """
-    Valide les arguments JWT de manière robuste - VERSION SÉCURISÉE
+    Valide les arguments JWT de manière robuste - VERSION AVEC HISTORIQUE
     """
-    if len(args) < 5:
+    if len(args) < 7:  # CHANGEMENT: 5 → 7 (ajout username + email)
         return {
             'error': True,
-            'message': "Usage: python chatbot_wrapper.py <question> <session_id> <permissions> <role>"
+            'message': "Usage: python chatbot_wrapper.py <question> <session_id> <permissions> <role> <username> <email>"
         }
 
     try:
@@ -396,6 +408,8 @@ def valider_arguments_jwt(args):
         session_id = args[2].strip() if args[2] else ""
         user_permissions_str = args[3].strip() if args[3] else ""
         user_role = args[4].strip() if args[4] else ""
+        username = args[5].strip() if len(args) > 5 and args[5] else "unknown_user"  # NOUVEAU
+        email = args[6].strip() if len(args) > 6 and args[6] else "unknown@amdie.ma"  # NOUVEAU
 
         # Validation de la question
         if not user_message or len(user_message) > 2000:
@@ -405,29 +419,38 @@ def valider_arguments_jwt(args):
         if not session_id:
             return {'error': True, 'message': "Session ID invalide"}
 
-        #  PARSING ROBUSTE DES PERMISSIONS JWT
+        # PARSING ROBUSTE DES PERMISSIONS JWT
         if user_permissions_str and user_permissions_str.lower() not in ['none', 'null', '']:
             try:
                 user_permissions = [p.strip() for p in user_permissions_str.split(",") if p.strip()]
-                if not user_permissions:  # Liste vide après nettoyage
+                if not user_permissions:
                     user_permissions = ["read_public_docs"]
             except Exception:
                 user_permissions = ["read_public_docs"]
         else:
-            user_permissions = ["read_public_docs"]  # Défaut sécurisé
+            user_permissions = ["read_public_docs"]
 
-        #  VALIDATION ROBUSTE DU RÔLE JWT
+        # VALIDATION ROBUSTE DU RÔLE JWT
         roles_valides = ['public', 'employee', 'admin']
         if not user_role or user_role.lower() not in roles_valides:
             print(f"Rôle '{user_role}' non reconnu, défaut à 'public'", file=sys.stderr)
             user_role = 'public'
+
+        # VALIDATION USERNAME/EMAIL POUR HISTORIQUE
+        if not username or username.lower() in ['none', 'null', '']:
+            username = f"user_{session_id[:8]}"  # Fallback basé sur session
+
+        if not email or email.lower() in ['none', 'null', ''] or '@' not in email:
+            email = f"{username}@amdie.ma"  # Fallback email
 
         return {
             'error': False,
             'user_message': user_message,
             'session_id': session_id,
             'user_permissions': user_permissions,
-            'user_role': user_role.lower()
+            'user_role': user_role.lower(),
+            'username': username,  # NOUVEAU
+            'email': email  # NOUVEAU
         }
 
     except Exception as e:
@@ -438,88 +461,103 @@ def valider_arguments_jwt(args):
 # FONCTION PRINCIPALE AVEC MCP CORRIGÉE
 # ========================================
 
-async def main_async():
-    """Point d'entrée principal asynchrone du backend avec MCP - VERSION COMMUNICATION CORRIGÉE"""
 
-    # Validation robuste des arguments JWT
+async def main_async():
+    """Point d'entrée principal asynchrone du backend avec MCP + HISTORIQUE"""
+
+    # Validation robuste des arguments JWT + historique
     validation_result = valider_arguments_jwt(sys.argv)
 
     if validation_result['error']:
         error_response = {
             "success": False,
             "error": validation_result['message'],
-            "backend": "enterprise_with_mcp_communication_fixed"
+            "backend": "enterprise_with_mcp_and_history"
         }
         print(json.dumps(error_response, ensure_ascii=False))
         return False
 
-    # Extraction des arguments validés
+    # Extraction des arguments validés + NOUVEAUX CHAMPS
     user_message = validation_result['user_message']
     session_id = validation_result['session_id']
     user_permissions = validation_result['user_permissions']
     user_role = validation_result['user_role']
+    username = validation_result['username']  # NOUVEAU
+    email = validation_result['email']  # NOUVEAU
 
     original_dir = None
 
-    print(f"[BACKEND] Démarré pour {user_role} - Session: {session_id}", file=sys.stderr)
+    print(f"[BACKEND] Démarré pour {user_role} - User: {username} - Session: {session_id}", file=sys.stderr)
     print(f"[BACKEND] Permissions: {user_permissions}", file=sys.stderr)
+    print(f"[BACKEND] Historique: {username} ({email})", file=sys.stderr)
     print(f"[BACKEND] Communication: {'MCP' if MCP_AVAILABLE else 'HTTP Fallback'}", file=sys.stderr)
 
     try:
         # 1. Setup de l'environnement
         original_dir = setup_environment()
 
-        #  TEST INITIAL DE COMMUNICATION MCP
+        # TEST INITIAL DE COMMUNICATION MCP
         print(f"[BACKEND] Test initial communication MCP...", file=sys.stderr)
-        test_success = await send_progress(session_id, f"Backend MCP initialisé pour {user_role}")
+        test_success = await send_progress(session_id, f"Backend MCP initialisé pour {username} ({user_role})")
         if not test_success:
-            print(f"[BACKEND]  Communication MCP échouée, utilisation fallback HTTP", file=sys.stderr)
+            print(f"[BACKEND] Communication MCP échouée, utilisation fallback HTTP", file=sys.stderr)
 
         # 2. Initialisation du chatbot AVEC permissions JWT
         chatbot = await initialize_chatbot_with_permissions(session_id, user_permissions, user_role)
 
-        # 3. Traitement de la question avec permissions JWT
-        await send_progress(session_id, f"Traitement MCP avec niveau d'accès: {user_role}")
-        response = await process_question_with_permissions(chatbot, user_message, session_id, user_permissions)
+        # 3. Traitement de la question avec permissions JWT + HISTORIQUE
+        await send_progress(session_id, f"Traitement avec historique pour {username}")
+        response = await process_question_with_permissions(
+            chatbot,
+            user_message,
+            session_id,
+            user_permissions,
+            username,  # NOUVEAU
+            email  # NOUVEAU
+        )
 
         # 4. Envoi de la réponse finale via MCP
         print(f"[BACKEND] Envoi réponse finale...", file=sys.stderr)
         final_success = await send_final(session_id, response)
 
         if final_success:
-            print(f"[BACKEND]  Réponse finale envoyée avec succès", file=sys.stderr)
+            print(f"[BACKEND] Réponse finale envoyée avec succès", file=sys.stderr)
         else:
-            print(f"[BACKEND]  Problème envoi réponse finale", file=sys.stderr)
+            print(f"[BACKEND] Problème envoi réponse finale", file=sys.stderr)
 
-        # 5. Succès
+        # 5. Succès avec infos utilisateur
         result = {
             "success": True,
             "response": response,
             "session_id": session_id,
             "user_role": user_role,
+            "username": username,  # NOUVEAU
+            "email": email,  # NOUVEAU
             "permissions_used": user_permissions,
-            "backend": "enterprise_with_mcp_communication_fixed",
+            "backend": "enterprise_with_mcp_and_history",
             "communication": "MCP" if MCP_AVAILABLE else "HTTP_FALLBACK"
         }
         print(json.dumps(result, ensure_ascii=False))
 
-        print(f"[BACKEND]  Traitement MCP terminé pour {user_role} - Session: {session_id}", file=sys.stderr)
+        print(f"[BACKEND] Traitement MCP terminé pour {username} ({user_role}) - Session: {session_id}", file=sys.stderr)
         return True
 
     except Exception as e:
         # Gestion d'erreur globale
-        error_msg = f"Erreur backend MCP: {str(e)}"
+        error_msg = f"Erreur backend MCP + historique: {str(e)}"
         await send_error(session_id, error_msg)
 
         # Log détaillé pour debugging
-        print(f"[BACKEND]  Erreur complète: {traceback.format_exc()}", file=sys.stderr)
+        print(f"[BACKEND] Erreur complète: {traceback.format_exc()}", file=sys.stderr)
 
         error_result = {
             "success": False,
             "error": error_msg,
             "session_id": session_id,
             "user_role": user_role,
-            "backend": "enterprise_with_mcp_communication_fixed"
+            "username": username,  # NOUVEAU
+            "email": email,  # NOUVEAU
+            "backend": "enterprise_with_mcp_and_history"
         }
         print(json.dumps(error_result, ensure_ascii=False))
 

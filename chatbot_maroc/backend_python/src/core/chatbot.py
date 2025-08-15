@@ -11,6 +11,7 @@ from ..agents.selector_agent import SelectorAgent
 from ..agents.analyzer_agent import AnalyzerAgent
 from ..agents.code_agent import CodeAgent
 from ..agents.synthesis_agent import SynthesisAgent
+from ..core.memory_store import conversation_memory
 
 sys.path[:0] = ['../../']
 from config.logging import setup_logging, PerformanceLogger
@@ -182,12 +183,13 @@ class ChatbotMarocSessionId:
                 self._log("Question semble factuelle", state)
                 return "direct"
 
-    def poser_question_id(self, question: str, session_id: str = None) -> str:
-        """Interface principale avec gestion d'erreurs complète"""
-        return self.poser_question_with_permissions(question, session_id, self.user_permissions)
+    def poser_question_id(self, question: str, session_id: str = None, username: str = None, email: str = None) -> str:
+        """Interface principale avec gestion d'erreurs complète + historique"""
+        return self.poser_question_with_permissions(question, session_id, self.user_permissions, username, email)
 
     def poser_question_with_permissions(self, question: str, session_id: str = None,
-                                        user_permissions: List[str] = None) -> str:
+                                        user_permissions: List[str] = None, username: str = None,
+                                        email: str = None) -> str:
         """
         Nouvelle méthode principale qui gère les permissions
 
@@ -234,7 +236,9 @@ class ChatbotMarocSessionId:
             fichiers_csvs_local=[],
             session_id=session_id,
             user_role=self.user_role,
-            user_permissions=active_permissions
+            user_permissions=active_permissions,
+            username=username,
+            email=email
         )
 
         try:
@@ -251,6 +255,31 @@ class ChatbotMarocSessionId:
             # Enrichir la réponse finale avec info de permissions
             reponse_base = etat_final.get('reponse_finale', "Aucune réponse générée.")
             reponse_enrichie = self._enrichir_reponse_avec_permissions(reponse_base, etat_final)
+
+            # ============ NOUVEAU: SAUVEGARDE AUTOMATIQUE DANS L'HISTORIQUE ============
+            if username and email:
+                try:
+                    success = conversation_memory.save_conversation(
+                        username=username,
+                        email=email,
+                        question=question.strip(),
+                        reponse=reponse_enrichie,
+                        session_id=session_id
+                    )
+                    if success:
+                        self._log(f" Conversation sauvegardée pour {username}", etat_final)
+
+                        # Stats utilisateur
+                        stats = conversation_memory.get_conversation_stats(username, email)
+                        self._log(
+                            f" Stats: {stats['total_conversations']} total, {stats['conversations_24h']} récentes",
+                            etat_final)
+                    else:
+                        self._log(" Erreur sauvegarde conversation", etat_final)
+                except Exception as e:
+                    self._log_error(f"Erreur sauvegarde historique: {e}", etat_final)
+            else:
+                self._log(" Username/email manquants, pas de sauvegarde historique", etat_final)
 
             return reponse_enrichie
 
@@ -309,3 +338,65 @@ class ChatbotMarocSessionId:
             return "false"
         else:
             return "true"
+
+    def get_user_conversation_history(self, username: str, email: str, limit: int = 10) -> dict:
+        """
+        Récupère l'historique des conversations d'un utilisateur
+
+        Args:
+            username: Nom d'utilisateur
+            email: Email utilisateur
+            limit: Nombre max de conversations à retourner
+
+        Returns:
+            dict: Historique formaté avec stats
+        """
+        try:
+            history = conversation_memory.get_user_history_24h(username, email, limit)
+            stats = conversation_memory.get_conversation_stats(username, email)
+            context = conversation_memory.format_history_for_context(username, email, limit // 2)
+
+            return {
+                "username": username,
+                "email": email,
+                "conversations": history,
+                "stats": stats,
+                "context_for_ai": context,
+                "total_returned": len(history)
+            }
+        except Exception as e:
+            self.logger.error(f"Erreur récupération historique: {e}")
+            return {
+                "username": username,
+                "email": email,
+                "conversations": [],
+                "stats": {"total_conversations": 0, "conversations_24h": 0},
+                "context_for_ai": "",
+                "total_returned": 0,
+                "error": str(e)
+            }
+
+    def clear_user_conversation_history(self, username: str, email: str) -> dict:
+        """
+        Supprime l'historique d'un utilisateur
+
+        Returns:
+            dict: Résultat de la suppression
+        """
+        try:
+            deleted_count = conversation_memory.delete_user_conversations(username, email)
+
+            return {
+                "success": True,
+                "deleted_conversations": deleted_count,
+                "username": username,
+                "email": email
+            }
+        except Exception as e:
+            self.logger.error(f"Erreur suppression historique: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "username": username,
+                "email": email
+            }

@@ -46,3 +46,5 @@ class ChatbotState(TypedDict):
     session_id: str
     user_role: Optional[str]  # Rôle JWT: 'public', 'employee', 'admin'
     user_permissions: Optional[List[str]]  # Permissions spécifiques JWT
+    username: Optional[str]  # Nom d'utilisateur Keycloak pour historique
+    email: Optional[str]  # Email utilisateur pour historique

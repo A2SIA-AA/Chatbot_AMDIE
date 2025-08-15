@@ -346,7 +346,7 @@ async def start_processing(
 
         # LANCER LE BACKEND avec les permissions utilisateur
         try:
-            # permissions_csv : adapte selon ton code (liste -> csv)
+            # permissions_csv
             permissions_csv = ",".join(current_user['permissions']) if isinstance(current_user['permissions'], list) else str(current_user['permissions'])
 
             # Appel du serveur MCP (tool "start_backend")
@@ -355,7 +355,9 @@ async def start_processing(
                     question=question,
                     session_id=session_id,
                     permissions_csv=permissions_csv,
-                    role=current_user['role'],  # "public" | "employee" | "admin"
+                    role=current_user['role'],
+                    username=current_user["username"],
+                    email=current_user["email"]
                 )
                 # Log optionnel
                 print("[API] MCP start_backend ->", mcp_res)
@@ -594,6 +596,8 @@ async def start_processing_keycloak(
                 session_id=session_id,
                 permissions_csv=permissions_csv,
                 role=current_user['role'],
+                username=current_user['username'],
+                email=current_user['email']
             )
             logger.info(f"[API] MCP start_backend -> {mcp_res}")
         except Exception as e:

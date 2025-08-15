@@ -67,13 +67,15 @@ async def _call_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any
 
 
 # --------- TOOLS ORIGINAUX ----------
-async def mcp_start_backend(question: str, session_id: str, permissions_csv: str, role: str) -> Dict[str, Any]:
+async def mcp_start_backend(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]:
     """Démarrage backend via MCP"""
     return await _call_tool("start_backend", {
         "question": question,
         "session_id": session_id,
         "permissions_csv": permissions_csv,
         "role": role,
+        "username": username,
+        "email": email
     })
 
 

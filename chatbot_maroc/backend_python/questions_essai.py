@@ -42,8 +42,22 @@ def main():
     """Fonction principale du script de test"""
     # Configuration par défaut
     session_id = str(uuid.uuid4())
-    user_role = "public"
-    user_permissions = ["read_public_docs"]
+    user_role = "admin"
+    user_permissions = [
+            "read_public_docs",
+            "read_internal_docs",
+            "read_confidential_docs",
+            "chat_basic",
+            "chat_advanced",
+            "chat_admin",
+            "view_statistics",
+            "view_internal_stats",
+            "view_admin_stats",
+            "download_reports",
+            "manage_users",
+            "upload_documents",
+            "delete_documents"
+        ]
     
     print("\n=== Test du Chatbot AMDIE ===")
     print(f"Session ID: {session_id}")
@@ -55,49 +69,49 @@ def main():
     while True:
         try:
             # Demander la question à l'utilisateur
-            question = input("\n> Votre question: ")
+            #question = input("\n> Votre question: ")
             
             # Traiter les commandes spéciales
-            if question.lower() == "!quitter":
-                print("Au revoir!")
-                break
+            #if question.lower() == "!quitter":
+            #    print("Au revoir!")
+            #    break
                 
-            elif question.lower() == "!aide":
-                afficher_aide()
-                continue
+            #elif question.lower() == "!aide":
+            #    afficher_aide()
+            #    continue
                 
-            elif question.lower() == "!role":
-                nouveau_role = input("Nouveau rôle (public, employee, admin): ").strip().lower()
-                if nouveau_role in ["public", "employee", "admin"]:
-                    user_role = nouveau_role
-                    print(f"Rôle changé pour: {user_role}")
-                else:
-                    print(f"Rôle invalide. Utilisation du rôle par défaut: {user_role}")
-                continue
+            #elif question.lower() == "!role":
+            #    nouveau_role = input("Nouveau rôle (public, employee, admin): ").strip().lower()
+            #    if nouveau_role in ["public", "employee", "admin"]:
+            #        user_role = nouveau_role
+            #        print(f"Rôle changé pour: {user_role}")
+            #    else:
+            #        print(f"Rôle invalide. Utilisation du rôle par défaut: {user_role}")
+            #    continue
                 
-            elif question.lower() == "!perms":
-                nouvelles_perms = input("Nouvelles permissions (séparées par des virgules): ").strip()
-                if nouvelles_perms:
-                    user_permissions = [p.strip() for p in nouvelles_perms.split(",") if p.strip()]
-                    print(f"Permissions changées pour: {', '.join(user_permissions)}")
-                else:
-                    user_permissions = ["read_public_docs"]
-                    print(f"Permissions réinitialisées: {', '.join(user_permissions)}")
-                continue
+            #elif question.lower() == "!perms":
+            #    nouvelles_perms = input("Nouvelles permissions (séparées par des virgules): ").strip()
+            #    if nouvelles_perms:
+            #        user_permissions = [p.strip() for p in nouvelles_perms.split(",") if p.strip()]
+            #        print(f"Permissions changées pour: {', '.join(user_permissions)}")
+            #    else:
+            #        user_permissions = ["read_public_docs"]
+            #        print(f"Permissions réinitialisées: {', '.join(user_permissions)}")
+            #    continue
                 
-            elif question.lower() == "!session":
-                session_id = str(uuid.uuid4())
-                print(f"Nouvelle session créée: {session_id}")
-                continue
+            #elif question.lower() == "!session":
+            #    session_id = str(uuid.uuid4())
+            #    print(f"Nouvelle session créée: {session_id}")
+            #    continue
                 
             # Si la question est vide, continuer
-            if not question.strip():
-                continue
+            #if not question.strip():
+            #    continue
                 
             # Préparer les arguments pour le chatbot
             sys.argv = [
                 "chatbot_wrapper.py",
-                question,
+                "question test",
                 session_id,
                 ",".join(user_permissions),
                 user_role

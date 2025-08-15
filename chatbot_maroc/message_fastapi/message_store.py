@@ -98,7 +98,7 @@ class MessageStore:
         success = self._write_storage(storage)
 
         if success:
-            print(f"[MessageStore] ✅ Message ajouté à {session_id}")
+            print(f"[MessageStore] Message ajouté à {session_id}")
 
             # Mettre à jour les métadonnées de session
             if session_id not in self.session_metadata:
@@ -112,7 +112,7 @@ class MessageStore:
             self.session_metadata[session_id]['last_activity'] = current_time
             self.session_metadata[session_id]['message_count'] = len(storage[session_id])
         else:
-            print(f"[MessageStore] ❌ Erreur sauvegarde message pour {session_id}")
+            print(f"[MessageStore]  Erreur sauvegarde message pour {session_id}")
 
     async def get_messages(self, session_id: str) -> List[Dict[str, Any]]:
         """Récupère tous les messages d'une session en format dictionnaire"""
