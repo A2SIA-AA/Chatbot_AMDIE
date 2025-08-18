@@ -7,7 +7,7 @@ from ..core.state import ChatbotState
 from dotenv import load_dotenv
 import os
 from ..utils.message_to_front import _send_to_frontend
-from ..core.memory_store import conversation_memory, get_user_context
+from ..core.memory_store import get_user_context
 
 load_dotenv()
 
@@ -61,10 +61,10 @@ class AnalyzerAgent:
         if username and email:
             historique_contexte = get_user_context(username, email)
             if historique_contexte and "Aucune conversation précédente" not in historique_contexte:
-                self.chatbot._log(f"📜 Historique utilisateur récupéré pour {username}", state)
+                self.chatbot._log(f" Historique utilisateur récupéré pour {username}", state)
                 _send_to_frontend(session_id, f"Historique des conversations récupéré pour {username}")
             else:
-                self.chatbot._log(f"📝 Première conversation pour {username}", state)
+                self.chatbot._log(f" Première conversation pour {username}", state)
 
         fichier_csv = self._creer_csvs_pour_gemini(state['dataframes'], state)
         fichier_gemini, client = self._upload_fichier_to_gemini(fichier_csv, state)
