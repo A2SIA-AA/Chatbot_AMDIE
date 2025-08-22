@@ -1,5 +1,6 @@
 # mcp_backend_server.py
 import os, sys, asyncio, signal
+import time
 from typing import Dict, Any
 
 from fastmcp import FastMCP
@@ -7,7 +8,7 @@ from fastmcp import FastMCP
 mcp = FastMCP("AMDIE-Backend-MCP")
 
 # --------- CONFIG ----------
-PROJECT_DIR = os.getenv("PROJECT_DIR")
+PROJECT_DIR = os.getenv("PROJECT_DIR", "/home/aissa/Bureau/Projet_Chatbot/Chatbot_AMDIE/chatbot_maroc/backend_python")
 WRAPPER_PATH = os.getenv("WRAPPER_PATH", "chatbot_wrapper.py")
 FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000")
 
@@ -177,121 +178,31 @@ Dict[str, Any]:
     """
     Helper function pour envoyer des messages
     """
-    print(f"[MCP DEBUG] ==========================================")
-    print(f"[MCP DEBUG] _send_message_helper DÉMARRAGE")
-    print(f"[MCP DEBUG] session_id: '{session_id}'")
-    print(f"[MCP DEBUG] message_type: '{message_type}'")
-    print(f"[MCP DEBUG] content: '{content[:100]}...'")
-    print(f"[MCP DEBUG] metadata: {metadata}")
-    print(f"[MCP DEBUG] FASTAPI_MESSAGE_STORE_AVAILABLE: {FASTAPI_MESSAGE_STORE_AVAILABLE}")
-    print(f"[MCP DEBUG] message_store objet: {message_store}")
-    print(f"[MCP DEBUG] type(message_store): {type(message_store)}")
-
-    #  VALIDATION ÉTAPE PAR ÉTAPE
-    if not FASTAPI_MESSAGE_STORE_AVAILABLE:
-        print(f"[MCP DEBUG]  ÉCHEC: Message store non disponible")
-        return {"ok": False, "error": "Message store non disponible"}
-
-    if message_store is None:
-        print(f"[MCP DEBUG]  ÉCHEC: message_store est None")
-        return {"ok": False, "error": "message_store est None"}
-
-    if not session_id or not session_id.strip():
-        print(f"[MCP DEBUG]  ÉCHEC: Session ID invalide: '{session_id}'")
-        return {"ok": False, "error": "Session ID requis"}
-
-    if not content or not content.strip():
-        print(f"[MCP DEBUG]  ÉCHEC: Contenu invalide: '{content}'")
-        return {"ok": False, "error": "Contenu requis"}
-
-    print(f"[MCP DEBUG]  Toutes les validations passées")
 
     try:
-        # Construire le message
+        # Juste log essentiel en cas d'erreur
+        if not FASTAPI_MESSAGE_STORE_AVAILABLE or not message_store:
+            print(f"[MCP] MessageStore non disponible", file=sys.stderr)
+            return {"ok": False, "error": "MessageStore non disponible"}
+
+        # Construction du message
         message_data = {
             'type': message_type,
             'content': content,
-            'metadata': metadata or {
-                'timestamp': asyncio.get_event_loop().time(),
-                'source': 'backend_via_mcp'
-            }
+            'metadata': metadata or {'timestamp': time.time(), 'source': 'backend_via_mcp'}
         }
 
-        print(f"[MCP DEBUG] Message data construit:")
-        print(f"[MCP DEBUG]   type: {message_data['type']}")
-        print(f"[MCP DEBUG]   content: {message_data['content'][:50]}...")
-        print(f"[MCP DEBUG]   metadata: {message_data['metadata']}")
-
-        #  ÉTAPE CRITIQUE: VÉRIFIER LES MÉTHODES DISPONIBLES
-        print(f"[MCP DEBUG] Vérification méthodes message_store...")
-        available_methods = [method for method in dir(message_store) if not method.startswith('_')]
-        print(f"[MCP DEBUG] Méthodes disponibles: {available_methods}")
-
-        if not hasattr(message_store, 'add_message'):
-            print(f"[MCP DEBUG]  CRITIQUE: add_message non trouvée!")
-            return {"ok": False, "error": "add_message method not found"}
-
-        print(f"[MCP DEBUG] add_message method: {getattr(message_store, 'add_message')}")
-
-        #  ÉTAPE CRITIQUE: TENTATIVE D'AJOUT MESSAGE
-        print(f"[MCP DEBUG] TENTATIVE add_message...")
-        print(f"[MCP DEBUG] Appel: message_store.add_message('{session_id}', {message_data})")
-
-        # AJOUT AVEC MAXIMUM DE DEBUG
+        # Ajout du message SANS tous les logs de debug
         result = await message_store.add_message(session_id, message_data)
-        print(f"[MCP DEBUG] add_message retourné: {result}")
 
-        print(f"[MCP DEBUG]  add_message réussi! Vérification...")
+        # Log minimal de succès
+        print(f"[MCP] {message_type} envoyé pour {session_id}", file=sys.stderr)
 
-        #  VÉRIFICATION IMMÉDIATE: RÉCUPÉRER LES MESSAGES
-        try:
-            print(f"[MCP DEBUG] Vérification 1: get_all_sessions...")
-            all_sessions = await message_store.get_all_sessions()
-            print(f"[MCP DEBUG] Sessions après ajout: {all_sessions}")
-
-            if session_id in all_sessions:
-                print(f"[MCP DEBUG]  Session {session_id} trouvée dans all_sessions")
-            else:
-                print(f"[MCP DEBUG] ⚠️ Session {session_id} PAS trouvée dans all_sessions")
-
-            print(f"[MCP DEBUG] Vérification 2: get_messages...")
-            session_messages = await message_store.get_messages(session_id)
-            print(f"[MCP DEBUG] Messages dans la session: {len(session_messages)}")
-
-            if len(session_messages) > 0:
-                print(f"[MCP DEBUG]  {len(session_messages)} messages trouvés")
-                for i, msg in enumerate(session_messages):
-                    print(f"[MCP DEBUG]   Message {i + 1}: {msg}...")
-            else:
-                print(f"[MCP DEBUG] AUCUN message trouvé dans la session!")
-
-            print(f"[MCP DEBUG] Vérification 3: get_session_info...")
-            session_info = await message_store.get_session_info(session_id)
-            print(f"[MCP DEBUG] Session info: {session_info}")
-
-        except Exception as verify_error:
-            print(f"[MCP DEBUG]  ERREUR VÉRIFICATION: {verify_error}")
-            import traceback
-            print(f"[MCP DEBUG] Traceback vérification:")
-            traceback.print_exc()
-
-        print(f"[MCP DEBUG]  SUCCÈS COMPLET")
-        return {
-            "ok": True,
-            "message": f"Message {message_type} envoyé avec succès",
-            "session_id": session_id
-        }
+        return {"ok": True, "message": f"Message {message_type} envoyé avec succès", "session_id": session_id}
 
     except Exception as e:
-        print(f"[MCP DEBUG]  EXCEPTION DANS add_message: {e}")
-        print(f"[MCP DEBUG] Type exception: {type(e)}")
-        import traceback
-        print(f"[MCP DEBUG] Traceback complet:")
-        traceback.print_exc()
-        return {"ok": False, "error": f"Exception: {str(e)}"}
-
-    finally:
-        print(f"[MCP DEBUG] ==========================================")
+        print(f"[MCP ERROR] {session_id}: {e}", file=sys.stderr)
+        return {"ok": False, "error": str(e)}
 
 
 # --------- TOOLS ORIGINAUX ----------
@@ -477,4 +388,4 @@ if __name__ == "__main__":
         print(f"[MCP] Message store type: {type(message_store).__name__}")
 
     # serveur MCP
-    mcp.run(transport="http", host="0.0.0.0", port=port, path="/mcp")
+    mcp.run(transport="http", host="0.0.0.0", port=port, path="/mcp/")

@@ -127,8 +127,6 @@ class RAGTableIndex:
         """
         Indexe tous les tableaux dans ChromaDB
 
-        MODIFICATION: Ajoute maintenant les niveaux d'accès basés sur les dossiers
-
         Args:
             index_path: Chemin vers index.json
             tableaux_dir: Dossier contenant les tableaux JSON
@@ -220,10 +218,7 @@ class RAGTableIndex:
 
     def rechercher_tableaux(self, query: str, user_role: str, n_results: int = 10) -> Dict[str, Any]:
         """
-        Recherche sémantique dans les tableaux
-
-        CORRECTION: Suppression du filtrage ici - sera fait dans rag_agent.py
-        (Cause de l'erreur NoneType was not iterable)
+        Recherche de similitude dans les tableaux
 
         Args:
             query: Question ou terme de recherche
@@ -245,8 +240,6 @@ class RAGTableIndex:
             include=['documents', 'metadatas', 'distances']
         )
 
-        # Formatter les résultats sans filtrage par rôle
-        # Le filtrage sera fait dans rag_agent.py pour éviter l'erreur NoneType
         formatted_results = {
             'query': query,
             'nb_resultats': len(results['ids'][0]),
@@ -265,7 +258,6 @@ class RAGTableIndex:
                 'colonnes': self.extraire_colonnes_de_description(results['documents'][0][i]),
                 'tableau_path': metadata.get('tableau_path', ''),
                 'description': results['documents'][0][i],
-                # IMPORTANT: Inclure le niveau d'accès pour le filtrage JWT
                 'access_level': metadata.get('access_level', 'public')
             }
 

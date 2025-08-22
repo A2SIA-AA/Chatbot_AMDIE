@@ -437,7 +437,7 @@ async def list_users(current_user: dict = Depends(require_permission("manage_use
 
 from pydantic import BaseModel
 
-# Import du nouveau système Keycloak
+
 from auth_keycloack import (
     get_current_user_keycloak,
     check_permission_keycloak,

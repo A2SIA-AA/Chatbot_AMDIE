@@ -48,3 +48,10 @@ class ChatbotState(TypedDict):
     user_permissions: Optional[List[str]]  # Permissions spécifiques JWT
     username: Optional[str]  # Nom d'utilisateur Keycloak pour historique
     email: Optional[str]  # Email utilisateur pour historique
+
+    documents_pdf: List[Dict]  # Documents PDF trouvés
+    documents_excel: List[Dict]  # Documents Excel trouvés
+    processing_mode: str  # Mode: 'excel_only', 'pdf_only', 'both', 'no_documents'
+    reponse_finale_pdf: str  # Réponse spécifique aux PDF
+    sources_pdf: List[str]
+    excel_empty: str

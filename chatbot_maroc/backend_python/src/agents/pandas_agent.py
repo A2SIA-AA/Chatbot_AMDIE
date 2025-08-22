@@ -13,8 +13,25 @@ class SimplePandasAgent:
         self.gemini_model = gemini_model
 
     def creer_dataframe_propre(self, tableau_data: Dict) -> pd.DataFrame:
-        """Crée un DataFrame propre à partir des données de tableau avec métadonnées"""
+        """Crée un DataFrame propre à partir des données de tableau avec métadonnées - VERSION CORRIGÉE"""
 
+        # CORRECTION CRITIQUE: Gérer le cas où 'tableau' n'existe pas
+        if 'tableau' not in tableau_data:
+            # Créer une structure tableau minimale depuis les métadonnées
+            titre = tableau_data.get('titre_contextuel', 'Sans titre')
+            description = tableau_data.get('description', 'Pas de description')
+            source = tableau_data.get('source', tableau_data.get('fichier_source', 'Source inconnue'))
+            doc_id = tableau_data.get('id', 'ID_inconnu')
+
+            # Créer un tableau simple avec les métadonnées disponibles
+            tableau_data['tableau'] = [
+                ['Titre', 'Description', 'Source', 'ID'],  # Headers
+                [titre, description, source, doc_id]  # Données
+            ]
+
+            print(f"[PANDAS_AGENT] Tableau créé depuis métadonnées pour: {titre}")
+
+        # Votre code original continue ici
         donnees_tableau = tableau_data['tableau']
         headers = donnees_tableau[0]
         rows = donnees_tableau[1:]
@@ -39,7 +56,7 @@ class SimplePandasAgent:
         # Ajouter les métadonnées au dataframe
         df.attrs.update({
             'titre': tableau_data.get('titre_contextuel', 'Tableau sans titre'),
-            'source': tableau_data.get('fichier_source', 'Source inconnue'),
+            'source': tableau_data.get('fichier_source', tableau_data.get('source', 'Source inconnue')),
             'feuille': tableau_data.get('nom_feuille', 'N/A'),
             'description': self._generer_description_contexte(tableau_data, df),
             'nb_lignes': len(df),

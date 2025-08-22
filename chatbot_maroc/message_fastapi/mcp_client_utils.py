@@ -5,7 +5,7 @@ from typing import Any, Dict
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.client.session import ClientSession
 
-MCP_BACKEND_URL = os.getenv("MCP_BACKEND_URL", "http://localhost:8090/mcp").rstrip("/")
+MCP_BACKEND_URL = os.getenv("MCP_BACKEND_URL", "http://localhost:8090/mcp/")
 MCP_SSE_URL = f"{MCP_BACKEND_URL}"
 
 print(f"[MCP Client] URL configurée: {MCP_SSE_URL}")

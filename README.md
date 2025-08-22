@@ -1,131 +1,151 @@
-# Chatbot AMDIE - Assistant IA avec contrôle d'accès
+## `README.md` – Chatbot RAG AMDIE
 
-Ce dépôt contient un chatbot intelligent développé dans le cadre d'un stage à l’**Agence Marocaine de Développement des Investissements et des Exportations (AMDIE)**.
+# Chatbot RAG – AMDIE
 
-Le chatbot offre une interface web conversationnelle basée sur un modèle de langage (LLM) capable de :
-- répondre à des questions sur des documents internes,
-- tout en respectant les **droits d’accès** de l’utilisateur (`public`, `employé`, `admin`) grâce à un système **JWT** intégré.
+## Présentation
+
+Ce projet consiste en un **chatbot intelligent basé sur l'architecture RAG** (Retrieval-Augmented Generation), conçu pour répondre aux questions des utilisateurs en interrogeant une **base vectorielle de documents internes à l'AMDIE**.
+
+L'objectif est de centraliser les connaissances issues de documents disparates et d’éviter de solliciter systématiquement les collaborateurs pour obtenir des réponses.  
+Ce projet a été réalisé dans le cadre d’un stage d’ingénieur en 4e année.
 
 ---
 
-## Architecture
+## Architecture technique
 
-```txt
-Utilisateur (Next.js)
-      |
-      |---> FastAPI (auth, session, gestion des messages)
-                        |
-                        |---> Script Python backend (`chatbot_wrapper.py`)
-                                    |
-                                    |---> IA + RAG + ChromaDB (avec filtrage par droits JWT)
+Le système repose sur une architecture modulaire en 4 composants principaux :
+
+- **Frontend (Next.js)** : interface utilisateur de type chat
+- **API REST (FastAPI)** : authentification, gestion de sessions, orchestration
+- **Serveur MCP** : point d'entrée pour l'exécution du backend LLM
+- **Backend IA (LangGraph)** : exécute les agents de traitement, les appels à la base vectorielle (ChromaDB) et renvoie les réponses
+
+---
+
+## Technologies utilisées
+
+| Composant        | Technologie                      |
+|------------------|----------------------------------|
+| LLM              | Gemini (via MCP - Streamable HTTP) |
+| Backend IA       | Python + LangGraph (agents)      |
+| API REST         | FastAPI                          |
+| Base vectorielle | ChromaDB                         |
+| Authentification | Keycloak (OAuth2)                |
+| Frontend         | Next.js + Tailwind + Shadcn      |
+
+---
+
+## Structure du projet
+
+```
+
+chatbot_maroc/
+├── backend_python/        # Backend IA : agents, vectorisation, extraction
+├── message_fastapi/       # API REST FastAPI (auth, orchestration, sessions)
+├── mcp-server-amdie/      # Serveur MCP (Streamable HTTP)
+├── frontend/              # Interface utilisateur React
+├── data/                  # Documents d'entrée classés par niveau (public, admin…)
+├── output/                # Fichiers JSON extraits et indexés
+├── docs/                  # Documentation générée avec pdoc
+└── README.md              # Ce fichier
+
 ````
 
-* **Frontend :** Interface React (Next.js)
-* **Backend :** FastAPI (authentification, sessions, appels LLM)
-* **IA :** backend séparé (`chatbot_wrapper.py`) intégrant un modèle de langage et RAG vectoriel (Chroma)
-* **Stockage temporaire :** En mémoire (liste Python)
-
 ---
 
-## Fonctionnalités principales
+## Lancement du projet
 
-* Authentification sécurisée avec JWT (3 rôles)
-* Lancement de sessions avec logs et ID persistants
-* Traitement des questions via un backend IA isolé
-* RAG vectorisé avec filtrage des documents selon les droits
+Chaque composant doit être lancé **dans un terminal distinct**.
 
----
-
-## Rôles & Permissions
-
-| Rôle    | Permissions                    | Accès                 |
-| ------- | ------------------------------ | --------------------- |
-| public  | `read_public_docs`             | Données publiques     |
-| employé | `read_public_docs`, `employee` | Accès intermédiaire   |
-| admin   | `read_all`, `admin`            | Plein accès (interne) |
-
----
-
-##  Installation
-
-### 1. Cloner le dépôt
+### 1. Lancer Keycloak
 
 ```bash
-git clone https://github.com/A2SIA-AA/Chatbot_AMDIE.git
-cd Chatbot_AMDIE/chatbot_maroc
-```
+cd keycloak/bin
+./kc.sh start-dev --http-port 8080
+````
 
-### 2. Backend (FastAPI)
+* L’authentification se fait par rôle (`admin`, `employee`, `public`)
+* Les tokens JWT sont validés automatiquement par l’API
+
+---
+
+### 2. Lancer l’API REST (FastAPI)
 
 ```bash
-pip install -r requirements.txt
 cd message_fastapi
-python main.py
+uvicorn main:app --reload --port 8000
 ```
 
-### 3. Frontend (Next.js)
+* Interface Swagger : [http://localhost:8000/docs](http://localhost:8000/docs)
+* Utilise un stockage partagé local : `/tmp/chatbot_sessions.json`
+
+---
+
+### 3. Lancer le serveur MCP (LLM Gemini)
 
 ```bash
-cd interface
+cd mcp-server-amdie
+python mcp_backend_server.py
+```
+
+Le serveur est accessible à l’API REST à l’adresse :
+
+```
+http://0.0.0.0:8090/mcp/
+```
+
+---
+
+### 4. Lancer le frontend (React/Next.js)
+
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
----
-
-## Variables d’environnement (`.env`)
-
-À créer à la racine, prendre exemple sur le fichier .env.exemple
+Accessible via : [http://localhost:3000](http://localhost:3000)
+L’utilisateur est redirigé vers Keycloak au moment de la connexion.
 
 ---
 
-## Principaux Endpoints FastAPI
+## Fonctionnement
 
-| Méthode | Endpoint                   | Description                |
-| ------- | -------------------------- | -------------------------- |
-| POST    | `/api/v1/auth/login`       | Connexion JWT              |
-| GET     | `/api/v1/auth/me`          | Infos utilisateur connecté |
-| POST    | `/api/v1/messages`         | Ajout de message           |
-| POST    | `/api/v1/start-processing` | Lancer le backend IA       |
-
----
-
-## Backend IA (`chatbot_wrapper.py`)
-
-Ce fichier est exécuté par FastAPI et contient :
-
-* Vérification des permissions JWT
-* Initialisation du RAG avec filtrage par rôle
-* Exécution de la requête
-* Envoi de messages à FastAPI (progression, logs, résultat final)
+* L’utilisateur se connecte via **Keycloak** (identité, rôle, permissions).
+* Il pose une question via l’interface frontend.
+* L’**API REST** crée une session et appelle le **serveur MCP**.
+* Le **serveur MCP** déclenche le backend (LangGraph) avec les permissions utilisateur.
+* Le backend interroge **ChromaDB** et renvoie une réponse personnalisée.
+* Les messages sont stockés dans `/tmp/chatbot_sessions.json`.
 
 ---
 
-## Arborescence simplifiée
+## Accès aux données
+
+Les documents sont automatiquement filtrés à l’indexation selon leur niveau de confidentialité.
+La structure suivante est utilisée :
 
 ```
-chatbot_maroc/
-├── backend_python
-│   └──  chatbot_wrapper.py    # Backend IA délégué
-├── message_fastapi/           # Frontend React (Next.js)
-│   └── main.py                # API FastAPI
-│   └── auth.py                # Authentification & JWT
-│   └── models.py              # Modèles Pydantic
-│   └── message_store.py       # Stockage messages sessions   
-├── interface/             # Frontend React (Next.js)
-│   └── page.tsx
-└── README.md
+data/
+├── admin/      # documents confidentiels (accès admin)
+├── public/     # documents ouverts (accès public)
+├── salarie/    # documents internes (accès salarié) 
 ```
 
 ---
 
-## Licence
+## Documentation
 
-Projet sous licence MIT - libre d’utilisation et de modification.
+* Documentation générée automatiquement avec `pdoc` : `docs/`
+* Notices utilisateurs disponibles :
+
+  * `NOTICE_PUBLIC.md`
+  * `NOTICE_SALARIE.md`
+  * `NOTICE_ADMIN.md`
 
 ---
 
 ## Auteur
 
-Projet développé dans le cadre d’un stage à l’AMDIE - par Assia AIT TALEB
-Lien : [github.com/A2SIA-AA/Chatbot\_AMDIE](https://github.com/A2SIA-AA/Chatbot_AMDIE)
+Projet réalisé par **Assia AIT TALEB** dans le cadre d’un stage à l’AMDIE – 4e année ingénieur.
+

@@ -198,9 +198,13 @@ class ChatbotMarocSessionId:
             session_id: ID de session
             user_permissions: Permissions spécifiques (override les permissions de l'instance)
         """
+        print(f"[DEBUG PERMISSIONS] DÉBUT - self.user_permissions: {self.user_permissions}", file=sys.stderr)
+        print(f"[DEBUG PERMISSIONS] DÉBUT - paramètre user_permissions: {user_permissions}", file=sys.stderr)
 
         start_time = time.time()
         active_permissions = user_permissions or self.user_permissions
+
+        print(f"[DEBUG PERMISSIONS] active_permissions calculées: {active_permissions}", file=sys.stderr)
 
         # Validation existante
         if not question.strip():
@@ -293,7 +297,14 @@ class ChatbotMarocSessionId:
             return f"ERREUR: {error_msg}. Votre niveau d'accès: {self.user_role.upper()}. Veuillez réessayer."
 
     def _enrichir_reponse_avec_permissions(self, reponse_base: str, etat_final: ChatbotState) -> str:
-        """Enrichit la réponse finale avec des informations de permissions"""
+        # DÉBOGAGE IMMÉDIAT
+        if self.user_permissions is None:
+            print(f"[ERREUR TROUVÉE] self.user_permissions est None !", file=sys.stderr)
+            print(f"[ERREUR TROUVÉE] self.user_role: {self.user_role}", file=sys.stderr)
+            print(f"[ERREUR TROUVÉE] État final user_permissions: {etat_final.get('user_permissions')}",
+                  file=sys.stderr)
+            import traceback
+            traceback.print_stack(file=sys.stderr)
 
         # Indicateurs visuels par rôle
         role_indicators = {
@@ -329,7 +340,14 @@ class ChatbotMarocSessionId:
 
         # Info sur les permissions pour les admins
         if self.user_role == 'admin':
-            reponse_enrichie += f"\n**Debug Admin :** Permissions actives: {', '.join(self.user_permissions)}"
+            # PROTECTION CRITIQUE contre None
+            permissions_safe = self.user_permissions or ["unknown_permissions"]
+            if isinstance(permissions_safe, list):
+                permissions_str = ', '.join(permissions_safe)
+            else:
+                permissions_str = str(permissions_safe)
+
+            reponse_enrichie += f"\n**Debug Admin :** Permissions actives: {permissions_str}"
 
         return reponse_enrichie
 
