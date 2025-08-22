@@ -108,8 +108,14 @@ else:
 # ========================================
 
 async def send_progress(session_id: str, message: str) -> bool:
-    """Envoie un message de progression via MCP - VERSION CORRIGÉE"""
-    print(f"[WRAPPER] send_progress appelé: {session_id} - {message[:50]}...", file=sys.stderr)
+    """Envoie un message de progression via MCP"""
+    # PROTECTION CONTRE None
+    if message is None:
+        message = "Progression: message None reçu"
+
+    # PROTECTION POUR L'AFFICHAGE
+    display_message = str(message)[:50] if message else "None"
+    print(f"[WRAPPER] send_progress appelé: {session_id} - {display_message}...", file=sys.stderr)
 
     if not MCP_AVAILABLE or not mcp_send_progress:
         print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
@@ -134,8 +140,14 @@ async def send_progress(session_id: str, message: str) -> bool:
 
 
 async def send_final(session_id: str, message: str) -> bool:
-    """Envoie la réponse finale via MCP - VERSION CORRIGÉE"""
-    print(f"[WRAPPER] send_final appelé: {session_id} - {message[:50]}...", file=sys.stderr)
+    """Envoie la réponse finale via MCP"""
+    # PROTECTION CONTRE None
+    if message is None:
+        message = "Erreur: Réponse générée est None"
+
+    # PROTECTION POUR L'AFFICHAGE
+    display_message = str(message)[:50] if message else "None"
+    print(f"[WRAPPER] send_final appelé: {session_id} - {display_message}...", file=sys.stderr)
 
     if not MCP_AVAILABLE or not mcp_send_final:
         print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
@@ -160,8 +172,14 @@ async def send_final(session_id: str, message: str) -> bool:
 
 
 async def send_error(session_id: str, error: str) -> bool:
-    """Envoie un message d'erreur via MCP - VERSION CORRIGÉE"""
-    print(f"[WRAPPER] send_error appelé: {session_id} - {error[:50]}...", file=sys.stderr)
+    """Envoie un message d'erreur via MCP"""
+    # PROTECTION CONTRE None
+    if error is None:
+        error = "Erreur: message d'erreur None"
+
+    # PROTECTION POUR L'AFFICHAGE
+    display_error = str(error)[:50] if error else "None"
+    print(f"[WRAPPER] send_error appelé: {session_id} - {display_error}...", file=sys.stderr)
 
     if not MCP_AVAILABLE or not mcp_send_error:
         print(f"[WRAPPER] MCP non disponible, fallback HTTP", file=sys.stderr)
@@ -262,7 +280,8 @@ async def initialize_chatbot_with_permissions(session_id: str, user_permissions:
 
         #  IMPORT SÉCURISÉ DES MODULES
         try:
-            from src.core.chatbot import ChatbotMarocSessionId
+            #from src.core.chatbot import ChatbotMarocSessionId
+            from src.core.chatbot_v2 import ChatbotMarocVersion2 as ChatbotMarocSessionId
             from src.rag.indexer import RAGTableIndex
             await send_log(session_id, "Modules IA importés avec succès", "INFO")
         except ImportError as e:
@@ -311,7 +330,7 @@ async def initialize_chatbot_with_permissions(session_id: str, user_permissions:
 
 async def process_question_with_permissions(chatbot, question: str, session_id: str,
                                             user_permissions: Optional[List[str]],
-                                            username: str = None, email: str = None):  # NOUVEAUX PARAMÈTRES
+                                            username: str = None, email: str = None):
     """
     Traite la question avec les agents en utilisant les permissions JWT + historique utilisateur
     """
@@ -351,6 +370,12 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
         with redirect_stdout(captured_output):
             try:
                 # APPEL AVEC HISTORIQUE UTILISATEUR
+
+                print(f"[ERROR TRACE] question type: {type(question)}", file=sys.stderr)
+                print(f"[ERROR TRACE] user_permissions type: {type(user_permissions)}, value: {user_permissions}",file=sys.stderr)
+
+                print(f"[ERROR TRACE] Avant appel chatbot", file=sys.stderr)
+
                 response = chatbot.poser_question_with_permissions(
                     question,
                     session_id=session_id,
@@ -358,6 +383,10 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
                     username=username,  # NOUVEAU
                     email=email  # NOUVEAU
                 )
+
+                print(f"[ERROR TRACE] Après appel chatbot, response type: {type(response)}", file=sys.stderr)
+
+
             except TypeError as e:
                 await send_error(session_id, f"Erreur paramètres chatbot: {e}")
                 # Tentative avec paramètres simplifiés (sans historique)

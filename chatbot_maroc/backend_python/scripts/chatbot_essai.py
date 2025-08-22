@@ -3,8 +3,8 @@ import os
 
 load_dotenv()
 
-from src.core.chatbot import ChatbotMaroc
-from src.rag.indexer import RAGTableIndex
+from ..src.core.chatbot import ChatbotMarocSessionId
+from ..src.rag.indexer import RAGTableIndex
 
 
 def creer_chatbot():
@@ -21,7 +21,7 @@ def creer_chatbot():
     gemini_key = os.getenv("GEMINI_API_KEY")
 
     # Créer le chatbot
-    chatbot = ChatbotMaroc(rag_index, gemini_key)
+    chatbot = ChatbotMarocSessionId(rag_index, gemini_key)
 
     print(f"Chatbot initialisé")
     return chatbot
@@ -59,7 +59,7 @@ def tester_chatbot():
         # Poser la question et mesurer le temps
         import time
         debut = time.time()
-        reponse = chatbot.poser_question(question)
+        reponse = chatbot.poser_question_id(question,"session123","test", "test@gmail.com")
         duree = time.time() - debut
 
         print(f"Réponse: {reponse}")

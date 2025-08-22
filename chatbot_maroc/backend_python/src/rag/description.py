@@ -14,7 +14,6 @@ def __init__():
 def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
     """
     Génère une description textuelle riche d'un tableau JSON pour l'indexation RAG
-    CORRECTION: Récupère TOUS les champs des JSON (y compris access_level)
 
     Args:
         tableau_path: Chemin vers le fichier JSON du tableau
@@ -48,7 +47,6 @@ def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
         ]}
     }
 
-    # DEBUG: Afficher pour vérifier (retirez après test)
     if metadata.get('access_level'):
         print(f"DEBUG description.py: {tableau_path}")
         print(f"  access_level trouvé: {metadata.get('access_level')}")
@@ -101,7 +99,6 @@ def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
     }
 
 
-# Le reste de vos fonctions restent identiques
 def analyser_types_colonnes(data_rows: List[List], headers: List[str]) -> Dict[str, str]:
     """
     Analyse les types de données pour chaque colonne

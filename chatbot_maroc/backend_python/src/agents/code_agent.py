@@ -147,7 +147,7 @@ Génère et exécute le code Python maintenant."""
             #if 'fichiers_csv' in locals() and fichiers_csv:
             #    self._nettoyer_csvs_temporaires(fichiers_csv, state)
             if 'fichiers_gemini' in locals():
-                self._nettoyer_fichiers_gemini(fichiers_gemini, client, state)
+                self._nettoyer_fichiers_gemini(state['fichiers_gemini'], client, state)
 
         return state
 

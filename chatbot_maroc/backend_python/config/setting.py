@@ -35,5 +35,5 @@ def get_settings() -> ChatbotSettings:
     """Singleton pour récupérer les settings"""
     global _settings
     if _settings is None:
-        _settings = ChatbotSettings()
+        _settings = ChatbotSettings(gemini_api_key=os.getenv("GEMINI_API_KEY"))
     return _settings

@@ -3,6 +3,7 @@ from typing import Dict, List
 from ..core.state import ChatbotState
 from ..utils.message_to_front import _send_to_frontend
 from ..core.memory_store import conversation_memory, get_user_context
+import sys
 
 
 class SynthesisAgent:
@@ -14,6 +15,7 @@ class SynthesisAgent:
 
     def execute(self, state: ChatbotState) -> ChatbotState:
         """Point d'entrée principal de l'agent"""
+        print(f"[DEBUG {self.__class__.__name__}] self.chatbot.user_permissions: {self.chatbot.user_permissions}",file=sys.stderr)
         return self.agent_synthese(state)
 
     def agent_synthese(self, state: ChatbotState) -> ChatbotState:
@@ -27,18 +29,44 @@ class SynthesisAgent:
         username, email = self._extract_user_info(state)
 
         # CAS 1: Réponse directe (workflow court)
+
         if not state.get('besoin_calculs') or state.get('reponse_finale'):
+            # Construire les volets Excel/PDF puis fusionner si nécessaire
+            texte_excel = None
+
             if state.get('reponse_finale'):
-                self.chatbot._log("Synthèse: Réponse directe conservée", state)
+                texte_excel = state['reponse_finale']
+            elif state.get('resultat_pandas') is not None:
+                texte_excel = f"Données calculées:\\n{state['resultat_pandas']}"
 
-                # Enrichir avec les sources ET l'historique
-                state['reponse_finale'] = self._enrichir_reponse_avec_sources(
-                    state['reponse_finale'],
-                    state.get('tableaux_pour_upload', [])
+            texte_pdf = state.get('reponse_finale_pdf')
+
+          # Fusion
+
+            if texte_excel and texte_pdf:
+                state['reponse_finale'] = (
+                        "Synthèse combinée (Excel + PDF):\n\n"
+                        "- Volet données tabulaires (Excel):\n"
+                        f"{texte_excel}\n\n"
+                        " Volet documents textuels (PDF):\n"
+                      f"{texte_pdf}"
                 )
+            elif texte_pdf and not texte_excel:
+                state['reponse_finale'] = texte_pdf
+            # sinon, on conserve texte_excel déjà en place
 
-                # Sauvegarder dans l'historique
-                if username and email:
+            # Enrichir avec les sources Excel
+            state['reponse_finale'] = self._enrichir_reponse_avec_sources(
+                state['reponse_finale'],
+                state.get('tableaux_pour_upload', [])
+            )
+            # Ajouter les sources PDF si présentes
+
+            if state.get('sources_pdf'):
+                state['reponse_finale'] += "\n\nSources PDF:\n" + "\n".join(state['sources_pdf'])
+
+            # Sauvegarder dans l'historique
+            if username and email:
                     success = conversation_memory.save_conversation(
                         username=username,
                         email=email,
@@ -47,9 +75,9 @@ class SynthesisAgent:
                         session_id=session_id
                     )
                     if success:
-                        self.chatbot._log(f"💾 Conversation sauvegardée pour {username}", state)
+                        self.chatbot._log(f" Conversation sauvegardée pour {username}", state)
                     else:
-                        self.chatbot._log("❌ Erreur sauvegarde conversation", state)
+                        self.chatbot._log(" Erreur sauvegarde conversation", state)
             else:
                 state['reponse_finale'] = "Aucune réponse générée par l'analyseur."
             return state
@@ -57,15 +85,35 @@ class SynthesisAgent:
         # CAS 2: Après calculs (workflow complet)
         if state.get('besoin_calculs') and state.get('resultat_pandas') is not None:
             try:
-                # Récupérer l'historique utilisateur pour le contexte
+                # Fusion Excel/PDF après calculs
+                base = f"Données calculées:\n{state['resultat_pandas']}"
+                texte_pdf = state.get('reponse_finale_pdf')
+
+                if texte_pdf:
+                    state['reponse_finale'] = (
+                            "Synthèse combinée (Excel + PDF):\n\n"
+                            "- Volet données tabulaires (Excel):\n"
+                            f"{base}\n\n"
+                            "- Volet documents textuels (PDF):\n"
+                            f"{texte_pdf}"
+                            )
+                else:
+                    state['reponse_finale'] = base
+
+                 # Ajouter sources PDF si présentes
+
+                if state.get('sources_pdf'):
+                    state['reponse_finale'] += "\n\nSources PDF:\n" + "\n".join(
+                    state['sources_pdf'])
+                #Récupérer l'historique utilisateur pour le contexte
                 historique_contexte = ""
                 if username and email:
                     historique_contexte = get_user_context(username, email)
-                    self.chatbot._log(f"📜 Historique récupéré pour {username}", state)
+                    self.chatbot._log(f" Historique récupéré pour {username}", state)
 
                 prompt_synthese = f"""Tu es un assistant expert des données du Maroc avec accès à l'historique des conversations.
 
-{historique_contexte}
+{historique_contexte if historique_contexte else "Première conversation de l'utilisateur."}
 
 QUESTION ACTUELLE: {state['question_utilisateur']}
 
@@ -74,7 +122,7 @@ RÉSULTATS OBTENUS: {state['resultat_pandas']}
 SOURCES UTILISÉES: 
 {self._extraire_sources_utilisees(state['dataframes'])}
 
-CONTEXTE: Analyse basée sur {len(state['dataframes'])} sources de données officielles
+CONTEXTE: Analyse basée sur {len(state.get('dataframes', [])) if state.get('dataframes') else 0} sources de données officielles
 
 INSTRUCTIONS:
 1. Prends en compte l'HISTORIQUE pour contextualiser ta réponse
@@ -101,15 +149,15 @@ RÉPONSE:"""
                         session_id=session_id
                     )
                     if success:
-                        self.chatbot._log(f"💾 Conversation avec calculs sauvegardée pour {username}", state)
+                        self.chatbot._log(f" Conversation avec calculs sauvegardée pour {username}", state)
 
                         # Ajouter les stats utilisateur dans les logs
                         stats = conversation_memory.get_conversation_stats(username, email)
                         self.chatbot._log(
-                            f"📊 Stats utilisateur: {stats['total_conversations']} conversations total, {stats['conversations_24h']} dans les 24h",
+                            f" Stats utilisateur: {stats['total_conversations']} conversations total, {stats['conversations_24h']} dans les 24h",
                             state)
                     else:
-                        self.chatbot._log("❌ Erreur sauvegarde conversation avec calculs", state)
+                        self.chatbot._log(" Erreur sauvegarde conversation avec calculs", state)
 
                 self.chatbot._log("Synthèse: Réponse finale générée avec historique", state)
 
@@ -215,14 +263,19 @@ Pouvez-vous reformuler votre question de manière plus simple ou plus spécifiqu
     def _enrichir_reponse_avec_sources(self, reponse: str, tableaux: List[Dict]) -> str:
         """Enrichit une réponse directe avec les sources"""
 
-        if not tableaux:
+        if reponse is None:
+            reponse = "Réponse non disponible"
+
+        if not tableaux or not isinstance(tableaux, list):
             return reponse
 
         sources = []
         for tableau in tableaux[:3]:
+            if tableau is None or not isinstance(tableau, dict):
+                continue
             titre = tableau.get('titre_contextuel', 'Source inconnue')
             source = tableau.get('fichier_source', 'N/A')
-            if titre != 'Source inconnue':
+            if titre and isinstance(titre, str) and titre != 'Source inconnue':
                 sources.append(f"• {titre} ({source})")
 
         if sources:
@@ -233,11 +286,19 @@ Pouvez-vous reformuler votre question de manière plus simple ou plus spécifiqu
     def _extraire_sources_utilisees(self, dataframes: List[pd.DataFrame]) -> str:
         """Extrait les sources pour la réponse finale"""
 
+        # PROTECTION CONTRE None
+        if not dataframes or not isinstance(dataframes, list):
+            return "Aucune source disponible"
+
         sources = []
         for df in dataframes:
+            if df is None:
+                continue
             attrs = getattr(df, 'attrs', {})
+            if attrs is None:
+                attrs = {}
             titre = attrs.get('titre', 'Source non identifiée')
             source = attrs.get('source', 'N/A')
             sources.append(f"• {titre} (Source: {source})")
 
-        return '\n'.join(sources)
+        return '\n'.join(sources) if sources else "Aucune source disponible"
