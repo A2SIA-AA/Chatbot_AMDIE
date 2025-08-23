@@ -19,195 +19,106 @@ class SynthesisAgent:
         return self.agent_synthese(state)
 
     def agent_synthese(self, state: ChatbotState) -> ChatbotState:
-        """Agent synthèse adaptatif selon le workflow avec historique"""
+        """Agent synthèse adaptatif avec réponse UNIFIÉE et NATURELLE"""
 
-        self.chatbot._log("Agent Synthèse: Formulation finale avec historique", state)
+        self.chatbot._log("Agent Synthèse: Formulation finale unifiée", state)
         session_id = state.get('session_id')
-        _send_to_frontend(session_id, "Agent Synthèse: Formulation de la réponse finale avec contexte historique...")
 
         # Récupérer les informations utilisateur pour l'historique
         username, email = self._extract_user_info(state)
 
-        # CAS 1: Réponse directe (workflow court)
+        # Collecter TOUTES les informations disponibles
+        contenu_excel = None
+        contenu_pdf = None
+        sources_utilisees = []
 
-        if not state.get('besoin_calculs') or state.get('reponse_finale'):
-            # Construire les volets Excel/PDF puis fusionner si nécessaire
-            texte_excel = None
+        # 1. Récupérer le contenu Excel s'il existe
+        if state.get('reponse_finale') and state.get('reponse_finale') != "":
+            contenu_excel = state['reponse_finale']
+        elif state.get('resultat_pandas'):
+            contenu_excel = f"Données calculées:\n{state['resultat_pandas']}"
 
-            if state.get('reponse_finale'):
-                texte_excel = state['reponse_finale']
-            elif state.get('resultat_pandas') is not None:
-                texte_excel = f"Données calculées:\\n{state['resultat_pandas']}"
+        # 2. Récupérer le contenu PDF s'il existe
+        if state.get('reponse_finale_pdf') and state.get('reponse_finale_pdf') != "":
+            contenu_pdf = state['reponse_finale_pdf']
 
-            texte_pdf = state.get('reponse_finale_pdf')
+        # 3. Collecter les sources
+        if state.get('tableaux_pour_upload'):
+            for tableau in state['tableaux_pour_upload']:
+                titre = tableau.get('titre_contextuel', 'Document Excel')
+                source = tableau.get('fichier_source', 'N/A')
+                sources_utilisees.append(f"• {titre} ({source})")
 
-          # Fusion
+        if state.get('sources_pdf'):
+            for source_pdf in state['sources_pdf']:
+                sources_utilisees.append(f"• {source_pdf}")
 
-            if texte_excel and texte_pdf:
-                state['reponse_finale'] = (
-                        "Synthèse combinée (Excel + PDF):\n\n"
-                        "- Volet données tabulaires (Excel):\n"
-                        f"{texte_excel}\n\n"
-                        " Volet documents textuels (PDF):\n"
-                      f"{texte_pdf}"
-                )
-            elif texte_pdf and not texte_excel:
-                state['reponse_finale'] = texte_pdf
-            # sinon, on conserve texte_excel déjà en place
+        # 4. GÉNÉRATION D'UNE RÉPONSE UNIFIÉE ET NATURELLE
+        try:
+            # Récupérer l'historique utilisateur
+            historique_contexte = ""
+            if username and email:
+                historique_contexte = get_user_context(username, email)
 
-            # Enrichir avec les sources Excel
-            state['reponse_finale'] = self._enrichir_reponse_avec_sources(
-                state['reponse_finale'],
-                state.get('tableaux_pour_upload', [])
-            )
-            # Ajouter les sources PDF si présentes
+            prompt_unifie = f"""Tu es un assistant expert qui doit donner UNE RÉPONSE NATURELLE et DIRECTE.
 
-            if state.get('sources_pdf'):
-                state['reponse_finale'] += "\n\nSources PDF:\n" + "\n".join(state['sources_pdf'])
+    {historique_contexte if historique_contexte else "Première conversation de l'utilisateur."}
+
+    QUESTION: {state['question_utilisateur']}
+
+    INFORMATIONS DISPONIBLES:
+    {f"DONNÉES EXCEL: {contenu_excel}" if contenu_excel else ""}
+    {f"DONNÉES PDF: {contenu_pdf}" if contenu_pdf else ""}
+
+    SOURCES: {chr(10).join(sources_utilisees) if sources_utilisees else "Aucune source disponible"}
+
+    INSTRUCTIONS CRITIQUES:
+    1. Réponds DIRECTEMENT à la question de manière naturelle
+    2. NE MENTIONNE PAS les types de sources (Excel, PDF) dans ta réponse
+    3. Utilise TOUTES les informations pertinentes de manière fluide
+    4. Si aucune information ne répond à la question, dis-le clairement
+    5. Cite les sources à la fin sans mentionner leur format
+    6. Tiens compte de l'historique si pertinent
+
+    RÉPONSE:"""
+
+            response = self.gemini_model.generate_content(prompt_unifie)
+            reponse_unifiee = response.text
+
+            # Ajouter les sources de manière discrète
+            if sources_utilisees:
+                reponse_unifiee += f"\n\nSources consultées :\n{chr(10).join(sources_utilisees)}"
+
+            state['reponse_finale'] = reponse_unifiee
 
             # Sauvegarder dans l'historique
             if username and email:
-                    success = conversation_memory.save_conversation(
-                        username=username,
-                        email=email,
-                        question=state['question_utilisateur'],
-                        reponse=state['reponse_finale'],
-                        session_id=session_id
-                    )
-                    if success:
-                        self.chatbot._log(f" Conversation sauvegardée pour {username}", state)
-                    else:
-                        self.chatbot._log(" Erreur sauvegarde conversation", state)
+                success = conversation_memory.save_conversation(
+                    username=username,
+                    email=email,
+                    question=state['question_utilisateur'],
+                    reponse=reponse_unifiee,
+                    session_id=session_id
+                )
+                if success:
+                    self.chatbot._log(f"Conversation unifiée sauvegardée pour {username}", state)
+
+        except Exception as e:
+            self.chatbot._log_error(f"Erreur synthèse unifiée: {e}", state)
+
+            # Fallback : réponse simple basée sur le contenu disponible
+            if contenu_pdf and contenu_excel:
+                state['reponse_finale'] = f"{contenu_pdf}\n\nInformations complémentaires : {contenu_excel}"
+            elif contenu_pdf:
+                state['reponse_finale'] = contenu_pdf
+            elif contenu_excel:
+                state['reponse_finale'] = contenu_excel
             else:
-                state['reponse_finale'] = "Aucune réponse générée par l'analyseur."
-            return state
+                state['reponse_finale'] = "Aucune information trouvée pour répondre à votre question."
 
-        # CAS 2: Après calculs (workflow complet)
-        if state.get('besoin_calculs') and state.get('resultat_pandas') is not None:
-            try:
-                # Fusion Excel/PDF après calculs
-                base = f"Données calculées:\n{state['resultat_pandas']}"
-                texte_pdf = state.get('reponse_finale_pdf')
-
-                if texte_pdf:
-                    state['reponse_finale'] = (
-                            "Synthèse combinée (Excel + PDF):\n\n"
-                            "- Volet données tabulaires (Excel):\n"
-                            f"{base}\n\n"
-                            "- Volet documents textuels (PDF):\n"
-                            f"{texte_pdf}"
-                            )
-                else:
-                    state['reponse_finale'] = base
-
-                 # Ajouter sources PDF si présentes
-
-                if state.get('sources_pdf'):
-                    state['reponse_finale'] += "\n\nSources PDF:\n" + "\n".join(
-                    state['sources_pdf'])
-                #Récupérer l'historique utilisateur pour le contexte
-                historique_contexte = ""
-                if username and email:
-                    historique_contexte = get_user_context(username, email)
-                    self.chatbot._log(f" Historique récupéré pour {username}", state)
-
-                prompt_synthese = f"""Tu es un assistant expert des données du Maroc avec accès à l'historique des conversations.
-
-{historique_contexte if historique_contexte else "Première conversation de l'utilisateur."}
-
-QUESTION ACTUELLE: {state['question_utilisateur']}
-
-RÉSULTATS OBTENUS: {state['resultat_pandas']}
-
-SOURCES UTILISÉES: 
-{self._extraire_sources_utilisees(state['dataframes'])}
-
-CONTEXTE: Analyse basée sur {len(state.get('dataframes', [])) if state.get('dataframes') else 0} sources de données officielles
-
-INSTRUCTIONS:
-1. Prends en compte l'HISTORIQUE pour contextualiser ta réponse
-2. Si l'utilisateur fait référence à des conversations précédentes, utilise cet historique
-3. Répond directement à la question actuelle
-4. Présente le résultat de manière compréhensible  
-5. CITE les sources utilisées (titre + origine)
-6. Reste factuel et précis
-7. Donne de la crédibilité avec les références
-8. Si c'est une question de suivi, mentionne la continuité avec les conversations précédentes
-
-RÉPONSE:"""
-
-                response = self.gemini_model.generate_content(prompt_synthese)
-                state['reponse_finale'] = response.text
-
-                # Sauvegarder la conversation complète dans l'historique
-                if username and email:
-                    success = conversation_memory.save_conversation(
-                        username=username,
-                        email=email,
-                        question=state['question_utilisateur'],
-                        reponse=state['reponse_finale'],
-                        session_id=session_id
-                    )
-                    if success:
-                        self.chatbot._log(f" Conversation avec calculs sauvegardée pour {username}", state)
-
-                        # Ajouter les stats utilisateur dans les logs
-                        stats = conversation_memory.get_conversation_stats(username, email)
-                        self.chatbot._log(
-                            f" Stats utilisateur: {stats['total_conversations']} conversations total, {stats['conversations_24h']} dans les 24h",
-                            state)
-                    else:
-                        self.chatbot._log(" Erreur sauvegarde conversation avec calculs", state)
-
-                self.chatbot._log("Synthèse: Réponse finale générée avec historique", state)
-
-            except Exception as e:
-                self.chatbot._log_error(f"Synthèse: {str(e)}", state)
-                state['reponse_finale'] = f"D'après mon analyse: {state['resultat_pandas']}"
-
-                # Même en cas d'erreur de synthèse, sauvegarder la réponse de base
-                if username and email:
-                    conversation_memory.save_conversation(
-                        username=username,
-                        email=email,
-                        question=state['question_utilisateur'],
-                        reponse=state['reponse_finale'],
-                        session_id=session_id
-                    )
-
-        # CAS 3: Échec des calculs
-        elif state.get('besoin_calculs') and state.get('erreur_pandas'):
-            error_response = f"""J'ai rencontré une difficulté technique lors de l'analyse.
-
-Erreur: {state['erreur_pandas']}
-
-Pouvez-vous reformuler votre question de manière plus simple ou plus spécifique ?"""
-
-            state['reponse_finale'] = error_response
-
-            # Sauvegarder même les erreurs pour le contexte
-            if username and email:
-                conversation_memory.save_conversation(
-                    username=username,
-                    email=email,
-                    question=state['question_utilisateur'],
-                    reponse=error_response,
-                    session_id=session_id
-                )
-
-        # CAS 4: Par défaut
-        else:
-            default_response = "Impossible de traiter votre demande. Veuillez reformuler."
-            state['reponse_finale'] = default_response
-
-            if username and email:
-                conversation_memory.save_conversation(
-                    username=username,
-                    email=email,
-                    question=state['question_utilisateur'],
-                    reponse=default_response,
-                    session_id=session_id
-                )
+            # Ajouter sources en fallback
+            if sources_utilisees:
+                state['reponse_finale'] += f"\n\nSources : {', '.join(sources_utilisees)}"
 
         return state
 

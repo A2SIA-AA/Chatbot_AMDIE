@@ -4,18 +4,19 @@ import google.generativeai as genai
 import sys
 from typing import List
 
-from .state import ChatbotState
-from ..agents.pandas_agent import SimplePandasAgent
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.core.state import ChatbotState
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.agents.pandas_agent import SimplePandasAgent
 from ..agents.rag_agent import RAGAgent
 from ..agents.selector_agent import SelectorAgent
 from ..agents.analyzer_agent import AnalyzerAgent
-from ..agents.code_agent import CodeAgent
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.agents.code_agent import CodeAgent
 from ..agents.synthesis_agent import SynthesisAgent
 # AGENTS CORRIGÉS POUR PDF
 from ..agents.rag_agent_all_file import RAGAgentAllFile
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.agents.rag_agent_unified import RAGAgentUnified
 from ..agents.selector_file_agent import SelectorFileAgent
-from ..agents.text_analyzer_agent import TextAnalyzerAgent
-from ..core.memory_store import conversation_memory
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.agents.text_analyzer_agent import TextAnalyzerAgent
+from Chatbot_AMDIE.chatbot_maroc.backend_python.src.core.memory_store import conversation_memory
 
 sys.path[:0] = ['../../']
 from config.logging import setup_logging, PerformanceLogger
@@ -76,6 +77,7 @@ class ChatbotMarocVersion2:
 
         # AGENTS PDF CORRIGÉS
         self.rag_agent_all = RAGAgentAllFile(self.rag, self)  # Maintenant avec permissions
+        self.rag_agent = RAGAgentUnified(self.rag, self)
         self.text_analyzer_agent = TextAnalyzerAgent(self.gemini_model, self)
 
         # Créer le graphe LangGraph
@@ -131,7 +133,7 @@ class ChatbotMarocVersion2:
         graph = StateGraph(ChatbotState)
 
         # NOEUDS PRINCIPAUX
-        graph.add_node("rag", self.rag_agent_all.execute)  # RAG avec permissions restaurées
+        graph.add_node("rag", self.rag_agent.execute)  # RAG avec permissions restaurées
         graph.add_node("dispatcher", self._dispatcher_corrige)  # Dispatcher amélioré
         graph.add_node("selecteur_file", self.selector_file_agent.execute)  # Sélecteur corrigé
 

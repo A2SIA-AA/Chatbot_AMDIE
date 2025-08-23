@@ -281,7 +281,7 @@ async def initialize_chatbot_with_permissions(session_id: str, user_permissions:
         #  IMPORT SÉCURISÉ DES MODULES
         try:
             #from src.core.chatbot import ChatbotMarocSessionId
-            from src.core.chatbot_v2 import ChatbotMarocVersion2 as ChatbotMarocSessionId
+            from src.core.chatbot_v2_simplified import ChatbotMarocV2Simplified as ChatbotMarocSessionId
             from src.rag.indexer import RAGTableIndex
             await send_log(session_id, "Modules IA importés avec succès", "INFO")
         except ImportError as e:
