@@ -27,7 +27,7 @@ class RAGAgentAllFile:
             # ===== PARTIE 2: RECHERCHE RAG AVEC PERMISSIONS (MANQUAIT !) =====
             user_role = state.get("user_role", "public")
 
-            # APPEL RAG CRITIQUE QUI MANQUAIT !
+
             resultats_rag = self.rag.rechercher_tableaux(
                 state['question_utilisateur'],
                 user_role=user_role,
@@ -160,10 +160,10 @@ class RAGAgentAllFile:
 
             # Créer la structure complète avec métadonnées + données réelles
             resultat = {
-                'tableau': tableau_data,  # ← Les données réelles !
+                'tableau': tableau_data,
                 'titre_contextuel': metadata.get('titre_contextuel', 'Tableau Excel'),
                 'fichier_source': metadata.get('source', tableau_path),
-                'nom_feuille': 'Sheet1',  # À adapter selon votre logique
+                'nom_feuille': metadata.get('nom_feuille', 'Feuille'),
                 'description': metadata.get('description', 'Données Excel'),
                 'id': metadata.get('id', 'excel_file'),
                 'tableau_path': tableau_path

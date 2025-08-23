@@ -22,8 +22,11 @@ class ChatbotState(TypedDict):
     # ========================================
     question_utilisateur: str  # Question originale de l'utilisateur
     tableaux_pertinents: List[Dict]  # 10 tableaux trouvés par RAG
+    pdfs_pertinents: List[Dict]
     tableaux_charges: List[Dict]  # Données complètes des tableaux
+    pdfs_charges: List[Dict]
     tableaux_pour_upload: List[Dict]  # Tableaux sélectionnés pour upload (3-5)
+    pdfs_pour_upload: List[Dict]
     tableaux_reference: List[Dict]  # Tous les tableaux pour référence
     explication_selection: Optional[str]  # Justification de la sélection Gemini
     reponse_analyseur_brute: Optional[str]  # Réponse brute de l'analyseur
