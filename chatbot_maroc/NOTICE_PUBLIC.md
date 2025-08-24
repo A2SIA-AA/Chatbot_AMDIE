@@ -7,7 +7,9 @@ Cette interface permet à un utilisateur public d'accéder à un chatbot intelli
 
 ##  Accès à la plateforme
 
-- L'accès se fait via **Keycloak** avec un compte dédié au rôle "public".
+- L'accès se fait via **Keycloak** avec un compte dédié au rôle "public" 
+\
+(identifiant : `public_user`, mot de passe : `public123`).
 - Une fois connecté, l'utilisateur est redirigé vers une interface de type chat.
 
 ---
@@ -37,7 +39,8 @@ Cette interface permet à un utilisateur public d'accéder à un chatbot intelli
 
 ## Compte public Keycloak
 
-- Utilisateur : `public_user@domaine.com`
+- Utilisateur : `public_user`
+- Mot de passe : `public123`
 - Rôle : `public`
 - Permissions : `read_public_docs`, `chat_basic`, `view_statistics`
 

@@ -4,20 +4,52 @@ from ..utils.message_to_front import _send_to_frontend
 
 
 class RAGAgentUnified:
-    """Agent RAG unifié pour rechercher Excel ET PDFs avec système JWT"""
+    """
+    Agent RAG unifié pour la gestion des recherches et des documents Excel et PDF.
+
+    Ce module intègre des fonctionnalités avancées telles que la gestion des erreurs, les permissions JWT,
+    et le traitement des résultats. Les résultats des recherches sont filtrés en fonction des permissions
+    d'accès et séparés en fichiers Excel et PDF. Les données valides et accessibles sont ensuite chargées
+    et mises à disposition dans l'état du chatbot.
+
+    :ivar rag: Instance de l'index RAG utilisé pour effectuer les recherches.
+    :type rag: Any
+    :ivar chatbot: Instance du chatbot utilisé pour la journalisation et la communication avec le frontend.
+    :type chatbot: Any
+    """
 
     def __init__(self, rag_index, chatbot_instance):
         self.rag = rag_index
         self.chatbot = chatbot_instance
 
     def execute(self, state: ChatbotState) -> ChatbotState:
-        """Point d'entrée principal de l'agent"""
+        """
+        Exécute l'état actuel dans un contexte de chatbot et retourne le nouvel état
+        après application potentielle des transformations définies par l'agent RAG
+        (unifié).
+
+        :param state: L'état actuel du chatbot représenté par une instance de la
+            classe ChatbotState
+        :type state: ChatbotState
+        :return: Le nouvel état du chatbot après l'exécution de la logique métier
+        :rtype: ChatbotState
+        """
         return self.agent_rag_unified(state)
 
     def agent_rag_unified(self, state: ChatbotState) -> ChatbotState:
         """
-        Agent RAG unifié avec gestion d'erreurs et permissions JWT
-        Gère Excel ET PDFs avec séparation propre
+        Exécute le processus d'agent RAG unifié qui inclut la validation des questions,
+        la recherche de tableaux et PDF, le filtrage des documents autorisés, et le
+        chargement des documents complets en fonction des autorisations et des types.
+
+        :param state:
+            Un objet `ChatbotState` représentant l'état actuel de la session de chatbot.
+            Il doit contenir des informations nécessaires, telles que la question de
+            l'utilisateur et tout paramètre ou rôle utilisateur pertinent.
+
+        :return:
+            Un objet `ChatbotState` mis à jour avec les résultats organisés et filtrés
+            selon les autorisations et la disponibilité des documents.
         """
 
         self.chatbot._log("Agent RAG Unifié: Démarrage de la recherche", state)
@@ -160,7 +192,7 @@ class RAGAgentUnified:
                         self.chatbot._log(f"PDF {i + 1}: Chemin manquant", state)
                         continue
 
-                    # Pour les PDFs, créer structure minimale SANS get_tableau_data
+                    # Pour les PDFs, créer structure minimale
                     if pdf_path.endswith('.pdf'):
                         donnees_pdf = {
                             'type': 'pdf',
@@ -214,7 +246,16 @@ class RAGAgentUnified:
 
     def _nettoyer_etat_zero_documents(self, state: ChatbotState, raison: str):
         """
-        Nettoie proprement l'état quand 0 documents sont accessibles
+        Nettoie l'état du chatbot en réinitialisant les attributs liés aux
+        tableaux et documents. Cette méthode est destinée à garantir
+        un contexte propre avant le chargement ou la manipulation de nouveaux
+        données.
+
+        :param state: Une instance de l'état actuel du chatbot, où les
+            informations sur les tableaux et documents sont stockées.
+        :param raison: Une chaîne décrivant la raison du nettoyage
+            effectué, ajoutée pour traçabilité.
+        :return: None
         """
         # Nettoyage des champs Excel
         state['tableaux_pertinents'] = []
@@ -236,11 +277,23 @@ class RAGAgentUnified:
         state['fichiers_csvs_local'] = []
         state['pdfs_pour_contexte'] = []
 
-        # Message informatif dans l'historique
+        # Message informatif
         self.chatbot._log(f"État nettoyé: {raison}", state)
 
     def _valider_donnees_tableau(self, tableau_data: Dict) -> bool:
-        """Valide la structure d'un tableau Excel"""
+        """
+        Valide les données fournies pour un tableau en vérifiant leur structure et leur contenu.
+
+        Cette fonction examine si les données concernant un tableau sont conformes aux exigences
+        préalables, à savoir que le tableau n'est pas vide, possède au moins deux lignes,
+        et chaque ligne contient au moins une colonne. Si les validations échouent, la fonction retourne "False".
+        Sinon, elle retourne "True".
+
+        :param tableau_data: Dictionnaire contenant les données du tableau à valider.
+        :type tableau_data: Dict
+        :return: Booléen indiquant si les données du tableau sont valides ou non. Retourne "True" si valides, sinon "False".
+        :rtype: bool
+        """
         if not tableau_data:
             return False
 
@@ -255,7 +308,20 @@ class RAGAgentUnified:
         return True
 
     def _valider_donnees_pdf(self, pdf_data: Dict) -> bool:
-        """Valide la structure d'un PDF"""
+        """
+        Valide les données fournies dans un dictionnaire `pdf_data`.
+
+        Cette méthode vérifie si les données PDF contiennent au moins une source
+        d'information pertinente et un chemin ou une source associée. Si aucune de
+        ces conditions n'est remplie, la validation échoue et la méthode retourne False.
+
+        :param pdf_data: Dictionnaire contenant les données PDF à valider.
+                         Les clés possibles incluent `resume_gemini`, `description`,
+                         `titre_contextuel`, `tableau_path`, `fichier_source` et `source`.
+        :type pdf_data: Dict
+        :return: Retourne True si les données sont valides, autrement False.
+        :rtype: bool
+        """
         if not pdf_data:
             return False
 
@@ -276,13 +342,20 @@ class RAGAgentUnified:
 
     def _role_est_autorise(self, role: str, access_level: str) -> bool:
         """
-        Règles d'accès JWT
+        Vérifie si un rôle donné est autorisé pour accéder à un certain niveau.
 
-        LOGIQUE :
-        - public -> peut voir seulement les documents publics
-        - employee -> peut voir public + internal
-        - admin -> peut voir public + internal + confidential
+        Cette méthode assure que les permissions d'un rôle utilisateur sont comparées
+        au niveau d'accès requis afin de déterminer les autorisations d'accès. Si un rôle ou
+        un niveau d'accès spécifié est vide, des valeurs par défaut (public) sont appliquées.
+        De plus, les valeurs pour le rôle et le niveau sont normalisées (en minuscules,
+        sans espaces) pour éviter les erreurs.
+
+        :param role: Le rôle de l'utilisateur sous forme de chaîne de caractères
+        :param access_level: Le niveau d'accès requis (ex. public, internal, confidential)
+        :return: True si le rôle est autorisé pour le niveau d'accès donné, sinon False
+        :rtype: bool
         """
+
         if not role:
             role = "public"
         if not access_level:

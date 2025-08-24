@@ -40,7 +40,8 @@ Cette interface permet à un administrateur d’interroger le chatbot sur **l’
 
 ##  Compte administrateur Keycloak
 
-- Utilisateur : `admin_user@domaine.com` 
+- Utilisateur : `admin_user` 
+- Mot de passe : `admin123`
 - Rôle : `admin`
 - Permissions :
   - `read_confidential_docs`, `chat_advanced`, `chat_admin`

@@ -21,7 +21,20 @@ from typing import List, Optional
 # ========================================
 
 def setup_environment():
-    """Configuration de l'environnement backend avec validation"""
+    """
+    Configure l'environnement pour l'exécution du projet.
+
+    Cette fonction charge les variables d'environnement à partir d'un fichier
+    .env s'il est disponible. Elle ajuste le répertoire courant si le
+    répertoire du projet est défini dans les variables d'environnement,
+    et configure le système de logging pour des journaux d'informations 
+    plus détaillés. Si une erreur se produit lors de la configuration, 
+    un message d'erreur est affiché, et la valeur de retour sera ``None``.
+
+    :return: Le chemin d'origine du répertoire courant avant tout changement 
+             effectué par la fonction, ou ``None`` en cas d'erreur.
+    :rtype: Optional[str]
+    """
     try:
         load_dotenv()
 
@@ -49,7 +62,7 @@ def setup_environment():
 
 
 # ========================================
-# COMMUNICATION MCP CORRIGÉE
+# COMMUNICATION MCP
 # ========================================
 
 # Variables globales pour MCP
@@ -58,7 +71,21 @@ FALLBACK_FASTAPI_URL = os.getenv("FASTAPI_URL", "http://localhost:8000/api/v1/me
 
 
 def setup_mcp_path():
-    """Ajoute le chemin vers mcp_client_utils si nécessaire"""
+    """
+    Configure le chemin pour le module `mcp_client_utils`.
+
+    Cette fonction cherche le fichier `mcp_client_utils.py` dans différents répertoires
+    parents du répertoire actuel et, si trouvé, ajoute automatiquement son chemin
+    au `sys.path` pour permettre son importation. Cela facilite le chargement d'un module
+    qui peut ne pas être dans le chemin courant ou sur le chemin par défaut de Python.
+
+    :raises FileNotFoundError: Si le fichier `mcp_client_utils.py` n'est pas trouvé
+      dans les répertoires spécifiés ou dans l'emplacement défini en dur.
+
+    :return: Un booléen indiquant si le fichier `mcp_client_utils.py` a été trouvé
+       et le chemin correctement ajouté au `sys.path`.
+    :rtype: bool
+    """
     # Chercher mcp_client_utils dans les répertoires parents
     current_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dirs = [
@@ -86,7 +113,7 @@ MCP_AVAILABLE = setup_mcp_path()
 
 if MCP_AVAILABLE:
     try:
-        #  IMPORT CORRIGÉ DES FONCTIONS MCP DIRECTES
+        
         from mcp_client_utils import (
             mcp_send_progress, mcp_send_final, mcp_send_error, mcp_send_log,
             MCPCommunicator
@@ -103,12 +130,23 @@ else:
     MCPCommunicator = None
 
 
-# ========================================
-# COMMUNICATION CORRIGÉE AVEC DEBUG RENFORCÉ
-# ========================================
+
 
 async def send_progress(session_id: str, message: str) -> bool:
-    """Envoie un message de progression via MCP"""
+    """
+    Cette fonction envoie un message de progression associé à une session donnée en utilisant
+    le protocole MCP si disponible. Si MCP est indisponible ou que l'envoi échoue, un fallback
+    via HTTP est utilisé.
+
+    :param session_id: L'identifiant de la session associée au message.
+    :type session_id: str
+    :param message: Le message de progression à envoyer, limité à 50 caractères pour l'affichage.
+    :type message: str
+    :return: True si l'envoi a été un succès via MCP ou fallback HTTP, False sinon.
+    :rtype: bool
+    :raises Exception: Si une erreur inattendue survient durant l'envoi via MCP, qui mène
+        ensuite au fallback HTTP.
+    """
     # PROTECTION CONTRE None
     if message is None:
         message = "Progression: message None reçu"
@@ -140,7 +178,19 @@ async def send_progress(session_id: str, message: str) -> bool:
 
 
 async def send_final(session_id: str, message: str) -> bool:
-    """Envoie la réponse finale via MCP"""
+    """
+    Envoie un message final à une session donnée en utilisant MCP si disponible, sinon
+    utilise un système de repli basé sur HTTP. Cette fonction gère les erreurs et
+    les exceptions pour assurer une méthode d'envoi fiable.
+
+    :param session_id: Identifiant unique de la session.
+    :type session_id: str
+    :param message: Message à envoyer, limité à 50 caractères pour l'affichage.
+    :type message: str
+    :return: Retourne True si l'envoi a réussi, False sinon.
+    :rtype: bool
+    :raises Exception: Si une erreur est rencontrée lors de la tentative d'envoi via MCP.
+    """
     # PROTECTION CONTRE None
     if message is None:
         message = "Erreur: Réponse générée est None"
@@ -172,7 +222,18 @@ async def send_final(session_id: str, message: str) -> bool:
 
 
 async def send_error(session_id: str, error: str) -> bool:
-    """Envoie un message d'erreur via MCP"""
+    """
+    Envoie un message d'erreur pour une session donnée. Cette fonction utilise le service MCP, et en cas 
+    d'indisponibilité ou d'échec de MCP, elle effectue un fallback HTTP pour transmettre l'erreur.
+
+    :param session_id: L'identifiant de session pour laquelle envoyer le message d'erreur.
+    :type session_id: str
+    :param error: Le message d'erreur à transmettre.
+    :type error: str
+    :return: Renvoie True si l'envoi réussit (via MCP ou fallback HTTP), sinon False.
+    :rtype: bool
+    :raises Exception: Exception levée si une erreur survient durant le processus MCP.
+    """
     # PROTECTION CONTRE None
     if error is None:
         error = "Erreur: message d'erreur None"
@@ -202,7 +263,21 @@ async def send_error(session_id: str, error: str) -> bool:
 
 
 async def send_log(session_id: str, log_message: str, log_level: str = "INFO") -> bool:
-    """Envoie un log détaillé via MCP - VERSION CORRIGÉE"""
+    """
+    Envoie un message de log à un service MCP ou à stderr si MCP n'est pas
+    disponible. Cette fonction permet de journaliser les messages d'une session
+    avec un certain niveau de gravité.
+
+    :param session_id: Identifiant unique de la session.
+    :type session_id: str
+    :param log_message: Message à enregistrer dans les logs.
+    :type log_message: str
+    :param log_level: Niveau de gravité du log (par défaut : "INFO").
+    :type log_level: str
+    :return: True si le message a été enregistré avec succès, False en cas 
+             d’échec.
+    :rtype: bool
+    """
     if not MCP_AVAILABLE or not mcp_send_log:
         print(f"[{log_level}] {log_message}", file=sys.stderr)
         return True
@@ -217,7 +292,23 @@ async def send_log(session_id: str, log_message: str, log_level: str = "INFO") -
 
 async def send_via_http_fallback(session_id: str, message_type: str, content: str) -> bool:
     """
-    Fallback HTTP en cas d'échec MCP - VERSION AMÉLIORÉE
+    Envoie un message via une méthode de repli HTTP (fallback) à une URL spécifiée. 
+
+    Cette fonction utilise une requête HTTP POST pour transmettre un message 
+    spécifié avec un type et un contenu donnés, ainsi qu'un identifiant de session. 
+    Elle permet de gérer des alternatives de communication via une configuration 
+    de secours HTTP. Les données incluent également des métadonnées ajoutées pour le 
+    suivi et l'identification de la source.
+
+    :param session_id: Identifiant unique de la session.
+    :type session_id: str
+    :param message_type: Type du message qui est transmis (par exemple "texte" ou "notification").
+    :type message_type: str
+    :param content: Contenu du message qui doit être envoyé.
+    :type content: str
+
+    :return: Un booléen qui indique si l'envoi via HTTP fallback a réussi.
+    :rtype: bool
     """
     import requests
 
@@ -254,12 +345,28 @@ async def send_via_http_fallback(session_id: str, message_type: str, content: st
 
 
 # ========================================
-# INTÉGRATION AVEC LES AGENTS ET JWT (IDENTIQUE)
+# INTÉGRATION AVEC LES AGENTS ET JWT 
 # ========================================
 
 async def initialize_chatbot_with_permissions(session_id: str, user_permissions: Optional[List[str]], user_role: str):
     """
-    Initialise le chatbot avec prise en compte des permissions JWT - VERSION SÉCURISÉE
+    Initialise un chatbot avec les permissions utilisateur, en validant les entrées et configurant 
+    les modules nécessaires pour permettre une interaction basée sur le rôle et les autorisations.
+
+    :param session_id: Identifiant unique de session.
+    :type session_id: str
+    :param user_permissions: Liste des permissions utilisateur associées à la session. Si aucune 
+        valeur n'est fournie ou si elle est invalide, une valeur par défaut sera utilisée.
+    :type user_permissions: List[str], optional
+    :param user_role: Rôle utilisateur spécifié, parmi les options suivantes: 'public', 'employee', 
+        ou 'admin'. Si le rôle fourni est invalide ou manquant, une valeur par défaut sera attribuée.
+    :type user_role: str
+    :return: Une instance de Chatbot configurée selon les permissions et rôle utilisateur.
+    :rtype: ChatbotMarocV2Simplified
+    :raises FileNotFoundError: Si la base vectorielle (Chroma DB) ne peut pas être localisée.
+    :raises ImportError: Si les modules requis pour l'IA ne sont pas trouvés dans le projet.
+    :raises Exception: Pour toute erreur non spécifiée qui survient durant l'initialisation du 
+        chatbot.
     """
     try:
         #  VALIDATION DES PERMISSIONS
@@ -278,9 +385,8 @@ async def initialize_chatbot_with_permissions(session_id: str, user_permissions:
 
         await send_progress(session_id, f"Chargement base vectorielle (niveau: {user_role})...")
 
-        #  IMPORT SÉCURISÉ DES MODULES
+        #  IMPORT DES MODULES
         try:
-            #from src.core.chatbot import ChatbotMarocSessionId
             from src.core.chatbot_v2_simplified import ChatbotMarocV2Simplified as ChatbotMarocSessionId
             from src.rag.indexer import RAGTableIndex
             await send_log(session_id, "Modules IA importés avec succès", "INFO")
@@ -332,10 +438,41 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
                                             user_permissions: Optional[List[str]],
                                             username: str = None, email: str = None):
     """
-    Traite la question avec les agents en utilisant les permissions JWT + historique utilisateur
+    Traite une question en utilisant les permissions utilisateur et un historique 
+    associé. Cette fonction permet une gestion adaptative des entrées manquantes 
+    et fait appel à la méthode `poser_question_with_permissions` du chatbot 
+    fourni.
+
+    :param chatbot: Instance de chatbot, contenant la méthode 
+        `poser_question_with_permissions`.
+    :type chatbot: objet
+    :param question: Question textuelle à traiter.
+    :type question: str
+    :param session_id: Identifiant unique de session utilisé pour le suivi et les 
+        logs.
+    :type session_id: str
+    :param user_permissions: Liste optionnelle des permissions utilisateur qui 
+        déterminent les autorisations disponibles. Si elle est `None`, une valeur 
+        par défaut de `["read_public_docs"]` sera appliquée.
+    :type user_permissions: Optional[List[str]]
+    :param username: Nom d'utilisateur facultatif associé à la requête. Si absent, 
+        un nom par défaut sera généré basé sur l'identifiant de session.
+    :type username: str, optional
+    :param email: Adresse email facultative de l'utilisateur. Si absente, une valeur 
+        par défaut sera construite à partir du nom d'utilisateur.
+    :type email: str, optional
+    :return: Réponse textuelle générée par le chatbot en fonction des données et 
+        permissions fournies.
+    :rtype: str
+
+    :raises ValueError: Si la question est vide ou invalide.
+    :raises AttributeError: Si le chatbot ne contient pas la méthode 
+        `poser_question_with_permissions`.
+    :raises Exception: Pour toute autre erreur non prévue durant le traitement de 
+        la question ou l'exécution de la méthode du chatbot.
     """
     try:
-        # VALIDATION DES PARAMÈTRES (identique)
+        # VALIDATION DES PARAMÈTRES
         if not question or not question.strip():
             await send_error(session_id, "Question vide reçue")
             raise ValueError("Question vide")
@@ -392,7 +529,7 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
                 # Tentative avec paramètres simplifiés (sans historique)
                 response = chatbot.poser_question_with_permissions(question, session_id, user_permissions)
 
-        # Récupérer les logs capturés (identique)
+        # Récupérer les logs capturés 
         captured_text = captured_output.getvalue()
         if captured_text.strip():
             for line in captured_text.strip().split('\n'):
@@ -401,7 +538,7 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
 
         await send_progress(session_id, f"Réponse générée avec historique pour {username}")
 
-        # VALIDATION DE LA RÉPONSE (identique)
+        # VALIDATION DE LA RÉPONSE
         if not response:
             await send_error(session_id, "Réponse vide générée par le chatbot")
             response = "Désolé, je n'ai pas pu générer une réponse appropriée."
@@ -424,9 +561,32 @@ async def process_question_with_permissions(chatbot, question: str, session_id: 
 
 def valider_arguments_jwt(args):
     """
-    Valide les arguments JWT de manière robuste - VERSION AVEC HISTORIQUE
+    Valide les arguments fournis pour JWT et structure les données en fonction des paramètres
+    saisis. Cette fonction assure la robustesse de la validation et structure également les 
+    permissions, rôles et données associés à l'utilisateur, tels que le nom d'utilisateur et
+    l'email.
+
+    La méthode accepte les paramètres transmis dans une liste d'arguments et renvoie un 
+    dictionnaire contenant des informations validées ainsi qu'un indicateur d'erreur en
+    cas d'échec.
+
+    Sections du traitement:
+    - Validation et extraction de la question utilisateur.
+    - Validation de l'identifiant de session (`session_id`).
+    - Parsing et validation des permissions associées à l'utilisateur.
+    - Validation et résolution du rôle utilisateur.
+    - Gestion des cas où le nom d'utilisateur ou l'email ne sont pas valides ou manquent.
+
+    :param args: Liste des arguments. Elle doit inclure au minimum les informations suivantes
+        (dans cet ordre): la question utilisateur (`<question>`), l'identifiant de session
+        (`<session_id>`), les permissions utilisateur (`<permissions>`), le rôle utilisateur
+        (`<role>`), le nom de l'utilisateur (`<username>`) et l'email (`<email>`).
+    :type args: list
+
+    :return: Dictionnaire contenant les informations validées ou un message d'erreur.
+    :rtype: dict
     """
-    if len(args) < 7:  # CHANGEMENT: 5 → 7 (ajout username + email)
+    if len(args) < 7: 
         return {
             'error': True,
             'message': "Usage: python chatbot_wrapper.py <question> <session_id> <permissions> <role> <username> <email>"
@@ -487,12 +647,25 @@ def valider_arguments_jwt(args):
 
 
 # ========================================
-# FONCTION PRINCIPALE AVEC MCP CORRIGÉE
+# FONCTION PRINCIPALE AVEC MCP
 # ========================================
 
 
 async def main_async():
-    """Point d'entrée principal asynchrone du backend avec MCP + HISTORIQUE"""
+    """
+    Fonction asynchrone principale qui orchestre le traitement backend avec gestion des permissions, 
+    historique utilisateur, et communication via MCP ou fallback HTTP. Valide les arguments JWT, 
+    initialise les composants nécessaires comme le chatbot avec permissions, traite les messages 
+    en tenant compte de l'historique, et gère la communication des réponses progressives et finales.
+
+    La fonction inclut également une gestion robuste des erreurs et un nettoyage de l'environnement 
+    systématique en cas d'exception.
+
+    :return: Un booléen indiquant le succès ou l'échec du traitement global
+    :rtype: bool
+
+    :raises Exception: En cas d'erreur inattendue pendant l'exécution
+    """
 
     # Validation robuste des arguments JWT + historique
     validation_result = valider_arguments_jwt(sys.argv)
@@ -501,18 +674,18 @@ async def main_async():
         error_response = {
             "success": False,
             "error": validation_result['message'],
-            "backend": "enterprise_with_mcp_and_history"
+            "backend": "backend_with_mcp_and_history"
         }
         print(json.dumps(error_response, ensure_ascii=False))
         return False
 
-    # Extraction des arguments validés + NOUVEAUX CHAMPS
+    # Extraction des arguments validés
     user_message = validation_result['user_message']
     session_id = validation_result['session_id']
     user_permissions = validation_result['user_permissions']
     user_role = validation_result['user_role']
-    username = validation_result['username']  # NOUVEAU
-    email = validation_result['email']  # NOUVEAU
+    username = validation_result['username']
+    email = validation_result['email'] 
 
     original_dir = None
 
@@ -541,8 +714,8 @@ async def main_async():
             user_message,
             session_id,
             user_permissions,
-            username,  # NOUVEAU
-            email  # NOUVEAU
+            username, 
+            email 
         )
 
         # 4. Envoi de la réponse finale via MCP
@@ -560,10 +733,10 @@ async def main_async():
             "response": response,
             "session_id": session_id,
             "user_role": user_role,
-            "username": username,  # NOUVEAU
-            "email": email,  # NOUVEAU
+            "username": username, 
+            "email": email,  
             "permissions_used": user_permissions,
-            "backend": "enterprise_with_mcp_and_history",
+            "backend": "backend_with_mcp_and_history",
             "communication": "MCP" if MCP_AVAILABLE else "HTTP_FALLBACK"
         }
         print(json.dumps(result, ensure_ascii=False))
@@ -584,9 +757,9 @@ async def main_async():
             "error": error_msg,
             "session_id": session_id,
             "user_role": user_role,
-            "username": username,  # NOUVEAU
-            "email": email,  # NOUVEAU
-            "backend": "enterprise_with_mcp_and_history"
+            "username": username,  
+            "email": email,  
+            "backend": "backend_with_mcp_and_history"
         }
         print(json.dumps(error_result, ensure_ascii=False))
 
@@ -602,7 +775,15 @@ async def main_async():
 
 
 def main():
-    """Point d'entrée synchrone qui lance la version asynchrone"""
+    """
+    Lance le programme principal. Cette fonction initialise une boucle événementielle
+    asynchrone, exécute la fonction principale asynchrone et gère les exceptions
+    critiques, le cas échéant.
+
+    :raises Exception: Si une erreur critique survient lors de l'exécution du code
+        asynchrone ou de la configuration de la boucle.
+    :return: Aucun
+    """
     try:
         # Lancer la version asynchrone
         loop = asyncio.new_event_loop()
