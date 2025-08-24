@@ -131,15 +131,6 @@ Exemples :
 
 ##  Auteur
 
-> Développé dans le cadre d’un stage ingénieur IA à l’AMDIE par **Assia AIT TALEB**.
-
----
-
-##  Liens utiles
-
-* [README Backend](../backend_python/README_backend.md)
-* [README Serveur MCP](../mcp-server-amdie/README_MCP.md)
-* [Documentation générée FastAPI](http://localhost:8000/docs)
-* [Documentation HTML](../docs/Chatbot_AMDIE/chatbot_maroc/message_fastapi.html)
-
+Projet conçu et développé par **Assia AIT TALEB**,
+Stage ingénieur 4A – INSA Rouen Normandie – AMDIE (2025).
 

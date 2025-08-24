@@ -4,18 +4,59 @@ from ..utils.message_to_front import _send_to_frontend
 
 
 class SelectorAgentUnified:
-    """Agent sélecteur Gemini pour choisir les tableaux ET PDFs pertinents"""
+    """
+    Classe qui gère la sélection unifiée d'éléments (tableaux Excel et documents PDF) à partir d'un
+    état donné, en utilisant divers modèles et mécanismes décisionnels.
+
+    Cette classe a pour objectif de traiter les données d'état du chatbot en analysant les ressources
+    disponibles (Excel, PDFs, ou une combinaison des deux), en appliquant une logique prédéfinie et en
+    mettant à jour l'état pour faciliter un traitement ultérieur.
+
+    :ivar gemini_model: Modèle utilisé pour générer du contenu et des suggestions basées sur les questions
+                        de l'utilisateur et les documents chargés.
+    :type gemini_model: any
+    :ivar chatbot: Instance du chatbot utilisée pour enregistrer des journaux et interagir avec l'interface
+                   frontend.
+    :type chatbot: any
+    """
 
     def __init__(self, gemini_model, chatbot_instance):
+        """
+        Initialise une instance de la classe avec les composants nécessaires.
+
+        :param gemini_model: Modèle Gemini utilisé pour les prédictions et analyses.
+        :param chatbot_instance: Instance du chatbot chargé de traiter les interactions
+            utilisateur.
+        """
         self.gemini_model = gemini_model
         self.chatbot = chatbot_instance
 
     def execute(self, state: ChatbotState) -> ChatbotState:
-        """Point d'entrée principal de l'agent"""
+        """
+        Exécute le processus principal en appliquant une fonction de sélection d'agent unifiée.
+
+        La méthode prend un état de chatbot en paramètre, applique une logique spécifique
+        pour traiter cet état et retourne le nouvel état mis à jour.
+
+        :param state: L'état actuel du chatbot à traiter
+        :type state: ChatbotState
+        :return: L'état modifié du chatbot après traitement
+        :rtype: ChatbotState
+        """
         return self.agent_selecteur_unifie(state)
 
     def agent_selecteur_unifie(self, state: ChatbotState) -> ChatbotState:
-        """Sélecteur unifié reprenant la logique robuste du selector_agent original"""
+        """
+        Analyse et sélectionne les documents chargés pour traitement dans une session, en fonction du type
+        de documents (Excels, PDFs ou un mix des deux). Diverses stratégies sont appliquées pour gérer
+        les cas spécifiques en rapport avec les fichiers Excel, les PDFs ou un ensemble mixte.
+
+        :param state: L'état actuel du chatbot, incluant les informations liées aux documents chargés
+                      et aux données de session.
+        :type state: ChatbotState
+        :return: Le nouvel état du chatbot après sélection des documents pertinents.
+        :rtype: ChatbotState
+        """
 
         # Récupérer les documents chargés des nouveaux champs unified
         tableaux_charges = state.get('tableaux_charges', [])
@@ -34,7 +75,7 @@ class SelectorAgentUnified:
             state['pdfs_pour_upload'] = []
             return state
 
-        # Cas où il n'y a que des Excel (logique originale)
+        # Cas où il n'y a que des Excel
         if tableaux_charges and not pdfs_charges:
             return self._selectionner_excel_seulement(state, tableaux_charges, session_id)
 
@@ -42,15 +83,32 @@ class SelectorAgentUnified:
         elif pdfs_charges and not tableaux_charges:
             return self._selectionner_pdfs_seulement(state, pdfs_charges, session_id)
 
-        # Cas mixte : Excel + PDFs (nouvelle logique)
+        # Cas mixte : Excel + PDFs
         else:
             return self._selectionner_documents_mixtes(state, tableaux_charges, pdfs_charges, session_id)
 
     def _selectionner_excel_seulement(self, state: ChatbotState, tableaux_charges, session_id):
-        """Sélection Excel uniquement - LOGIQUE ORIGINALE PRÉSERVÉE"""
+        """
+        Sélectionne un ensemble réduit de tableaux Excel parmi les tableaux disponibles en analysant
+        la question de l'utilisateur et en utilisant un modèle pour fournir une réponse formatée.
+        Les tableaux sélectionnés sont destinés à un traitement ultérieur.
+
+        :param state: État actuel du chatbot, utilisé pour stocker et mettre à jour les données durant
+            la session. Doit inclure des informations telles que la question de l'utilisateur.
+        :type state: ChatbotState
+        :param tableaux_charges: Liste des tableaux Excel disponibles à analyser et parmi lesquels
+            faire une sélection.
+        :type tableaux_charges: list
+        :param session_id: Identifiant unique de la session en cours pour faciliter les communications
+            avec le frontend.
+        :type session_id: str
+        :return: État mis à jour du chatbot contenant les tableaux sélectionnés et prêts pour upload, ainsi
+            que des informations supplémentaires comme l'explication de la sélection.
+        :rtype: ChatbotState
+        """
 
         try:
-            # Préparer le catalogue Excel (méthode originale)
+            # Préparer le catalogue Excel
             catalogue_tableaux = self._preparer_catalogue_tableaux(tableaux_charges)
 
             prompt_selection = f"""Tu es un expert en sélection de données pour répondre à des questions sur le Maroc.
@@ -76,7 +134,7 @@ RÉPONSE:"""
 
             response = self.gemini_model.generate_content(prompt_selection)
 
-            # Parser la réponse (méthode originale)
+            # Parser la réponse
             tableaux_choisis = self._parser_selection_gemini(response.text)
             _send_to_frontend(session_id, f"Tableaux sélectionnés: {tableaux_choisis}")
 
@@ -108,10 +166,25 @@ RÉPONSE:"""
         return state
 
     def _selectionner_pdfs_seulement(self, state: ChatbotState, pdfs_charges, session_id):
-        """Sélection PDFs uniquement - NOUVELLE LOGIQUE COHÉRENTE"""
+        """
+        Sélectionne les documents PDF les plus pertinents parmi une liste afin de répondre à une question
+        posée par l'utilisateur. Cette fonction utilise un modèle de génération de contenu pour analyser
+        la Requête et produire un ensemble de PDFs sélectionnés, accompagnés d'une justification. Si le
+        modèle échoue ou renvoie une sélection vide, une stratégie de secours est appliquée.
+
+        :param state: Dictionnaire représentant l'état actuel du chatbot, contenant des informations
+                      relatives au contexte de la session, comme la question posée par l'utilisateur.
+        :type state: ChatbotState
+        :param pdfs_charges: Liste des documents PDF disponibles qui peuvent être utilisés pour
+                             répondre à la question.
+        :param session_id: Identifiant unique de la session en cours. Utilisé pour rapporter et transmettre
+                           des informations à l'interface frontend.
+        :return: L'état mis à jour incluant les PDFs sélectionnés pour upload ainsi que la justification
+                 produite par le modèle.
+        """
 
         try:
-            # Préparer le catalogue PDFs (nouvelle méthode)
+            # Préparer le catalogue PDFs
             catalogue_pdfs = self._preparer_catalogue_pdfs(pdfs_charges)
 
             prompt_selection = f"""Tu es un expert en sélection de données pour répondre à des questions sur le Maroc.
@@ -137,7 +210,7 @@ RÉPONSE:"""
 
             response = self.gemini_model.generate_content(prompt_selection)
 
-            # Parser la réponse (méthode adaptée)
+            # Parser la réponse
             pdfs_choisis = self._parser_selection_documents_gemini(response.text)
             _send_to_frontend(session_id, f"PDFs sélectionnés: {pdfs_choisis}")
 
@@ -168,7 +241,19 @@ RÉPONSE:"""
         return state
 
     def _selectionner_documents_mixtes(self, state: ChatbotState, tableaux_charges, pdfs_charges, session_id):
-        """Sélection mixte Excel + PDFs - NOUVELLE LOGIQUE UNIFIÉE"""
+        """
+        Sélectionne les documents mixtes (tableaux Excel et PDFs) les plus pertinents pour répondre à une question utilisateur.
+        Cette méthode analyse une question utilisateur et sélectionne un mélange équilibré entre des fichiers Excel et PDF
+        selon les besoins en données chiffrées ou informations contextuelles.
+
+        :param state: État du chatbot contenant des informations telles que la question posée par l'utilisateur.
+        :type state: ChatbotState
+        :param tableaux_charges: Liste des tableaux Excel disponibles pour la sélection.
+        :param pdfs_charges: Liste des documents PDF disponibles pour la sélection.
+        :param session_id: Identifiant de session permettant de contextualiser la sélection.
+        :return: État mis à jour du chatbot après la sélection des documents pertinents.
+        :rtype: dict
+        """
 
         try:
             # Créer un catalogue unifié
@@ -237,7 +322,22 @@ RÉPONSE:
         return state
 
     def _preparer_catalogue_tableaux(self, tableaux_charges):
-        """Prépare un catalogue lisible des tableaux - MÉTHODE ORIGINALE PRÉSERVÉE"""
+        """
+        Prépare une représentation textuelle du catalogue des tableaux en analysant
+        et extrayant des informations nécessaires des tableaux fournis.
+
+        .. note::
+            Ce catalogue donne un aperçu des tableaux en affichant leur titre,
+            source, feuille, colonnes représentatives et nombre de lignes.
+
+        :param tableaux_charges: Une liste de dictionnaires contenant les
+            informations des tableaux. Chaque entrée doit inclure des données
+            telles que 'titre_contextuel', 'fichier_source', 'nom_feuille' et
+            les informations du tableau sous la clé 'tableau'.
+        :return: Une chaîne de caractères représentant le catalogue des tableaux
+            avec leurs informations formatées.
+        :rtype: str
+        """
 
         catalogue = ""
         for i, tableau in enumerate(tableaux_charges):
@@ -263,14 +363,28 @@ TABLEAU {i + 1}:
         return catalogue
 
     def _preparer_catalogue_pdfs(self, pdfs_charges):
-        """Prépare un catalogue lisible des PDFs - NOUVELLE MÉTHODE COHÉRENTE"""
+        """
+        Prépare un catalogue textuel des PDF chargés en générant une liste détaillée avec
+        titre, source, et résumé tronqué pour chaque document.
+
+        :param pdfs_charges: Liste de dictionnaires contenant les informations sur
+            les PDF. Chaque dictionnaire doit inclure les clés suivantes :
+            - 'titre_contextuel': Titre textuel du document. Par défaut, 'PDF {index}'.
+            - 'fichier_source': Chemin ou nom de fichier source. Par défaut, 'N/A'.
+            - 'resume_gemini': Résumé textuel du document. Par défaut, 'Pas de résumé
+              disponible'.
+        :type pdfs_charges: list[dict]
+        :return: Une chaîne de caractères contenant le catalogue structuré des documents
+            PDF, avec un résumé tronqué à 200 caractères pour chaque document.
+        :rtype: str
+        """
 
         catalogue = ""
         for i, pdf in enumerate(pdfs_charges):
             titre = pdf.get('titre_contextuel', f'PDF {i + 1}')
             source = pdf.get('fichier_source', 'N/A')
 
-            # Extraire le résumé (tronqué)
+            # Extraire le résumé
             resume = pdf.get('resume_gemini', 'Pas de résumé disponible')
             if len(resume) > 200:
                 resume = resume[:200] + "..."
@@ -285,7 +399,31 @@ DOCUMENT {i + 1}:
         return catalogue
 
     def _preparer_catalogue_unifie(self, tableaux_charges, pdfs_charges):
-        """Prépare un catalogue unifié Excel + PDFs avec numérotation continue"""
+        """
+        Prépare un catalogue unifié sous forme de chaîne de caractères, décrivant des tableaux Excel et des
+        documents PDF fournis.
+
+        La fonction itère d'abord à travers les tableaux Excel et extrait des informations telles que le titre
+        contextuel, la source, la feuille, les colonnes (avec un maximum de cinq colonnes), ainsi que le
+        nombre de lignes. Ensuite, elle traite les fichiers PDF pour fournir des informations similaires,
+        y compris un résumé d'un maximum de 200 caractères.
+
+        :param tableaux_charges: Une liste de dictionnaires contenant les informations des tableaux Excel à
+            inclure dans le catalogue. Chaque dictionnaire doit inclure les clés 'titre_contextuel',
+            'fichier_source', 'nom_feuille', et 'tableau' pour fournir respectivement le titre, le chemin
+            du fichier source, le nom de la feuille Excel, et les données du tableau.
+        :type tableaux_charges: list[dict]
+
+        :param pdfs_charges: Une liste de dictionnaires contenant les informations des fichiers PDF à
+            inclure dans le catalogue. Chaque dictionnaire doit inclure les clés 'titre_contextuel',
+            'fichier_source', et 'resume_gemini' pour fournir respectivement le titre, le chemin du
+            fichier source, et un résumé du contenu PDF.
+        :type pdfs_charges: list[dict]
+
+        :return: Une chaîne de caractères détaillant la liste des documents Excel et PDF et leurs
+            caractéristiques principales, formatée en sections numérotées.
+        :rtype: str
+        """
 
         catalogue = ""
         index = 1
@@ -329,7 +467,21 @@ DOCUMENT {index} [PDF]:
         return catalogue
 
     def _separer_selections_mixtes(self, documents_choisis, tableaux_charges, pdfs_charges):
-        """Sépare les sélections selon le mapping unifié"""
+        """
+        Sépare les sélections mixtes de documents en deux listes distinctes : une pour les tableaux Excel
+        et une autre pour les fichiers PDF. Cette méthode analyse les indices fournis et les répartit
+        correctement en fonction de leur type respectif (Excel ou PDF).
+
+        :param documents_choisis: Liste contenant les indices des documents sélectionnés.
+        :type documents_choisis: list[int]
+        :param tableaux_charges: Liste des tableaux Excel chargés.
+        :type tableaux_charges: list
+        :param pdfs_charges: Liste des fichiers PDF chargés.
+        :type pdfs_charges: list
+        :return: Deux listes : la première contient les tableaux Excel sélectionnés, et la seconde,
+                 les fichiers PDF sélectionnés.
+        :rtype: tuple[list, list]
+        """
 
         excel_selectionnes = []
         pdfs_selectionnes = []
@@ -349,7 +501,21 @@ DOCUMENT {index} [PDF]:
         return excel_selectionnes, pdfs_selectionnes
 
     def _parser_selection_gemini(self, response_text):
-        """Parse la réponse de Gemini pour les tableaux - MÉTHODE ORIGINALE PRÉSERVÉE"""
+        """
+        Analyse une chaîne de texte et extrait les indices des tableaux sélectionnés.
+
+        Cette méthode cherche dans le texte un motif spécifique pour identifier les
+        tableaux sélectionnés. Si un motif précis est trouvé, les indices sont extraits
+        et réduits de 1 (pour correspondre aux indices de tableau basés sur zéro).
+        En l'absence d'un motif explicite, elle essaie de trouver et de traiter des
+        numéros individuels inclus dans le texte en tant que potentiel substitut.
+
+        :param response_text: Texte source analysé pour extraire les indices des tableaux.
+        :type response_text: str
+        :return: La liste des indices des tableaux sélectionnés. Les indices sont basés sur
+                 zéro avec un maximum de 5 indices si aucun motif explicite n'est trouvé.
+        :rtype: list[int]
+        """
 
         # Chercher le pattern "TABLEAUX_SELECTIONNES: 1,2,3 par exemple"
         match = re.search(r'TABLEAUX_SELECTIONNES:\s*\[?([0-9,\s]+)\]?', response_text)
@@ -368,7 +534,20 @@ DOCUMENT {index} [PDF]:
         return []
 
     def _parser_selection_documents_gemini(self, response_text):
-        """Parse la réponse de Gemini pour les documents (PDFs ou mixtes)"""
+        """
+        Analyse et extrait les indices des documents sélectionnés dans un texte donné en fonction d'un certain
+        format ou d'un fallback. La méthode recherche des motifs spécifiques dans le texte pour déterminer les
+        documents sélectionnés. Si aucun motif spécifique n'est trouvé, elle effectue une recherche alternative
+        de numéros dans le texte et retourne une liste d'indices correspondants.
+
+        :param response_text: Le texte contenant potentiellement les informations sur les documents
+            sélectionnés.
+        :type response_text: str
+
+        :return: Une liste d'indices (entiers) correspondant aux documents sélectionnés, ou une liste vide
+            si aucun document sélectionné ne peut être identifié dans le texte.
+        :rtype: list[int]
+        """
 
         # Chercher le pattern "DOCUMENTS_SELECTIONNES: 1,2,3"
         match = re.search(r'DOCUMENTS_SELECTIONNES:\s*\[?([0-9,\s]+)\]?', response_text)

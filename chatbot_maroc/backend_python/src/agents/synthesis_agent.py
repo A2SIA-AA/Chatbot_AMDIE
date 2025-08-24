@@ -7,24 +7,87 @@ import sys
 
 
 class SynthesisAgent:
-    """Agent synthèse pour formuler la réponse finale avec historique utilisateur"""
+    """
+    Agent de synthèse adaptatif pour la génération de réponses unifiées et naturelles.
+
+    Cet agent a pour but d'intégrer différentes sources d'informations, telles que des contenus
+    Excel ou PDF, afin de synthétiser une seule réponse cohérente et naturelle pour l'utilisateur.
+    Il s'appuie sur un modèle de langage (représenté par ``gemini_model``) et un chatbot
+    pour interagir avec l'utilisateur et maintenir un historique des discussions.
+
+    Ce mécanisme comprend la collecte des données disponibles, leur contextualisation,
+    et la génération de réponses en fonction des informations pertinentes. Si aucune donnée
+    n'est disponible ou si une erreur survient, une réponse alternative ou un fallback
+    est retourné.
+
+    :ivar gemini_model: Modèle de langage utilisé pour générer les réponses unifiées.
+    :ivar chatbot: Instance du chatbot utilisée pour l'interaction utilisateur et la gestion
+        de l'historique des conversations.
+    """
 
     def __init__(self, gemini_model, chatbot_instance):
+        """
+        Initialise une instance de la classe avec les composants nécessaires.
+
+        Cette méthode initialise deux objets principaux requis pour le fonctionnement
+        de la classe : un modèle spécifié et une instance de chatbot. Ces éléments
+        seront utilisés par d'autres méthodes de la classe pour opérer sur les données
+        ou répondre aux exigences fonctionnelles.
+
+        :param gemini_model: Modèle principal utilisé pour les processus de
+            prédiction ou d'analyse.
+        :param chatbot_instance: Instance de chatbot qui gère l'interaction
+            utilisateur ou les flux de conversation.
+        """
         self.gemini_model = gemini_model
         self.chatbot = chatbot_instance
 
     def execute(self, state: ChatbotState) -> ChatbotState:
+        """
+        Point d'entrée principal de l'agent.
+
+        Cette méthode agit comme le point d'interaction principal avec l'état d'un
+        chatbot. Elle récupère les permissions utilisateur actuelles et délègue
+        ensuite la logique à une méthode de synthèse spécifique.
+
+        :param state:
+            L'état actuel du chatbot sous forme d'un objet `ChatbotState`.
+        :type state: ChatbotState
+
+        :return:
+            L'état mis à jour du chatbot après traitement par l'agent de synthèse.
+        :rtype: ChatbotState
+        """
         """Point d'entrée principal de l'agent"""
         print(f"[DEBUG {self.__class__.__name__}] self.chatbot.user_permissions: {self.chatbot.user_permissions}",file=sys.stderr)
         return self.agent_synthese(state)
 
     def agent_synthese(self, state: ChatbotState) -> ChatbotState:
-        """Agent synthèse adaptatif avec réponse UNIFIÉE et NATURELLE"""
+        """
+        Synthétise une réponse unifiée et naturelle à partir des données structurées et non
+        structurées disponibles dans l'état actuel d'un chatbot. La méthode alimente une
+        intelligence artificielle pour générer une réponse directe et intégrée, en s'appuyant
+        sur des sources multiples (Excel, PDF, historique de l'utilisateur). Elle vise à
+        produire une formulation finale cohérente et naturelle tout en sauvegardant un
+        historique de conversation si possible.
+
+        :param state: État actuel du chatbot contenant la question de l'utilisateur, les
+            données disponibles (Excel, PDF, etc.) et les informations contextuelles comme
+            l'historique utilisateur.
+        :type state: ChatbotState
+        :return: État mis à jour du chatbot, incluant la réponse synthétisée à la question de
+            l'utilisateur.
+        :rtype: ChatbotState
+        :raises KeyError: Si des clés nécessaires dans `state` sont absentes.
+        :raises TypeError: Si des données dans `state` ne correspondent pas aux attentes
+            (par exemple, format de données incorrect).
+        :raises Exception: En cas de problème non spécifié durant la génération de la réponse.
+        """
 
         self.chatbot._log("Agent Synthèse: Formulation finale unifiée", state)
         session_id = state.get('session_id')
 
-        # Récupérer les informations utilisateur pour l'historique
+        # Récupérer les informations utilisateur pour l'historiquehistorique
         username, email = self._extract_user_info(state)
 
         # Collecter TOUTES les informations disponibles
@@ -124,43 +187,32 @@ class SynthesisAgent:
 
     def _extract_user_info(self, state: ChatbotState) -> tuple:
         """
-        Extrait les informations utilisateur du state
+        Extrait les informations de l'utilisateur depuis l'état d'un chatbot. Cette méthode analyse
+        l'état fourni pour identifier et retourner le nom d'utilisateur et l'adresse email correspondante.
+        Si les informations ne sont pas directement disponibles, elle établit des valeurs par défaut en
+        fonction du rôle d'utilisateur trouvé dans l'état. En cas d'erreur, une journalisation est effectuée.
 
-        Returns:
-            tuple: (username, email) ou (None, None) si non disponible
+        :param state: Représente l'état actuel du chatbot contenant les informations de l'utilisateur.
+        :type state: ChatbotState
+
+        :return: Une paire (tuple) contenant le nom d'utilisateur et son adresse email. Retourne
+                 (None, None) en cas d'échec ou si les informations ne sont pas disponibles.
+        :rtype: tuple
         """
         try:
-            # Récupérer depuis les permissions/état utilisateur
-            # Selon ton système, ça pourrait être stocké différemment
             session_id = state.get('session_id', '')
-
-            # Si le session_id contient des infos utilisateur (format: session_keycloak_role_timestamp_hash)
-            if 'keycloak' in session_id:
-                # Pour Keycloak, on pourrait avoir les infos dans le state
-                # À adapter selon comment tu stockes les infos utilisateur
-                pass
-
-            # Vérifier si les infos utilisateur sont directement dans le state
-            # Tu pourrais ajouter username/email dans ChatbotState
             username = state.get('username')
             email = state.get('email')
 
             if username and email:
                 return username, email
 
-            # Fallback: extraire depuis le user_role ou autres champs
             user_role = state.get('user_role', '')
 
-            # Pour l'instant, utiliser des valeurs par défaut basées sur le session_id
-            # À adapter avec tes vraies données utilisateur
             if session_id:
-                # Tu peux modifier cette logique pour récupérer les vraies infos utilisateur
-                # depuis ton système d'auth ou les passer dans le state
-
-                # Exemple temporaire:
-                if 'admin' in session_id:
+                if 'admin' in session_id or user_role == 'admin':
                     return 'admin_user', 'admin@amdie.ma'
-                elif 'employee' in session_id:
+                elif 'employee' in session_id or user_role == 'employee':
                     return 'employee_user', 'employee@amdie.ma'
                 else:
                     return 'public_user', 'public@amdie.ma'
@@ -170,46 +222,3 @@ class SynthesisAgent:
         except Exception as e:
             self.chatbot._log_error(f"Erreur extraction info utilisateur: {e}", state)
             return None, None
-
-    def _enrichir_reponse_avec_sources(self, reponse: str, tableaux: List[Dict]) -> str:
-        """Enrichit une réponse directe avec les sources"""
-
-        if reponse is None:
-            reponse = "Réponse non disponible"
-
-        if not tableaux or not isinstance(tableaux, list):
-            return reponse
-
-        sources = []
-        for tableau in tableaux[:3]:
-            if tableau is None or not isinstance(tableau, dict):
-                continue
-            titre = tableau.get('titre_contextuel', 'Source inconnue')
-            source = tableau.get('fichier_source', 'N/A')
-            if titre and isinstance(titre, str) and titre != 'Source inconnue':
-                sources.append(f"• {titre} ({source})")
-
-        if sources:
-            reponse += f"\n\nSources consultées :\n" + "\n".join(sources)
-
-        return reponse
-
-    def _extraire_sources_utilisees(self, dataframes: List[pd.DataFrame]) -> str:
-        """Extrait les sources pour la réponse finale"""
-
-        # PROTECTION CONTRE None
-        if not dataframes or not isinstance(dataframes, list):
-            return "Aucune source disponible"
-
-        sources = []
-        for df in dataframes:
-            if df is None:
-                continue
-            attrs = getattr(df, 'attrs', {})
-            if attrs is None:
-                attrs = {}
-            titre = attrs.get('titre', 'Source non identifiée')
-            source = attrs.get('source', 'N/A')
-            sources.append(f"• {titre} (Source: {source})")
-
-        return '\n'.join(sources) if sources else "Aucune source disponible"

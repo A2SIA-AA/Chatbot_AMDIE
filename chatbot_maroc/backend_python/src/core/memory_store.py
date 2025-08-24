@@ -10,8 +10,15 @@ logger = logging.getLogger(__name__)
 
 class ConversationMemoryStore:
     """
-    Système de mémoire persistante avec SQLite pour l'historique des conversations
-    Keycloak par utilisateur (username + email)
+    Classe pour gérer le stockage des conversations en utilisant SQLite.
+
+    Cette classe fournit des fonctionnalités pour enregistrer, récupérer et analyser
+    les conversations des utilisateurs. Elle inclut également des méthodes pour nettoyer
+    les conversations anciennes et formater les données pour des besoins spécifiques,
+    comme le contexte des agents d'intelligence artificielle.
+
+    :ivar db_path: Chemin vers la base de données SQLite utilisée pour stocker les conversations.
+    :type db_path: str
     """
 
     def __init__(self, db_path: str = "conversations.db"):
@@ -26,7 +33,16 @@ class ConversationMemoryStore:
         logger.info(f" ConversationMemoryStore initialisé: {os.path.abspath(db_path)}")
 
     def _init_database(self):
-        """Crée la table conversations si elle n'existe pas"""
+        """
+        Initialise la base de données pour gérer les conversations et configure les tables nécessaires.
+
+        Cette méthode crée une table `conversations` si elle n'existe pas, ainsi que deux index pour améliorer
+        les performances des requêtes fréquemment utilisées. La table `conversations` stocke des informations
+        liées aux utilisateurs, y compris leur identifiant, leur email, leurs questions, les réponses qui leur
+        sont fournies, les horodatages de ces interactions, ainsi que des informations de session.
+
+        :raises Exception: Si une erreur se produit lors de l'initialisation de la base de données.
+        """
         try:
             with self._get_connection() as conn:
                 conn.execute("""
@@ -86,7 +102,20 @@ class ConversationMemoryStore:
 
     @contextmanager
     def _get_connection(self):
-        """Context manager pour les connexions SQLite"""
+        """
+        Fournit un gestionnaire de contexte pour obtenir une connexion à une base de
+        données SQLite, avec gestion automatisée des transactions et nettoyage en
+        cas d'erreur.
+
+        Lorsque le gestionnaire de contexte est utilisé, il établit une connexion avec la
+        base de données, permet son utilisation à l'intérieur du bloc de code, et se charge
+        de fermer la connexion une fois que le bloc de code est terminé ou en cas
+        d'exception.
+
+        :raises Exception: Si une erreur survient pendant l'utilisation de la connexion.
+        :return: Un objet connexion SQLite avec `row_factory` configuré pour permettre
+                 l'accès aux colonnes par nom.
+        """
         conn = None
         try:
             conn = sqlite3.connect(self.db_path, timeout=30.0)
@@ -103,17 +132,24 @@ class ConversationMemoryStore:
     def save_conversation(self, username: str, email: str, question: str,
                           reponse: str, session_id: str = None) -> bool:
         """
-        Sauvegarde une conversation complète
+        Enregistre une conversation dans la base de données. La fonction enregistre
+        les informations fournies, telles que le nom d'utilisateur, l'adresse email,
+        la question posée, la réponse donnée ainsi qu'un éventuel identifiant de
+        session. Le timestamp est automatiquement ajouté lors de l'insertion.
 
-        Args:
-            username: Nom d'utilisateur Keycloak 
-            email: Email utilisateur
-            question: Question posée
-            reponse: Réponse de l'IA
-            session_id: ID de session (optionnel)
-
-        Returns:
-            bool: True si sauvegarde réussie
+        :param username: Le nom d'utilisateur qui a posé la question
+        :type username: str
+        :param email: L'adresse email de l'utilisateur
+        :type email: str
+        :param question: La question posée par l'utilisateur
+        :type question: str
+        :param reponse: La réponse donnée à l'utilisateur
+        :type reponse: str
+        :param session_id: L'identifiant de session associé, optionnel
+        :type session_id: str, optional
+        :return: Retourne True si la conversation a été enregistrée avec succès,
+                 False en cas d'échec
+        :rtype: bool
         """
         try:
             with self._get_connection() as conn:
@@ -140,15 +176,20 @@ class ConversationMemoryStore:
 
     def get_user_history_24h(self, username: str, email: str, limit: int = 20) -> List[Dict]:
         """
-        Récupère l'historique des 24 dernières heures pour un utilisateur
+        Récupère l'historique des conversations de l'utilisateur spécifié au cours des
+        dernières 24 heures. Les conversations sont triées par ordre décroissant de
+        timestamp.
 
-        Args:
-            username: Nom d'utilisateur
-            email: Email utilisateur  
-            limit: Nombre maximum de conversations à retourner
+        L'historique est limité par un nombre spécifié.
 
-        Returns:
-            List[Dict]: Liste des conversations [{question, reponse, timestamp, session_id}]
+        :param username: Le nom d'utilisateur de l'utilisateur pour lequel récupérer
+            l'historique des conversations.
+        :param email: L'adresse email associée à l'utilisateur.
+        :param limit: (optionnel) Le nombre maximum de conversations à récupérer. La
+            valeur par défaut est 20.
+        :return: Une liste de dictionnaires contenant les informations des conversations
+            récupérées. Chaque dictionnaire inclut les clés suivantes : 'question',
+            'reponse', 'timestamp', et 'session_id'.
         """
         try:
             cutoff_time = datetime.now() - timedelta(hours=24)
@@ -182,15 +223,19 @@ class ConversationMemoryStore:
 
     def format_history_for_context(self, username: str, email: str, max_conversations: int = 5) -> str:
         """
-        Formate l'historique pour le contexte des agents IA
+        Formate l'historique des conversations pour un contexte spécifique en affichant les détails des
+        conversations d'un utilisateur au cours des dernières 24 heures.
 
-        Args:
-            username: Nom d'utilisateur
-            email: Email utilisateur
-            max_conversations: Nombre max de conversations à inclure
-
-        Returns:
-            str: Historique formaté pour le prompt IA
+        :param username: Le nom d'utilisateur pour lequel extraire l'historique des conversations.
+        :type username: str
+        :param email: L'email de l'utilisateur correspondant au nom d'utilisateur donné.
+        :type email: str
+        :param max_conversations: Le nombre maximum de conversations à inclure dans le contexte.
+            Par défaut, 5.
+        :type max_conversations: int
+        :return: Une chaîne de caractères formatée contenant l'historique des conversations, ou
+            un message indiquant l'absence d'historique.
+        :rtype: str
         """
         history = self.get_user_history_24h(username, email, max_conversations)
 
@@ -221,10 +266,19 @@ class ConversationMemoryStore:
 
     def get_conversation_stats(self, username: str, email: str) -> Dict:
         """
-        Statistiques des conversations pour un utilisateur
+        Récupère les statistiques liées aux conversations d'un utilisateur, y compris le total des conversations,
+        le nombre de conversations dans les dernières 24 heures et les détails de la dernière conversation.
 
-        Returns:
-            Dict: {total_conversations, conversations_24h, last_conversation}
+        :param username: Le nom d'utilisateur pour lequel rechercher les statistiques
+        :type username: str
+        :param email: L'adresse email de l'utilisateur pour lequel rechercher les statistiques
+        :type email: str
+        :return: Un dictionnaire contenant les statistiques suivantes :
+                 - 'total_conversations': nombre total de conversations
+                 - 'conversations_24h': nombre de conversations dans les 24 dernières heures
+                 - 'last_conversation': détails de la dernière conversation incluant 'timestamp' et 'question'
+        :rtype: Dict
+        :raises Exception: En cas d'erreur lors de l'exécution des requêtes ou de la connexion à la base de données
         """
         try:
             with self._get_connection() as conn:
@@ -273,13 +327,16 @@ class ConversationMemoryStore:
 
     def cleanup_old_conversations(self, days_to_keep: int = 30) -> int:
         """
-        Nettoie les conversations anciennes
+        Supprime les anciennes conversations de la base de données qui ont une date
+        antérieure à un nombre de jours spécifié (days_to_keep). Cette méthode effectue
+        un nettoyage des données en supprimant les enregistrements obsolètes d'après
+        la date limite calculée.
 
-        Args:
-            days_to_keep: Nombre de jours à conserver
-
-        Returns:
-            int: Nombre de conversations supprimées
+        :param days_to_keep: Nombre de jours avant lesquels les conversations
+            doivent être supprimées (par défaut 30).
+        :type days_to_keep: int
+        :return: Le nombre de conversations supprimées.
+        :rtype: int
         """
         try:
             cutoff_date = datetime.now() - timedelta(days=days_to_keep)
@@ -302,10 +359,14 @@ class ConversationMemoryStore:
 
     def get_all_users(self) -> List[Tuple[str, str]]:
         """
-        Liste tous les utilisateurs ayant des conversations
+        Récupère tous les utilisateurs distincts avec leurs noms d'utilisateur et leurs
+        adresses e-mail à partir de la base de données. Les utilisateurs sont renvoyés
+        dans un ordre alphabétique basé sur leurs noms d'utilisateur.
 
-        Returns:
-            List[Tuple[str, str]]: Liste des (username, email)
+        :return: Une liste de tuples contenant les noms d'utilisateur et adresses e-mail
+                 de tous les utilisateurs distincts dans la base de données. Si une erreur
+                 se produit, retourne une liste vide.
+        :rtype: List[Tuple[str, str]]
         """
         try:
             with self._get_connection() as conn:
@@ -322,10 +383,21 @@ class ConversationMemoryStore:
 
     def delete_user_conversations(self, username: str, email: str) -> int:
         """
-        Supprime toutes les conversations d'un utilisateur
+        Supprime les conversations associées à un utilisateur spécifique.
 
-        Returns:
-            int: Nombre de conversations supprimées
+        Cette méthode permet de supprimer toutes les conversations d'un utilisateur donné
+        en fonction de son nom d'utilisateur (username) et de son adresse e-mail.
+
+        :param username: Nom d'utilisateur de l'individu dont les conversations doivent
+            être supprimées.
+        :type username: str
+        :param email: Adresse e-mail de l'utilisateur dont les conversations sont à
+            supprimer.
+        :type email: str
+        :return: Le nombre total de conversations supprimées avec succès pour cet
+            utilisateur. Retourne `0` en cas d'échec ou si aucune conversation n'a été
+            supprimée.
+        :rtype: int
         """
         try:
             with self._get_connection() as conn:
@@ -347,10 +419,18 @@ class ConversationMemoryStore:
 
     def export_user_conversations(self, username: str, email: str) -> List[Dict]:
         """
-        Exporte toutes les conversations d'un utilisateur
+        Exporte les conversations d'un utilisateur à partir de la base de données en fonction de son
+        nom d'utilisateur et de son email. Les conversations sont triées par ordre décroissant de leur
+        horodatage.
 
-        Returns:
-            List[Dict]: Toutes les conversations de l'utilisateur
+        Cette méthode effectue une requête SQL pour récupérer les conversations correspondantes dans la
+        base de données, puis les formate sous forme de liste de dictionnaires, où chaque dictionnaire
+        représente une conversation.
+
+        :param username: Le nom d'utilisateur pour lequel les conversations doivent être exportées.
+        :param email: L'adresse e-mail associée à l'utilisateur pour l'extraction des conversations.
+        :return: Une liste de dictionnaires représentant les conversations de l'utilisateur, ou une
+                 liste vide en cas d'erreur.
         """
         try:
             with self._get_connection() as conn:
@@ -383,10 +463,16 @@ class ConversationMemoryStore:
 
     def check_database_health(self) -> Dict:
         """
-        Vérifie l'état de santé de la base de données
+        Vérifie l'état de santé de la base de données et retourne des statistiques détaillées sur son utilisation. Cette
+        fonction évalue la taille de la base, le nombre total de conversations stockées, les utilisateurs uniques,
+        ainsi que le nombre de conversations enregistrées durant les dernières 24 heures.
 
-        Returns:
-            Dict: Informations sur l'état de la DB
+        :return: Un dictionnaire contenant des informations sur la santé de la base de données, y compris
+            le chemin absolu de la base, sa taille en octets et mégaoctets, le nombre total de conversations
+            enregistrées, le total d'utilisateurs uniques et le nombre de conversations dans les dernières 24 heures.
+            Si une erreur survient lors du diagnostic, elle inclut l'erreur et marque l'état de la base comme
+            « error ».
+        :rtype: Dict
         """
         try:
             with self._get_connection() as conn:
@@ -432,15 +518,61 @@ conversation_memory = ConversationMemoryStore()
 
 # Fonctions utilitaires pour compatibilité
 def save_conversation(username: str, email: str, question: str, reponse: str, session_id: str = None) -> bool:
-    """Fonction helper pour sauvegarder une conversation"""
+    """
+    Sauvegarde une conversation dans la mémoire persistante. Cette fonction permet
+    de stocker les informations pertinentes d'une conversation pour un usage
+    ultérieur. Les informations sauvegardées incluent le nom d'utilisateur, l'email,
+    la question posée, la réponse et un identifiant de session facultatif.
+
+    :param username: Le nom d'utilisateur qui a participé à la conversation.
+    :type username: str
+    :param email: L'adresse email associée à l'utilisateur.
+    :type email: str
+    :param question: La question posée par l'utilisateur pendant la conversation.
+    :type question: str
+    :param reponse: La réponse apportée à la question de l'utilisateur.
+    :type reponse: str
+    :param session_id: L'identifiant unique de la session de conversation
+        (facultatif, peut être None si non fourni).
+    :type session_id: str, optionnel
+    :return: Retourne True si la conversation a été sauvegardée avec succès,
+        False sinon.
+    :rtype: bool
+    """
     return conversation_memory.save_conversation(username, email, question, reponse, session_id)
 
 
 def get_user_context(username: str, email: str) -> str:
-    """Fonction helper pour récupérer le contexte utilisateur"""
+    """
+    Récupère le contexte utilisateur pour formater l'historique de la conversation.
+
+    Cette fonction utilise la mémoire de conversation pour retourner un contexte
+    formaté basé sur l'historique et les informations utilisateur fournies.
+
+    :param username: Le nom d'utilisateur utilisé pour le contexte.
+    :type username: str
+    :param email: L'adresse e-mail associée à l'utilisateur.
+    :type email: str
+    :return: Une chaîne formatée représentant le contexte utilisateur.
+    :rtype: str
+    """
     return conversation_memory.format_history_for_context(username, email)
 
 
 def get_user_stats(username: str, email: str) -> Dict:
-    """Fonction helper pour les statistiques utilisateur"""
+    """
+    Récupère les statistiques de conversation d'un utilisateur donné.
+
+    Cette fonction interagit avec une mémoire de conversation pour obtenir
+    des statistiques spécifiques à un utilisateur identifiable par son nom
+    d'utilisateur et son adresse e-mail.
+
+    :param username: Nom d'utilisateur pour identifier l'utilisateur cible.
+    :type username: str
+    :param email: Adresse e-mail associée à l'utilisateur.
+    :type email: str
+    :return: Un dictionnaire contenant les statistiques de conversation
+        associées à l'utilisateur.
+    :rtype: Dict
+    """
     return conversation_memory.get_conversation_stats(username, email)

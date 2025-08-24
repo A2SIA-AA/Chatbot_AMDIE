@@ -7,15 +7,33 @@ import pandas as pd
 # =============================================================================
 
 class SimplePandasAgent:
-    """Agent simple pour générer et exécuter du code pandas"""
+    """
+    Classe responsable de la création et du nettoyage de DataFrames à partir de données de tableau données.
+
+    Cette classe utilise un modèle Gemini pour l'analyse sous-jacente et fournit des fonctionnalités pour
+    générer et contextualiser des DataFrames selon des métadonnées et des critères spécifiques.
+
+    :ivar gemini_model: Modèle Gemini utilisé pour l'analyse des données.
+    :type gemini_model: Any
+    """
 
     def __init__(self, gemini_model):
         self.gemini_model = gemini_model
 
     def creer_dataframe_propre(self, tableau_data: Dict) -> pd.DataFrame:
-        """Crée un DataFrame propre à partir des données de tableau avec métadonnées - VERSION CORRIGÉE"""
+        """
+        Cette fonction crée un DataFrame propre à partir des données d'un tableau en dictionnaire. Elle gère les cas où
+        le tableau est inexistant dans les données fournies en générant une structure minimale basée sur les métadonnées.
+        Le DataFrame final est nettoyé (supression des lignes vides ou inappropriées) et enrichi avec des métadonnées.
 
-        # CORRECTION CRITIQUE: Gérer le cas où 'tableau' n'existe pas
+        :param tableau_data: Un dictionnaire contenant les données d'un tableau, des métadonnées, et des informations
+            complémentaires comme le titre contextuel et la source du tableau.
+        :type tableau_data: Dict
+        :return: Un DataFrame propre contenant le tableau filtré et nettoyé, avec des métadonnées ajoutées à ses attributs.
+        :rtype: pd.DataFrame
+        :raises KeyError: Si certaines clés nécessaires dans `tableau_data` sont absentes lors du traitement.
+        """
+
         if 'tableau' not in tableau_data:
             # Créer une structure tableau minimale depuis les métadonnées
             titre = tableau_data.get('titre_contextuel', 'Sans titre')
@@ -31,7 +49,7 @@ class SimplePandasAgent:
 
             print(f"[PANDAS_AGENT] Tableau créé depuis métadonnées pour: {titre}")
 
-        # Votre code original continue ici
+
         donnees_tableau = tableau_data['tableau']
         headers = donnees_tableau[0]
         rows = donnees_tableau[1:]
@@ -67,7 +85,24 @@ class SimplePandasAgent:
         return df
 
     def _generer_description_contexte(self, tableau_data: Dict, df: pd.DataFrame) -> str:
-        """Génère une description contextuelle du tableau"""
+        """
+        Génère une description contextuelle basée sur les données fournies.
+
+        Cette méthode analyse un dictionnaire contenant des informations de titre et
+        un DataFrame pour extraire ou générer une description textuelle pertinente.
+        La description varie selon les mots-clés présents dans le titre ou les colonnes
+        du DataFrame.
+
+        :param tableau_data: Dictionnaire contenant des métadonnées comme le titre.
+            Les clés peuvent inclure 'titre_contextuel'.
+        :type tableau_data: Dict
+        :param df: DataFrame contenant des données structurées utilisées pour
+            affiner la description contextuelle.
+        :type df: pd.DataFrame
+        :return: Une chaîne décrivant contextuellement les données traitées en
+            fonction des règles de correspondance.
+        :rtype: str
+        """
 
         titre = tableau_data.get('titre_contextuel', '')
 

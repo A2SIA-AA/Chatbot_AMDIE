@@ -37,7 +37,8 @@ Cette interface permet à un salarié de poser des questions au chatbot et d’o
 
 ## Compte salarié Keycloak
 
-- Utilisateur : `employee_user@domaine.com`
+- Utilisateur : `salarie_user`
+- Mot de passe : `salarie123`
 - Rôle : `employee`
 - Permissions : `read_internal_docs`, `chat_basic`, `chat_advanced`, `view_internal_stats`, `download_reports`
 

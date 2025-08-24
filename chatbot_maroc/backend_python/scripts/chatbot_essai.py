@@ -3,12 +3,29 @@ import os
 
 load_dotenv()
 
-from ..src.core.chatbot import ChatbotMarocSessionId
+from ..src.core.chatbot_v2_simplified import ChatbotMarocV2Simplified
 from ..src.rag.indexer import RAGTableIndex
 
 
 def creer_chatbot():
-    """Fonction adaptable pour créer le chatbot"""
+    """
+    Créer et initialiser un chatbot personnalisé.
+
+    Cette fonction permet d'initialiser un chatbot en configurant son index RAG
+    et en récupérant une clé API sécurisée. Elle change également le répertoire
+    de travail courant pour correspondre au dossier de projet spécifié dans la
+    variable d'environnement `PROJECT_DIR`.
+
+    :raises EnvironmentError: Si les variables d'environnement nécessaires,
+        telles que `PROJECT_DIR` ou `GEMINI_API_KEY`, ne sont pas configurées,
+        ou si les chemins associés ne sont pas valides.
+    :raises Exception: Si toute autre erreur se produit pendant le processus
+        d'initialisation du chatbot, comme l'échec de création de l'index RAG
+        ou l'instanciation du chatbot.
+
+    :return: Une instance du chatbot initialisé.
+    :rtype: ChatbotMarocV2Simplified
+    """
     dir_dossier = os.getenv("PROJECT_DIR")
     os.chdir(dir_dossier)
 
@@ -21,7 +38,7 @@ def creer_chatbot():
     gemini_key = os.getenv("GEMINI_API_KEY")
 
     # Créer le chatbot
-    chatbot = ChatbotMarocSessionId(rag_index, gemini_key)
+    chatbot = ChatbotMarocV2Simplified(rag_index, gemini_key)
 
     print(f"Chatbot initialisé")
     return chatbot

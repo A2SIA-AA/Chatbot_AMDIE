@@ -13,13 +13,14 @@ def __init__():
 
 def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
     """
-    Génère une description textuelle riche d'un tableau JSON pour l'indexation RAG
+    Génère une description pour un tableau JSON donné. Cette fonction lit un fichier JSON, extrait
+    les informations métadonnées, analyse le contenu du tableau et génère une description textuelle
+    ainsi que des statistiques sur le tableau.
 
-    Args:
-        tableau_path: Chemin vers le fichier JSON du tableau
+    :param tableau_path: Chemin du fichier JSON contenant les données du tableau.
+    :return: Un dictionnaire contenant la description textuelle, les métadonnées, les statistiques
+             et un échantillon des données du tableau.
 
-    Returns:
-        Dict contenant la description et les métadonnées COMPLÈTES
     """
     # Charger le tableau JSON
     with open(tableau_path, 'r', encoding='utf-8') as f:
@@ -41,7 +42,7 @@ def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
         'detected_from_path': data.get('detected_from_path'),
         'extraction_timestamp': data.get('extraction_timestamp'),
 
-        # Tous les autres champs potentiels
+
         **{k: v for k, v in data.items() if k not in [
             'tableau', 'fichier_source', 'nom_feuille', 'titre_contextuel', 'range_bloc'
         ]}
@@ -101,7 +102,18 @@ def generer_description_tableau(tableau_path: str) -> Dict[str, Any]:
 
 def analyser_types_colonnes(data_rows: List[List], headers: List[str]) -> Dict[str, str]:
     """
-    Analyse les types de données pour chaque colonne
+    Analyse les types dominants des colonnes d'un ensemble de données. Pour chaque colonne,
+    une analyse est effectuée sur un sous-ensemble des premières lignes non nulles, afin de déterminer
+    le type de données dominant parmi les valeurs disponibles.
+
+    :param data_rows: Une liste de listes représentant les lignes d'un tableau de données. Chaque sous-liste
+                      contient les valeurs de différentes colonnes pour une ligne donnée.
+    :type data_rows: List[List]
+    :param headers: Une liste de chaînes de caractères représentant les noms des colonnes du tableau de données.
+    :type headers: List[str]
+    :return: Un dictionnaire associant chaque nom de colonne à une chaîne de caractères indiquant son type dominant
+             ("vide" si aucune valeur n'est présente).
+    :rtype: Dict[str, str]
     """
     if not data_rows or not headers:
         return {}
@@ -131,7 +143,23 @@ def analyser_types_colonnes(data_rows: List[List], headers: List[str]) -> Dict[s
 
 def detecter_type_dominant(valeurs: List[Any]) -> str:
     """
-    Détecte le type de données dominant dans une liste de valeurs
+    Détecte le type de données dominant dans une liste donnée.
+
+    Cette fonction analyse une liste d'éléments pour déterminer quel type de données
+    (principalement "numérique", "texte", "pourcentage" ou "ville") est le plus dominant
+    parmi les valeurs fournies. Si la liste est vide, elle retourne "vide".
+
+    Le type dominant est déterminé en comptabilisant le nombre d'apparitions de chaque type
+    et en sélectionnant celui qui a la fréquence la plus élevée.
+
+    :param valeurs: Liste contenant des valeurs à analyser.
+                    Ces valeurs peuvent être de divers types (numériques,
+                    chaînes de caractères, etc.).
+    :type valeurs: List[Any]
+    :return: Le type de données dominant parmi les éléments de la liste.
+             Peut être l'un des suivants : "numerique", "texte", "pourcentage",
+             "ville", ou "vide" si la liste est vide.
+    :rtype: str
     """
     if not valeurs:
         return "vide"
@@ -169,7 +197,36 @@ def detecter_type_dominant(valeurs: List[Any]) -> str:
 
 def construire_description_textuelle(metadata: Dict, stats: Dict, echantillon: List[List]) -> str:
     """
-    Construit la description textuelle finale
+    Construit une description textuelle structurée des métadonnées, des statistiques et d'un
+    échantillon de données représentées sous forme de tableau.
+
+    Résumé des sections inclues :
+    - Contexte et source : décrit le contexte et la source des données (titre contextuel, fichier
+      source et feuille).
+    - Structure du tableau : fournit des informations statistiques telles que le nombre d'entrées
+      et de colonnes.
+    - Colonnes disponibles : liste les noms des colonnes dans le tableau, si disponibles.
+    - Types de données : associe chaque colonne à son type de données, si cette information est
+      disponible.
+    - Échantillon de données : extrait et affiche quelques lignes et colonnes en tant qu'échantillon
+      pour illustrer le contenu du tableau.
+
+    Paramètres :
+    :param metadata: Métadonnées du tableau, incluant au minimum les clés suivantes :
+        - 'titre_contextuel' (str) : le titre ou le contexte de la table,
+        - 'fichier_source' (str) : nom du fichier source d'origine,
+        - 'nom_feuille' (str) : nom de la feuille contenant les données.
+    :param stats: Statistiques descriptives du tableau, contenant :
+        - 'nb_lignes' (int) : le nombre total de lignes,
+        - 'nb_colonnes' (int) : le nombre total de colonnes,
+        - 'headers' (List[str]) : une liste des noms des colonnes si disponibles,
+        - 'types_colonnes' (Dict[str, str]) : un dictionnaire associant les colonnes à leur type.
+    :param echantillon: Une liste de listes représentant les premières données du tableau
+        sous forme de lignes, typiquement destiné à afficher un échantillon.
+
+    Retourne :
+    :return: Une chaîne de caractères structurée décrivant les métadonnées, statistiques, et
+             un échantillon du tableau.
     """
     desc_parts = []
 
@@ -202,14 +259,25 @@ def construire_description_textuelle(metadata: Dict, stats: Dict, echantillon: L
 
 def traiter_index_complet(index_path: str, tableaux_dir: str) -> List[Dict]:
     """
-    Traite tous les tableaux listés dans l'index
+    Traite un index JSON et génère des descriptions pour chaque tableau référencé dans
+    l'index. Chaque tableau est représenté par un fichier JSON localisé dans un dossier
+    spécifié.
 
-    Args:
-        index_path: Chemin vers le fichier index.json
-        tableaux_dir: Dossier racine contenant les tableaux JSON
+    Ce traitement parcourt chaque élément de l'index fourni, vérifie la validité des
+    chemins vers les fichiers JSON des tableaux et procède à la génération de descriptions
+    pour ceux qui existent.
 
-    Returns:
-        Liste des descriptions générées
+    :param index_path: Chemin vers le fichier JSON contenant l'index des données.
+    :param tableaux_dir: Chemin vers le dossier contenant les fichiers JSON des tableaux.
+    :return: Une liste de dictionnaires contenant les descriptions générées pour chaque
+        tableau valide.
+    :rtype: List[Dict]
+    :raises FileNotFoundError: Si le fichier d'index spécifié ou le chemin d'un tableau
+        n'est pas valide.
+    :raises json.JSONDecodeError: Si le fichier JSON de l'index contient des erreurs de
+        formatage.
+    :raises RuntimeError: Pour d'autres erreurs liées au traitement, comme lors de la
+        génération des descriptions des fichiers JSON des tableaux.
     """
     # Charger l'index
     dir_dossier = os.getenv("PROJECT_DIR")

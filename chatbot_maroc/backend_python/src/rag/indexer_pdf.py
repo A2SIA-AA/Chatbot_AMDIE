@@ -12,7 +12,40 @@ load_dotenv()
 
 
 class PDFToChroma:
+    """
+    Cette classe est conçue pour traiter les documents PDF afin de déterminer leur
+    niveau d'accès, générer des résumés à l'aide d'une API Gemini et les ajouter à
+    une base de données existante sous forme de vecteurs d'embedding.
+
+    La classe facilite également la gestion des contenus PDF au sein d'une
+    collection ChromaDB, tout en créant des fichiers JSON structurés pour chaque document.
+
+    :ivar client: Instance du client utilisé pour communiquer avec l'API Gemini.
+    :type client: genai.Client
+    :ivar chroma_client: Instance du client persistant pour accéder à ChromaDB.
+    :type chroma_client: chromadb.PersistentClient
+    :ivar collection: Collection ChromaDB utilisée pour enregistrer les données liées aux documents PDF.
+    :type collection: chromadb.collection.Collection
+    :ivar embedding_model: Modèle utilisé pour générer des embeddings de texte basés sur le contenu des documents.
+    :type embedding_model: SentenceTransformer
+    """
     def __init__(self):
+        """
+        Cette classe configure et initialise les composants nécessaires pour un chatbot.
+        Elle est responsable de la configuration du client Gemini, de l'accès à ChromaDB,
+        et de l'initialisation du modèle d'embeddings de phrases.
+
+        Attributs
+        ---------
+        client : genai.Client
+            Un client configuré pour interagir avec le service Gemini.
+        chroma_client : chromadb.PersistentClient
+            Client configuré pour l'accès à une base ChromaDB persistante.
+        collection : chromadb.Collection
+            Collection accessible dans ChromaDB contenant les données existantes.
+        embedding_model : SentenceTransformer
+            Modèle utilisé pour générer des embeddings à partir de phrases.
+        """
         os.chdir("/home/aissa/Bureau/Projet_Chatbot/Chatbot_AMDIE/chatbot_maroc/backend_python")
         # Configuration Gemini
         self.client = genai.Client()
@@ -29,13 +62,18 @@ class PDFToChroma:
 
     def _determiner_niveau_acces_pdf(self, pdf_path: Path) -> str:
         """
-        Détermine le niveau d'accès d'un PDF basé sur son chemin
+        Détermine le niveau d'accès pour un fichier PDF en fonction de son chemin, de ses dossiers
+        parents et de son nom.
 
-        Args:
-            pdf_path: Path vers le fichier PDF
+        La fonction analyse plusieurs aspects du chemin et des noms associés pour extraire des
+        informations permettant de classifier le fichier en niveaux d'accès. Les niveaux possibles
+        sont "confidential", "internal", ou "public". Les priorités d'analyse incluent le nom du
+        dossier parent, le chemin complet, et le nom du fichier lui-même.
 
-        Returns:
-            str: 'public', 'internal', ou 'confidential'
+        :param pdf_path: Chemin du fichier PDF devant être analysé
+        :type pdf_path: Path
+        :return: Niveau d'accès déterminé pour le fichier ("confidential", "internal", ou "public")
+        :rtype: str
         """
         # Obtenir le chemin complet en minuscules pour l'analyse
         chemin_complet = str(pdf_path).lower()
@@ -44,7 +82,6 @@ class PDFToChroma:
         print(f"DEBUG PDF: Analyse du chemin: {chemin_complet}")
         print(f"DEBUG PDF: Dossier parent: {dossier_parent}")
 
-        # PRIORITÉ 1: Analyse du nom de dossier direct
         nom_dossier = pdf_path.parent.name.lower()
         print(f"DEBUG PDF: Nom dossier direct: {nom_dossier}")
 
@@ -58,7 +95,6 @@ class PDFToChroma:
             print(f"DEBUG PDF: Détecté niveau PUBLIC via nom dossier: {nom_dossier}")
             return 'public'
 
-        # PRIORITÉ 2: Analyse du chemin complet
         if any(mot in chemin_complet for mot in ['admin', 'confidentiel', 'secret', 'direction']):
             print(f"DEBUG PDF: Détecté niveau CONFIDENTIEL via chemin complet")
             return 'confidential'
@@ -70,7 +106,6 @@ class PDFToChroma:
             print(f"DEBUG PDF: Détecté niveau PUBLIC via chemin complet")
             return 'public'
 
-        # PRIORITÉ 3: Analyse du nom du fichier
         nom_fichier = pdf_path.name.lower()
         if any(mot in nom_fichier for mot in ['admin', 'confidentiel', 'secret', 'direction']):
             print(f"DEBUG PDF: Détecté niveau CONFIDENTIEL via nom fichier")
@@ -85,8 +120,16 @@ class PDFToChroma:
 
     def trouver_pdfs(self, dossier="data"):
         """
-        Trouve tous les PDFs dans le dossier et ses sous-dossiers
-        Retourne une liste de tuples (pdf_path, access_level)
+        Analyse un dossier donné et recherche récursivement tous les fichiers PDF
+        dans celui-ci et ses sous-dossiers. La fonction détermine également un
+        niveau d'accès pour chaque fichier PDF trouvé. Les résultats incluent le
+        chemin complet du fichier et son niveau d'accès.
+
+        :param dossier: Le chemin du dossier dans lequel rechercher les fichiers PDF.
+        :type dossier: str, optionnel
+        :return: Une liste de tuples contenant pour chaque fichier PDF trouvé son chemin
+                 et son niveau d'accès (sous forme de chaîne).
+        :rtype: list[tuple[Path, str]]
         """
         dossier_path = Path(dossier)
         pdfs_avec_acces = []
@@ -119,7 +162,18 @@ class PDFToChroma:
         return pdfs_avec_acces
 
     def traiter_pdf_avec_gemini(self, pdf_path):
-        """Upload PDF vers Gemini et récupère le résumé"""
+        """
+        Traite un document PDF en utilisant l'API Gemini pour en générer un résumé en français. Cette
+        fonction télécharge un fichier PDF, utilise le modèle Gemini pour générer un texte résumé en
+        fonction d'une invite, et supprime ensuite le fichier distant pour optimiser l'espace.
+
+        :param pdf_path: Le chemin du fichier PDF à traiter.
+        :type pdf_path: str
+        :return: Le résumé du document PDF, ou None si une erreur s'est produite ou que la génération
+                 ne contient pas de texte.
+        :rtype: str, optional
+        :raises Exception: Exception générique si une erreur survient lors du processus.
+        """
         print(f"Traitement: {pdf_path.name}")
 
         try:
@@ -150,7 +204,18 @@ class PDFToChroma:
 
     def creer_json_resume(self, pdf_path, access_level, resume_gemini):
         """
-        Crée un JSON structuré à partir du résumé Gemini avec niveau d'accès
+        Génère un fichier JSON résumant les informations d'un fichier PDF donné, en incluant
+        des métadonnées telles que le chemin d'accès, la taille du fichier, le niveau d'accès
+        et un résumé fourni.
+
+        :param pdf_path: Chemin du fichier PDF source. Doit être de type Path.
+        :type pdf_path: Path
+        :param access_level: Niveau d'accès associé au PDF.
+        :type access_level: str
+        :param resume_gemini: Résumé du document donné sous forme de chaîne de caractères.
+        :type resume_gemini: str
+        :return: Dictionnaire contenant les métadonnées et informations générées pour le JSON.
+        :rtype: dict
         """
         # Sauvegarder le JSON
         output_path = Path("output")
@@ -180,7 +245,18 @@ class PDFToChroma:
         return json_data
 
     def ajouter_a_chromadb(self, json_data):
-        """Ajoute le JSON à la collection ChromaDB existante avec niveau d'accès"""
+        """
+        Ajoute un document PDF et ses métadonnées à une collection ChromaDB. Cette méthode
+        génère une description textuelle basée sur les données du document, crée un embedding
+        avec un modèle d'encodage fourni, et enregistre les métadonnées ainsi que le contenu
+        associé dans la base de données.
+
+        :param json_data: Un dictionnaire contenant les informations concernant le
+            fichier PDF à traiter et à ajouter dans la base de données.
+        :type json_data: dict
+        :return: L'identifiant unique (ID) généré pour le document ajouté dans ChromaDB.
+        :rtype: str
+        """
 
         # Créer description pour la recherche
         description = f"""DOCUMENT PDF: {json_data['fichier_source']}
@@ -220,7 +296,27 @@ CONTENU: {json_data['resume_gemini']}"""
         return doc_id
 
     def traiter_tous_les_pdfs(self, dossier="data"):
-        """Workflow complet: PDFs -> Gemini -> JSON -> ChromaDB avec niveaux d'accès"""
+        """
+        Traite tous les fichiers PDF dans un dossier donné, génère des résumés,
+        et les stocke dans une base de données avec un niveau d'accès spécifié.
+        Cette méthode utilise un flux de traitement qui comprend la recherche des PDF,
+        leur analyse via un outil de résumé, la création de métadonnées adéquates et
+        l'ajout à une base de données.
+
+        Le traitement effectue les étapes suivantes :
+        - Recherche des PDF dans un dossier, avec identification de leur niveau d'accès.
+        - Création de résumés pour chaque fichier PDF.
+        - Création de documents JSON contenant les résumés et leurs métadonnées associées.
+        - Insertion des documents JSON dans une collection d'une base de données.
+
+        Cette méthode fournit un résumé détaillé sur les statistiques des fichiers PDF analysés
+        et donne un aperçu final des données ajoutées dans la base.
+
+        :param dossier: Chemin du dossier contenant les fichiers PDF à traiter. Par défaut, "data".
+        :type dossier: str
+        :return: Aucune valeur n'est retournée. Les opérations de traitement sont réalisées en place.
+        :rtype: None
+        """
 
         print("=== DÉBUT DU TRAITEMENT ===")
 
@@ -265,7 +361,23 @@ CONTENU: {json_data['resume_gemini']}"""
 
     def rechercher_pdfs(self, query, user_role="public", n_results=5):
         """
-        Recherche dans la collection (tableaux + PDFs) avec filtrage par rôle
+        Rechercher des fichiers PDF dans une collection en fonction d'une requête donnée,
+        du rôle utilisateur et du nombre de résultats souhaités. Les résultats retournés
+        sont filtrés en fonction du niveau d'accès autorisé pour le rôle spécifié.
+
+        :param query: La requête de recherche sous forme de texte.
+        :type query: str
+        :param user_role: Le rôle de l'utilisateur effectuant la recherche (public, internal,
+            admin). Par défaut, il est défini sur "public".
+        :type user_role: str
+        :param n_results: Le nombre de résultats à retourner après filtrage basé sur le
+            rôle utilisateur. Par défaut, 5 résultats sont retournés.
+        :type n_results: int
+        :return: Une liste des résultats filtrés contenant des informations sur les fichiers
+            trouvés, telles que le nom du fichier, le type du document, le niveau
+            d'accès, la pertinence et le dossier source. Si aucun résultat n'est trouvé,
+            retourne une liste vide.
+        :rtype: list[dict]
         """
         # Mapping des rôles utilisateur vers les niveaux d'accès autorisés
         roles_access = {
@@ -325,7 +437,16 @@ CONTENU: {json_data['resume_gemini']}"""
         return resultats_filtres
 
     def stats_collection(self):
-        """Affiche les statistiques de la collection avec niveaux d'accès"""
+        """
+        Calcule et affiche des statistiques sur une collection de documents.
+
+        Cette méthode permet de collecter des statistiques sur la répartition des types
+        de documents et les niveaux d'accès associés dans une collection donnée.
+        Les informations sont extraites des métadonnées des documents.
+
+        :return: Rien. Cette méthode imprime directement les statistiques dans la console.
+        :rtype: None
+        """
 
         # Récupérer tous les documents
         all_docs = self.collection.get(include=['metadatas'])
@@ -360,7 +481,20 @@ CONTENU: {json_data['resume_gemini']}"""
             print(f"  - {niveau}: {count}")
 
     def tester_acces_par_role(self):
-        """Test des différents niveaux d'accès"""
+        """
+        Effectue un test des niveaux d'accès à une fonctionnalité de recherche de PDF selon
+        des rôles spécifiques.
+
+        Le test est effectué pour les rôles suivants : 'public', 'internal' et 'admin'.
+        Pour chacun de ces rôles, une recherche est réalisée avec un mot-clé donné, et les
+        résultats sont imprimés pour inspection. Cette méthode sert à évaluer si les restrictions
+        d'accès basées sur les rôles fonctionnent correctement.
+
+        :param query_test: La chaîne de recherche utilisée pour tester la fonctionnalité.
+        :type query_test: str
+
+        :return: Aucun retour. Les résultats sont affichés dans la sortie standard.
+        """
         query_test = "rapport"
 
         print("\n=== TEST DES NIVEAUX D'ACCÈS ===")
@@ -371,7 +505,19 @@ CONTENU: {json_data['resume_gemini']}"""
 
 
 def main():
-    """Fonction principale"""
+    """
+    Classe principale pour la gestion et le traitement des documents PDF en vue d'une conversion
+    en représentations chromatiques. Cette classe intègre également une gestion des niveaux
+    d'accès basés sur différents rôles.
+
+    Méthodes :
+        - traiter_tous_les_pdfs : Méthode permettant de traiter un ensemble de fichiers PDF
+          à partir d'un répertoire donné.
+        - stats_collection : Méthode permettant d'afficher les statistiques associées
+          au traitement des fichiers PDF.
+        - tester_acces_par_role : Méthode utilisée pour tester les autorisations d'accès
+          basées sur les rôles d'utilisateur ou les niveaux d'autorisation.
+    """
 
     processor = PDFToChroma()
 

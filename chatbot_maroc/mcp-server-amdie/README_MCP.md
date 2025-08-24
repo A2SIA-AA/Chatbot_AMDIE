@@ -1,44 +1,57 @@
-Voici le **README.md** complet et personnalisé pour le dossier `mcp-server-amdie/`, conforme à ton architecture actuelle et ton fonctionnement réel :
+## `mcp-server-amdie/` – Serveur MCP pour le lancement du backend
+
+Ce module contient le **serveur MCP** utilisé pour déclencher dynamiquement le backend IA du chatbot à chaque nouvelle requête utilisateur. Il constitue le **point central d’orchestration** entre l’interface utilisateur, l’API FastAPI, et les agents IA intégrés dans le backend LangGraph.
 
 ---
 
-## 📁 `mcp-server-amdie/` – Serveur MCP pour le lancement du backend
+##  Objectif
 
-Ce module contient le **serveur MCP** utilisé pour déclencher dynamiquement le backend du chatbot à chaque nouvelle requête utilisateur. Il constitue le **point central d’orchestration** entre l’interface, l’API REST et les outils d’intelligence artificielle embarqués dans le backend.
-
----
-
-## 🎯 Objectif
-
-* Recevoir une requête de l’API (question, session, rôle, permissions).
+* Recevoir une requête de l’API FastAPI (question, session, rôle, permissions).
 * **Lancer dynamiquement le backend** du chatbot via la fonction `start_backend`.
-* Transmettre la réponse finale à l’API FastAPI via requête HTTP.
-* Servir de **connecteur central** entre le LLM, la base vectorielle, et les rôles d’utilisateurs.
+* Transmettre la réponse finale à l’API, enrichie et contextualisée.
+* Servir de **connecteur central** entre le frontend, la base vectorielle et le LLM Gemini.
 
 ---
 
-## ⚙️ Fichiers principaux
+##  Lancement rapide
 
-| Fichier                      | Rôle                                                                                      |
-| ---------------------------- | ----------------------------------------------------------------------------------------- |
-| `mcp_backend_server.py`      | Contient la configuration du serveur MCP et la fonction `start_backend`.                  |
-| `serveur.json`               | Fichier de configuration (manuel ou par test), utilisé éventuellement par MCP Instructor. |
-| `pyproject.toml` / `uv.lock` | Fichiers de gestion des dépendances.                                                      |
-| `__init__.py`                | Initialisation du module.                                                                 |
+### Prérequis
+
+* Python 3.10+
+* FastAPI installé (pour l’API)
+* Uvicorn (lanceur pour FastAPI)
+* Client MCP installé ou configuration manuelle
+* Clé publique Keycloak disponible si l’authentification OAuth2 est activée
+
+### Lancer le serveur API (FastAPI)
+
+Dans un terminal distinct :
+
+```bash
+cd message_fastapi
+uvicorn main:app --reload --port 8000
+```
+
+Accessible sur : [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🚀 Détails techniques
+##  Lancer le serveur MCP
 
-### Démarrage du serveur MCP
+Dans un autre terminal :
 
-Le serveur utilise le protocole `Streamable-HTTP` et s’expose à :
+```bash
+cd mcp-server-amdie
+python mcp_backend_server.py
+```
+
+Le serveur s’expose à l’API via l’URL :
 
 ```
 http://0.0.0.0:8090/mcp/
 ```
 
-Le lancement est fait dans `mcp_backend_server.py` avec :
+Ce serveur est lancé avec la commande suivante :
 
 ```python
 mcp.run(transport="http", host="0.0.0.0", port=8090, path="/mcp/")
@@ -46,33 +59,66 @@ mcp.run(transport="http", host="0.0.0.0", port=8090, path="/mcp/")
 
 ---
 
-### Fonction de lancement du backend
+##  Fonction `start_backend(...)`
+
+Signature de la fonction centrale :
 
 ```python
-async def start_backend(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str)
+async def start_backend(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]
 ```
 
-* Appelle la fonction `_spawn_wrapper(...)` du backend.
-* Cette fonction démarre le traitement LangGraph à la volée pour la session.
-* Retourne la réponse formatée, accompagnée des messages intermédiaires.
+### Rôle de la fonction :
+
+* Appelle le **backend IA** via `_spawn_wrapper(...)`.
+* Délègue le traitement à LangGraph : sélection des documents, vectorisation, RAG, réponse.
+* Retourne :
+
+  * La **réponse finale formatée** (par le LLM Gemini)
+  * Les **messages de progression** (affichés dans l’interface)
+  * Les **sources citées**
 
 ---
 
-## 🔄 Communication
+## Fichiers principaux
 
-* Le **frontend** appelle l’API (FastAPI).
-* L’**API** appelle le serveur **MCP** via HTTP.
-* Le serveur **MCP** appelle le **backend** (`chatbot_wrapper.py`).
-* La réponse est renvoyée à l’**API**, puis affichée à l’utilisateur.
-
-Tous les échanges sont **redirigés via le MCP** : aucun composant n'appelle directement le backend.
-
----
-
-## 🧪 Mode test
-
-Il est possible d'utiliser MCP Instructor pour simuler des appels au serveur, en se basant sur la configuration `serveur.json`.
+| Fichier                     | Rôle                                                                                     |
+| --------------------------- | ---------------------------------------------------------------------------------------- |
+| `mcp_backend_server.py`     | Configuration du serveur MCP et fonction `start_backend`.                                |
+| `serveur.json`              | Fichier de configuration (optionnel, utilisé par MCP Instructor pour simuler des appels) |
+| `__init__.py`               | Initialisation du module                                                                 |
+| `pyproject.toml`, `uv.lock` | Fichiers de dépendances (si gestion par poetry/pipenv)                                   |
 
 ---
 
-Souhaites-tu que je passe maintenant au **README du backend (`backend_python/`)** ?
+## Communication entre composants
+
+```mermaid
+graph TD
+  UI[Interface utilisateur - Next.js] --> API[FastAPI]
+  API --> MCP[Serveur MCP]
+  MCP --> Wrapper[chatbot_wrapper.py]
+  Wrapper --> LangGraph[Orchestrateur IA LangGraph]
+  LangGraph --> Chroma[Base vectorielle ChromaDB]
+  LangGraph --> Gemini[LLM Gemini]
+  Gemini --> RéponseFinale[Réponse formatée]
+  RéponseFinale --> MCP
+```
+
+>  Tous les échanges passent par le **serveur MCP** : le backend n'est **jamais directement invoqué** par le frontend ou l’API.
+
+---
+
+##  Mode test avec MCP Instructor
+
+Possibilité de tester localement le serveur via **MCP Instructor** :
+
+1. Lancer le serveur (`python mcp_backend_server.py`)
+2. Charger un fichier `serveur.json` avec les paramètres de simulation
+3. Envoyer des requêtes de test pour simuler une session complète
+
+---
+
+##  Auteur
+
+Projet conçu et développé par **Assia AIT TALEB**,
+Stage ingénieur – INSA Rouen Normandie – AMDIE (2025)

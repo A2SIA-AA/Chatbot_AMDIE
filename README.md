@@ -1,102 +1,111 @@
-## `README.md` – Chatbot RAG AMDIE
-
-# Chatbot RAG – AMDIE
+# Chatbot RAG — AMDIE
 
 ## Présentation
 
-Ce projet consiste en un **chatbot intelligent basé sur l'architecture RAG** (Retrieval-Augmented Generation), conçu pour répondre aux questions des utilisateurs en interrogeant une **base vectorielle de documents internes à l'AMDIE**.
+Ce projet est un **assistant intelligent à base d’IA**, conçu pour répondre de manière fiable et contextualisée aux demandes des utilisateurs de l’AMDIE. Il s’appuie sur une architecture de type **RAG** (Retrieval-Augmented Generation) permettant d’interroger automatiquement une **base vectorielle de documents internes**.
 
-L'objectif est de centraliser les connaissances issues de documents disparates et d’éviter de solliciter systématiquement les collaborateurs pour obtenir des réponses.  
-Ce projet a été réalisé dans le cadre d’un stage d’ingénieur en 4e année.
+L’objectif est de **centraliser les connaissances** issues de fichiers hétérogènes (PDF, Excel) afin de **réduire la charge des équipes** tout en garantissant des réponses traçables, sécurisées et adaptées au rôle de l’utilisateur.
+
+Projet réalisé dans le cadre d’un **stage de 4ᵉ année ingénieur** à l’AMDIE (INSA Rouen – Génie Mathématiques).
+
 
 ---
 
-## Architecture technique
+## Fonctionnement interne (LangGraph)
 
-Le système repose sur une architecture modulaire en 4 composants principaux :
+```mermaid
+sequenceDiagram
+  participant U as Utilisateur
+  participant CB as Chatbot
+  participant RAG as RAGAgent
+  participant SEL as SelectorAgent
+  participant ANA as AnalyzerAgent
+  participant CODE as CodeAgent
+  participant SYN as SynthesisAgent
 
-- **Frontend (Next.js)** : interface utilisateur de type chat
-- **API REST (FastAPI)** : authentification, gestion de sessions, orchestration
-- **Serveur MCP** : point d'entrée pour l'exécution du backend LLM
-- **Backend IA (LangGraph)** : exécute les agents de traitement, les appels à la base vectorielle (ChromaDB) et renvoie les réponses
+  U->>CB: poser_question()
+  CB->>RAG: documents pertinents
+  CB->>SEL: sélection des fichiers
+  alt Analyse textuelle
+    CB->>ANA: analyse sémantique
+  else Analyse tabulaire
+    CB->>CODE: génération de code
+  end
+  CB->>SYN: synthèse finale
+  SYN-->>CB: réponse
+  CB-->>U: réponse + source
+```
 
 ---
 
 ## Technologies utilisées
 
-| Composant        | Technologie                      |
-|------------------|----------------------------------|
-| LLM              | Gemini (via MCP - Streamable HTTP) |
-| Backend IA       | Python + LangGraph (agents)      |
-| API REST         | FastAPI                          |
-| Base vectorielle | ChromaDB                         |
-| Authentification | Keycloak (OAuth2)                |
-| Frontend         | Next.js + Tailwind + Shadcn      |
+| Composant        | Technologie                                       |
+| ---------------- | ------------------------------------------------- |
+| LLM              | Gemini (via MCP - Streamable HTTP)                |
+| Backend IA       | Python + LangGraph                                |
+| Agents           | RAG, Sélecteur, Analyseur, Code, Synthèse, Pandas |
+| Authentification | Keycloak (OAuth2)                                 |
+| Base vectorielle | ChromaDB                                          |
+| API REST         | FastAPI                                           |
+| Frontend         | Next.js + Tailwind + Shadcn                       |
 
 ---
 
 ## Structure du projet
 
 ```
-
 chatbot_maroc/
-├── backend_python/        # Backend IA : agents, vectorisation, extraction
-├── message_fastapi/       # API REST FastAPI (auth, orchestration, sessions)
-├── mcp-server-amdie/      # Serveur MCP (Streamable HTTP)
-├── frontend/              # Interface utilisateur React
-├── data/                  # Documents d'entrée classés par niveau (public, admin…)
-├── output/                # Fichiers JSON extraits et indexés
+├── backend_python/        # Agents IA, LangGraph, embeddings
+├── message_fastapi/       # API REST (authentification, sessions)
+├── mcp-server-amdie/      # Serveur MCP (exécution Gemini)
+├── frontend/              # Interface utilisateur (Next.js)
+├── data/                  # Fichiers sources par niveau d’accès
+├── output/                # JSON extraits et indexés
 ├── docs/                  # Documentation générée avec pdoc
-└── README.md              # Ce fichier
-
-````
+└── README.md              # Présentation du projet
+```
 
 ---
 
-## Lancement du projet
+## Lancement
 
-Chaque composant doit être lancé **dans un terminal distinct**.
-
-### 1. Lancer Keycloak
+### 1. Authentification (Keycloak)
 
 ```bash
 cd keycloak/bin
 ./kc.sh start-dev --http-port 8080
-````
+```
 
-* L’authentification se fait par rôle (`admin`, `employee`, `public`)
-* Les tokens JWT sont validés automatiquement par l’API
+* Utilisateurs : `admin`, `employee`, `public`
+* Authentification OAuth2 + vérification JWT dans l’API
 
 ---
 
-### 2. Lancer l’API REST (FastAPI)
+### 2. API REST (FastAPI)
 
 ```bash
 cd message_fastapi
 uvicorn main:app --reload --port 8000
 ```
 
-* Interface Swagger : [http://localhost:8000/docs](http://localhost:8000/docs)
-* Utilise un stockage partagé local : `/tmp/chatbot_sessions.json`
+* Documentation Swagger : [http://localhost:8000/docs](http://localhost:8000/docs)
+* Sessions stockées dans `/tmp/chatbot_sessions.json`
 
 ---
 
-### 3. Lancer le serveur MCP (LLM Gemini)
+### 3. Serveur MCP (Gemini LLM)
 
 ```bash
 cd mcp-server-amdie
 python mcp_backend_server.py
 ```
 
-Le serveur est accessible à l’API REST à l’adresse :
-
-```
-http://0.0.0.0:8090/mcp/
-```
+Accessible depuis l’API à l’adresse : `http://0.0.0.0:8090/mcp/`
 
 ---
 
-### 4. Lancer le frontend (React/Next.js)
+### 4. Interface utilisateur (Next.js)
 
 ```bash
 cd frontend
@@ -105,39 +114,33 @@ npm run dev
 ```
 
 Accessible via : [http://localhost:3000](http://localhost:3000)
-L’utilisateur est redirigé vers Keycloak au moment de la connexion.
+
+Connexion redirigée automatiquement vers Keycloak.
 
 ---
 
-## Fonctionnement
+## Sécurité et contrôle d’accès
 
-* L’utilisateur se connecte via **Keycloak** (identité, rôle, permissions).
-* Il pose une question via l’interface frontend.
-* L’**API REST** crée une session et appelle le **serveur MCP**.
-* Le **serveur MCP** déclenche le backend (LangGraph) avec les permissions utilisateur.
-* Le backend interroge **ChromaDB** et renvoie une réponse personnalisée.
-* Les messages sont stockés dans `/tmp/chatbot_sessions.json`.
-
----
-
-## Accès aux données
-
-Les documents sont automatiquement filtrés à l’indexation selon leur niveau de confidentialité.
-La structure suivante est utilisée :
+Les documents sont classés selon leur niveau de sensibilité :
 
 ```
 data/
-├── admin/      # documents confidentiels (accès admin)
-├── public/     # documents ouverts (accès public)
-├── salarie/    # documents internes (accès salarié) 
+├── admin/      # accès restreint (administrateur uniquement)
+├── salarie/    # accès salarié
+├── public/     # documents ouverts à tous
 ```
+
+Les droits sont appliqués à chaque étape :
+
+* **Filtrage lors de l’indexation**
+* **Filtrage à la requête (dans LangGraph)**
 
 ---
 
-## Documentation
+## Documentation et annexes
 
-* Documentation générée automatiquement avec `pdoc` : `docs/`
-* Notices utilisateurs disponibles :
+* Documentation Python générée avec `pdoc` : dossier `docs/`
+* Notices utilisateur par rôle :
 
   * `NOTICE_PUBLIC.md`
   * `NOTICE_SALARIE.md`
@@ -147,5 +150,7 @@ data/
 
 ## Auteur
 
-Projet réalisé par **Assia AIT TALEB** dans le cadre d’un stage à l’AMDIE – 4e année ingénieur.
-
+Réalisé par **Assia AIT TALEB**
+Stage de spécialité 4ᵉ année - INSA Rouen Normandie
+\
+Agence Marocaine de Développement des Investissements et des Exportations (AMDIE)
