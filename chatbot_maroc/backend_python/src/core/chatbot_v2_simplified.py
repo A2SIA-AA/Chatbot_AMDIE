@@ -190,6 +190,216 @@ class ChatbotMarocV2Simplified:
 
         state['historique'].append(error_msg)
 
+    def _analyzer_with_mcp(self, state):
+        """
+        Analyseur avec la méthode MCP.
+
+        Cette fonction exécute une analyse à l'aide d'un agent analyseur tout en utilisant
+        la méthode MCP pour envoyer des messages de progression au cours de
+        l'exécution. Elle gère également les exceptions en signalant les erreurs via MCP.
+
+        :param state: Dictionnaire représentant l'état actuel, contenant des informations
+                      nécessaires pour l'analyse, telles que ``session_id`` et indicateurs
+                      comme ``besoin_calculs``.
+        :type state: dict
+        :return: Résultat de l'exécution de l'agent analyseur.
+        :rtype: dépend de la méthode ``execute`` de l'agent analyseur.
+        :raises Exception: Si une erreur survient lors de l'exécution de l'analyse.
+        """
+        session_id = state.get('session_id')
+
+        # Envoi message de début
+        self._send_mcp_sync(session_id, "progress", "Agent Analyseur Unifié: Début de l'analyse...")
+
+        try:
+            # Exécution normale de l'analyzer
+            result = self.analyzer_agent.execute(state)
+
+            # Message de fin selon le résultat
+            if state.get('besoin_calculs'):
+                self._send_mcp_sync(session_id, "progress", "Analyse terminée - Calculs nécessaires")
+            else:
+                self._send_mcp_sync(session_id, "progress", "Analyse terminée - Réponse directe")
+
+            return result
+
+        except Exception as e:
+            self._send_mcp_sync(session_id, "error", f"Erreur analyse: {str(e)}")
+            raise
+
+    def _rag_with_mcp(self, state):
+        """
+        Effectue une recherche assistée par agent RAG (Retrieval-Augmented Generation) et synchronise les mises à jour
+        sur l'état de la recherche via le protocole MCP.
+
+        La méthode tente d'exécuter la recherche en utilisant l'agent RAG, fournit un retour d'informations en temps réel
+        sur la progression (par exemple, nombre de documents trouvés) et capture les erreurs éventuelles en les signalant
+        via MCP.
+
+        :param state: Dictionnaire contenant l'état et les données nécessaires pour exécuter la recherche RAG,
+                      y compris l'identifiant de session et d'autres informations contextuelles.
+        :type state: dict
+        :return: Résultat de l'exécution de la recherche par l'agent RAG.
+        :rtype: Any
+        :raises Exception: En cas d'erreur lors de l'exécution de la recherche RAG.
+        """
+        session_id = state.get('session_id')
+        self._send_mcp_sync(session_id, "progress", " Recherche de documents RAG...")
+
+        try:
+            result = self.rag_agent.execute(state)
+            docs_found = len(state.get('documents_trouves', []))
+            self._send_mcp_sync(session_id, "progress", f" Recherche terminée - {docs_found} documents trouvés")
+            return result
+        except Exception as e:
+            self._send_mcp_sync(session_id, "error", f"Erreur recherche RAG: {str(e)}")
+            raise
+
+    def _selector_with_mcp(self, state):
+        """
+        Gère le processus de sélection des documents pertinents en utilisant un agent de sélection,
+        tout en fournissant des mises à jour de progression via MCP (Message Communication Protocol).
+
+        :param state: Dictionnaire contenant les informations nécessaires à l'exécution de la sélection.
+        :type state: dict
+        :return: Résultat du processus de sélection exécuté par l'agent de sélection.
+        :rtype: Any
+        :raises Exception: En cas d'erreur non prévue durant l'exécution du processus de sélection.
+        """
+        session_id = state.get('session_id')
+        self._send_mcp_sync(session_id, "progress", " Sélection des documents pertinents...")
+
+        try:
+            result = self.selector_agent.execute(state)
+            excel_count = len(state.get('tableaux_pour_upload', []))
+            pdf_count = len(state.get('pdfs_pour_upload', []))
+            self._send_mcp_sync(session_id, "progress", f" Sélection terminée - {excel_count} Excel + {pdf_count} PDF")
+            return result
+        except Exception as e:
+            self._send_mcp_sync(session_id, "error", f"Erreur sélection: {str(e)}")
+            raise
+
+    def _code_with_mcp(self, state):
+        """
+        Exécute une opération basée sur l'état fourni, générant et exécutant du code
+        à l'aide d'un agent spécifique, tout en mettant à jour le client sur les
+        progrès ou les erreurs.
+
+        L'état fourni doit contenir les informations nécessaires, comme un identifiant
+        de session et des indicateurs pour déterminer le type de résultat attendu.
+        En fonction de ces données, la progression ou les éventuelles erreurs seront
+        signalées au système externe via des messages synchronisés.
+
+        :param state: Dictionnaire contenant les informations nécessaires à
+            l'exécution et à la gestion des résultats.
+        :type state: dict
+        :return: Résultat de l'exécution produit par l'agent de code. La valeur
+            retournée dépend du contenu et du résultat du processus de génération
+            et d'exécution.
+        """
+        session_id = state.get('session_id')
+        self._send_mcp_sync(session_id, "progress", " Génération et exécution du code...")
+
+        try:
+            result = self.code_agent.execute(state)
+            if state.get('resultat_pandas'):
+                self._send_mcp_sync(session_id, "progress", " Calculs exécutés avec succès")
+            else:
+                self._send_mcp_sync(session_id, "progress", "  Code généré mais résultats limités")
+            return result
+        except Exception as e:
+            self._send_mcp_sync(session_id, "error", f"Erreur génération code: {str(e)}")
+            raise
+
+    def _synthese_with_mcp(self, state):
+        """
+        Génère une synthèse finale en fonction de l'état donné. Cette méthode utilise un
+        agent de synthèse pour exécuter l'analyse et retourne le résultat. Une notification
+        est envoyée pour chaque étape du processus, et des erreurs sont signalées en cas
+        de problème.
+
+        :param state: Dictionnaire représentant l'état actuel, contenant les informations
+                      nécessaires pour la synthèse, telles que l'identifiant de session.
+        :type state: dict
+        :return: Résultat de la synthèse finale, tel que généré par l'agent de synthèse.
+        :rtype: dict
+        :raises Exception: Signale toute erreur survenue lors de la génération de la
+                           synthèse, avec un message d'erreur détaillé.
+        """
+        session_id = state.get('session_id')
+        self._send_mcp_sync(session_id, "progress", " Génération de la synthèse finale...")
+
+        try:
+            result = self.synthesis_agent.execute(state)
+            self._send_mcp_sync(session_id, "final", " Analyse terminée avec succès")
+            return result
+        except Exception as e:
+            self._send_mcp_sync(session_id, "error", f"Erreur synthèse: {str(e)}")
+            raise
+
+    def _send_mcp_sync(self, session_id, message_type, content):
+        """
+        Envoie un message au protocole de communication MCP de manière asynchrone en utilisant un fil d'exécution dédié.
+
+        Cette méthode effectue l'envoi de messages de type progress ou error à un service MCP. Elle lance un fil d'exécution
+        qui exécute une coroutine asynchrone pour éviter de bloquer l'exécution principale.
+
+        :param session_id: Identifiant de la session pour laquelle le message est envoyé.
+        :type session_id: str
+        :param message_type: Type de message à envoyer. Peut être "progress" ou "error".
+        :type message_type: str
+        :param content: Contenu ou informations du message à envoyer.
+        :type content: str
+        :return: Cette méthode ne retourne rien.
+        :rtype: None
+        """
+        import threading
+        import asyncio
+
+        def send_async():
+            """
+            Envoie des messages asynchrones en fonction du type de message spécifié. Cette fonction tente
+            d'importer les utilitaires nécessaires pour gérer les messages de type "progress" ou "error".
+            L'envoi est effectué de manière asynchrone et les exceptions sont attrapées pour être affichées
+            dans la console.
+
+            :raises Exception: En cas d'erreur lors de l'exécution du processus d'envoi.
+
+            :rtype: None
+            """
+            try:
+                sys.path[:0] = ['../../../../']
+                from chatbot_maroc.message_fastapi.mcp_client_utils import mcp_send_progress, mcp_send_error
+
+                async def do_send():
+                    """
+                    Envoie un message spécifique de type progress ou error en fonction des paramètres fournis.
+
+                    Ce coroutine envoie des données liées à une session selon le type de message,
+                    permettant de signaler un progrès ou une erreur dans un flux d'exécution.
+
+                    :param message_type: Type de message à envoyer, peut être "progress" ou "error".
+                    :type message_type: str
+                    :param session_id: Identifiant unique de la session associée au message.
+                    :type session_id: str
+                    :param content: Contenu associé au message à transmettre.
+                    :type content: str
+
+                    :raises ValueError: Levée si `message_type` n'est ni "progress" ni "error".
+
+                    :return: Aucune valeur de retour explicite (coroutine asynchrone).
+                    """
+                    if message_type == "progress":
+                        await mcp_send_progress(session_id, content)
+                    elif message_type == "error":
+                        await mcp_send_error(session_id, content)
+
+                asyncio.run(do_send())
+            except Exception as e:
+                print(f"Erreur MCP: {e}")
+
+        threading.Thread(target=send_async, daemon=True).start()
+
     def _creer_graphe_simplifie(self) -> StateGraph:
         """
         Crée et compile un graphe simplifié de traitement d'état pour un chatbot.
@@ -209,11 +419,16 @@ class ChatbotMarocV2Simplified:
         graph = StateGraph(ChatbotState)
 
         # NOEUDS PRINCIPAUX (SIMPLES)
-        graph.add_node("rag_unified", self.rag_agent.execute)
-        graph.add_node("selector_unified", self.selector_agent.execute)
-        graph.add_node("analyzer_unified", self.analyzer_agent.execute)
-        graph.add_node("generateur_code", self.code_agent.execute)
-        graph.add_node("synthese", self.synthesis_agent.execute)
+        #graph.add_node("rag_unified", self.rag_agent.execute)
+        graph.add_node("rag_unified", self._rag_with_mcp)
+        #graph.add_node("selector_unified", self.selector_agent.execute)
+        graph.add_node("selector_unified", self._selector_with_mcp)
+        #graph.add_node("analyzer_unified", self.analyzer_agent.execute)
+        graph.add_node("analyzer_unified", self._analyzer_with_mcp)
+        #graph.add_node("generateur_code", self.code_agent.execute)
+        graph.add_node("generateur_code", self._code_with_mcp)
+        #graph.add_node("synthese", self.synthesis_agent.execute)
+        graph.add_node("synthese", self._synthese_with_mcp)
 
         # FLUX LINÉAIRE ULTRA-SIMPLE
         graph.set_entry_point("rag_unified")

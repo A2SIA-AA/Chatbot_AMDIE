@@ -25,7 +25,15 @@ print(f"[MCP] Répertoire actuel: {os.getcwd()}")
 
 # Trouver automatiquement le chemin vers message_fastapi
 def find_message_fastapi_path():
-    """Trouve automatiquement le chemin vers message_fastapi"""
+    """
+    Recherche le chemin du dossier contenant le module `message_fastapi`. Cette fonction vérifie
+    plusieurs chemins possibles relatifs au répertoire actuel, ainsi qu'un chemin absolu de secours.
+    Elle teste l'existence d'un fichier nommé `message_store.py` à l'intérieur du répertoire trouvé
+    pour valider le bon emplacement.
+
+    :rtype: Optional[str]
+    :return: Le chemin absolu du dossier contenant `message_store.py` si trouvé, sinon None.
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Chemins possibles relatifs au fichier actuel
@@ -110,7 +118,29 @@ else:
 
 # --------- HELPER FUNCTIONS (LOGIQUE MÉTIER) ----------
 async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]:
-    """Lance le wrapper backend"""
+    """
+    Exécute un processus asynchrone permettant de gérer une session avec un wrapper Python.
+
+    Cette fonction vérifie d'abord si un processus est déjà en cours d'exécution pour l'identifiant
+    de session donné. Si tel est le cas, une erreur est retournée. Sinon, un nouveau processus est
+    lancé en utilisant les paramètres fournis. La gestion des flux stdout et stderr se fait de façon
+    asynchrone pour permettre le suivi des journaux en temps réel.
+
+    :param question: Question ou requête à exécuter via le wrapper.
+    :type question: str
+    :param session_id: Identifiant unique pour la session.
+    :type session_id: str
+    :param permissions_csv: Liste des permissions au format CSV.
+    :type permissions_csv: str
+    :param role: Rôle de l'utilisateur dans le contexte de la session.
+    :type role: str
+    :param username: Nom d'utilisateur associé au processus.
+    :type username: str
+    :param email: Adresse e-mail de l'utilisateur.
+    :type email: str
+    :return: Dictionnaire contenant l'état de l'opération (`ok` pour indiquer un succès ou `error` pour signaler une erreur).
+    :rtype: Dict[str, Any]
+    """
     if session_id in PROCS and PROCS[session_id].returncode is None:
         return {"ok": False, "error": f"Session déjà en cours: {session_id}"}
 
@@ -140,6 +170,16 @@ async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, r
 
     # lecture asynchrone pour logs
     async def _drain(name, stream):
+        """
+        Lit de manière asynchrone une ligne d'un flux donné en boucle, jusqu'à ce que le flux soit terminé.
+        Chaque ligne est décodée et affichée dans un format spécifique. Les exceptions éventuelles
+        sont silencieusement ignorées.
+
+        :param name: Nom associé au flux courant.
+        :type name: str
+        :param stream: Flux asynchrone dont les lignes seront lues.
+        :type stream: asyncio.StreamReader
+        """
         try:
             while True:
                 line = await stream.readline()
@@ -156,7 +196,17 @@ async def _spawn_wrapper(question: str, session_id: str, permissions_csv: str, r
 
 
 async def _cancel_session(session_id: str) -> Dict[str, Any]:
-    """Annule une session backend"""
+    """
+    Annule une session en cours en envoyant un signal au processus associé. Si le
+    processus ne termine pas dans un délai spécifié, il sera forcé à se terminer.
+
+    :param session_id: L’identifiant de la session à annuler.
+    :type session_id: str
+    :return: Un dictionnaire indiquant le résultat de l'annulation avec une clé
+             `ok` pour le succès de l'opération, et une clé `error` le cas
+             échéant.
+    :rtype: Dict[str, Any]
+    """
     proc = PROCS.get(session_id)
     if not proc or proc.returncode is not None:
         return {"ok": False, "error": "Aucun process actif pour cette session"}
@@ -176,7 +226,23 @@ async def _cancel_session(session_id: str) -> Dict[str, Any]:
 async def _send_message_helper(session_id: str, message_type: str, content: str, metadata: Dict[str, Any] = None) -> \
 Dict[str, Any]:
     """
-    Helper function pour envoyer des messages
+    Cette fonction auxiliaire asynchrone envoie un message au système MessageStore si celui-ci est activé
+    et disponible. Elle construit un message avec les données fournies, l'envoie via le
+    message_store, et retourne le résultat de l'opération. La fonction assure également
+    une gestion d'erreur minimale et consigne des informations essentielles dans la console.
+
+    :param session_id: Identifiant de session pour lequel le message doit être envoyé
+    :type session_id: str
+    :param message_type: Type ou catégorie du message à envoyer
+    :type message_type: str
+    :param content: Contenu principal du message
+    :type content: str
+    :param metadata: Métadonnées associées au message; par défaut, inclut un horodatage et
+        une indication de source
+    :type metadata: dict
+    :return: Un dictionnaire contenant les résultats de l'envoi du message. La clé "ok" indique si
+        l'opération a réussi ou échoué, et des détails sont inclus en cas d'erreur ou de succès.
+    :rtype: dict
     """
 
     try:
@@ -209,7 +275,27 @@ Dict[str, Any]:
 @mcp.tool
 async def start_backend(question: str, session_id: str, permissions_csv: str, role: str, username: str, email: str) -> Dict[str, Any]:
     """
-    Lance le backend (wrapper) pour une session donnée.
+    Appelle une fonction asynchrone pour initialiser le backend tout en transmettant plusieurs
+    paramètres pour configurer la session.
+
+    Ce processus inclut la génération d'une session basée sur l'identifiant fourni et le contrôle
+    de certains paramètres comme les permissions, le rôle de l'utilisateur, ainsi que des informations
+    importantes telles que l'email et l'identifiant utilisateur.
+
+    :param question: Question ou requête liée à la session à traiter.
+    :type question: str
+    :param session_id: Identifiant unique de la session pour le backend.
+    :type session_id: str
+    :param permissions_csv: Chaîne de permissions formatée en CSV pour définir les droits.
+    :type permissions_csv: str
+    :param role: Rôle attribué à l'utilisateur actuel durant la session.
+    :type role: str
+    :param username: Nom d'utilisateur associé à la session.
+    :type username: str
+    :param email: Adresse email associée à l'utilisateur participant à la session.
+    :type email: str
+    :return: Un dictionnaire contenant les détails et le statut de la session ou des données pertinentes.
+    :rtype: Dict[str, Any]
     """
     print(f"[MCP] start_backend session={session_id} role={role}")
     return await _spawn_wrapper(question, session_id, permissions_csv, role, username, email)
@@ -227,7 +313,18 @@ async def cancel_session(session_id: str) -> Dict[str, Any]:
 @mcp.tool
 async def health() -> Dict[str, Any]:
     """
-    Santé du serveur MCP backend.
+    Effectue une vérification de santé de l'application en rassemblant des informations
+    pertinentes sur l'état actuel du système et du magasin de messages.
+
+    Récupère différents détails tels que le statut du système, les chemins de répertoires
+    et fichiers importants, les sessions actives et des informations sur le magasin de
+    messages (s'il est disponible). Si le magasin de messages est opérationnel, il exécute
+    également un test rapide pour évaluer son bon fonctionnement et inclut les résultats
+    dans les informations retournées.
+
+    :return: Un dictionnaire contenant des informations détaillées sur l'état de santé
+             de l'application.
+    :rtype: Dict[str, Any]
     """
     # Ajouter info détaillée sur le message store
     health_info = {
@@ -258,7 +355,22 @@ async def health() -> Dict[str, Any]:
 async def send_message(session_id: str, message_type: str, content: str, metadata: Dict[str, Any] = None) -> Dict[
     str, Any]:
     """
-    Tool pour que le backend envoie des messages via MCP vers FastAPI
+    Envoie un message via une session donnée en spécifiant le type de message, le contenu
+    et des métadonnées optionnelles.
+
+    :param session_id: Identifiant unique de la session dans laquelle le message doit
+        être envoyé.
+    :type session_id: str
+    :param message_type: Type de message à envoyer (ex.: "texte", "image").
+    :type message_type: str
+    :param content: Contenu du message à envoyer. Il peut s'agir de texte ou d'autres
+        types de contenu en fonction du type de message.
+    :type content: str
+    :param metadata: Métadonnées optionnelles accompagnant le message, sous forme
+        d'un dictionnaire.
+    :type metadata: Dict[str, Any], optionnel
+    :return: Un dictionnaire contenant les informations ou résultats relatifs à l'action de l'envoi du message.
+    :rtype: Dict[str, Any]
     """
     return await _send_message_helper(session_id, message_type, content, metadata)
 
@@ -266,7 +378,20 @@ async def send_message(session_id: str, message_type: str, content: str, metadat
 @mcp.tool
 async def send_progress(session_id: str, message: str) -> Dict[str, Any]:
     """
-    Envoie un message de progression via MCP
+    Envoie un message de progression asynchrone à l'aide d'un outil interne.
+
+    Cette fonction utilise `_send_message_helper` pour formater et envoyer un
+    message de progression spécifique à une session donnée. Elle est conçue pour
+    être utilisée dans des environnements de programmation asynchrone.
+
+    :param session_id: Identifiant unique de la session. Utilisé pour lier
+        le message de progression à une session spécifique.
+    :type session_id: str
+    :param message: Texte du message contenant les détails de la progression
+        à transmettre.
+    :type message: str
+    :return: Un dictionnaire contenant la réponse du message envoyé.
+    :rtype: Dict[str, Any]
     """
     return await _send_message_helper(session_id, 'progress', message)
 
@@ -274,7 +399,22 @@ async def send_progress(session_id: str, message: str) -> Dict[str, Any]:
 @mcp.tool
 async def send_final(session_id: str, response: str) -> Dict[str, Any]:
     """
-    Envoie la réponse finale via MCP
+    Envoie le message final à une session spécifique.
+
+    Cette fonction envoie une réponse finale à une session donnée, identifiée à l'aide
+    de son identifiant de session (`session_id`). Elle s'appuie sur un assistant pour
+    l'envoi du message. Elle est asynchrone et retourne un dictionnaire contenant des
+    informations sur l'état de l'envoi.
+
+    :param session_id: Identifiant unique de la session à laquelle le message final
+                       doit être envoyé.
+    :type session_id: str
+    :param response: Message final à envoyer à la session. Ce message représente la
+                     réponse à transmettre.
+    :type response: str
+    :return: Un dictionnaire contenant des informations sur l'état de l'envoi du
+             message.
+    :rtype: Dict[str, Any]
     """
     return await _send_message_helper(session_id, 'final', response)
 
@@ -282,7 +422,17 @@ async def send_final(session_id: str, response: str) -> Dict[str, Any]:
 @mcp.tool
 async def send_error(session_id: str, error: str) -> Dict[str, Any]:
     """
-    Envoie un message d'erreur via MCP
+    Envoie un message d'erreur avec le contenu spécifié pour une session donnée.
+
+    Un assistant asynchrone permettant d'envoyer une notification d'erreur
+    dans une session particulière en utilisant une structure pré-définie.
+
+    :param session_id: L'identifiant unique de la session où le message d'erreur
+        doit être envoyé.
+    :param error: Le message d'erreur à envoyer, sous forme de chaîne de caractères.
+    :return: Un dictionnaire contenant la réponse asynchrone liée à
+        l'envoi du message d'erreur. La structure du contenu inclut tous
+        les détails confirmant ou contextualisant l'envoi.
     """
     return await _send_message_helper(session_id, 'error', f"ERREUR: {error}")
 
@@ -290,7 +440,24 @@ async def send_error(session_id: str, error: str) -> Dict[str, Any]:
 @mcp.tool
 async def send_log(session_id: str, log_message: str, log_level: str = "INFO") -> Dict[str, Any]:
     """
-    Envoie un log détaillé via MCP
+    Envoie un message de journalisation avec le niveau spécifié via MCP.
+
+    Résumé détaillé :
+    Cette fonction permet d'envoyer un message de journalisation (log) associé à une session donnée.
+    Elle inclut un niveau de journalisation (par exemple, INFO, WARNING, ERROR) et un message
+    défini par l'utilisateur. La fonction construit également des métadonnées contenant le
+    niveau de journalisation, un horodatage généré à l'exécution et une source par défaut pour
+    indiquée comme « backend_log_via_mcp ». Le message est envoyé de manière asynchrone avec l'aide
+    d'un assistant interne.
+
+    :param session_id: Identifiant unique de la session liée à l'envoi du log.
+    :type session_id: str
+    :param log_message: Message de journalisation à envoyer.
+    :type log_message: str
+    :param log_level: Niveau de journalisation à appliquer au message (par défaut « INFO »).
+    :type log_level: str, optionnel
+    :return: Le résultat de l'appel asynchrone à l’assistant d'envoi du message.
+    :rtype: Dict[str, Any]
     """
     metadata = {
         'log_level': log_level,
@@ -305,7 +472,19 @@ async def send_log(session_id: str, log_message: str, log_level: str = "INFO") -
 @mcp.tool
 async def list_active_sessions() -> Dict[str, Any]:
     """
-    Liste toutes les sessions actives
+    Retourne une liste des sessions actives ainsi que des détails sur leur état.
+
+    Cette fonction collecte les informations concernant les sessions actives
+    gérées par le processus MCP ainsi que, si disponible, les sessions actives
+    de FastAPI. Chaque session est accompagnée de son identifiant unique (session_id),
+    de son PID, de son état actuel ("running" ou "finished") et éventuellement d'autres
+    détails comme le code de retour pour les processus terminés. Si l'intégration
+    FastAPI est fonctionnelle, les sessions de FastAPI et les éventuelles erreurs
+    seront également incluses dans le résultat.
+
+    :return: Dictionnaire contenant les détails des sessions actives ainsi que les
+        statistiques associées, comme le nombre total de sessions MCP et/ou FastAPI.
+    :rtype: Dict[str, Any]
     """
     active_sessions = []
     for session_id, proc in PROCS.items():
@@ -344,7 +523,16 @@ async def list_active_sessions() -> Dict[str, Any]:
 @mcp.tool
 async def get_session_info(session_id: str) -> Dict[str, Any]:
     """
-    Récupère les informations d'une session spécifique
+    Récupère les informations sur une session donnée en utilisant les données de
+    MCP et FastAPI. Cette fonction rassemble les données relatives au traitement
+    d'une session, si elle existe, et renvoie les informations pertinentes sous
+    forme d'un dictionnaire.
+
+    :param session_id: Identifiant de la session à récupérer.
+    :type session_id: str
+    :return: Un dictionnaire contenant des informations sur la session, y compris
+             son état dans le traitement MCP et FastAPI.
+    :rtype: Dict[str, Any]
     """
     result = {"session_id": session_id}
 
