@@ -62,7 +62,20 @@ app.add_middleware(
 # ========================================
 @app.middleware("http")
 async def log_requests(request, call_next):
-    """Log automatique de toutes les requêtes"""
+    """
+    Mesure et journalisation du temps d'exécution des requêtes HTTP. Ce middleware
+    enregistre les informations concernant la requête HTTP, telles que la méthode,
+    l'URL, le statut HTTP de la réponse, et le temps de traitement de la requête.
+    De plus, le temps de traitement est inclus dans les en-têtes de la réponse.
+
+    :param request: Objet représentant la requête HTTP entrante.
+    :type request: starlette.requests.Request
+    :param call_next: Fonction utilisée pour exécuter la prochaine étape du flux de traitement
+        de la requête, qui retourne une réponse HTTP.
+    :type call_next: typing.Callable
+    :return: Réponse HTTP modifiée avec des informations supplémentaires dans l'en-tête.
+    :rtype: starlette.responses.Response
+    """
     #mesure du temp d'exécution
     start_time = time.time()
     response = await call_next(request)
@@ -86,7 +99,15 @@ async def log_requests(request, call_next):
 
 @app.get("/", tags=["Health"])
 async def root():
-    """Page d'accueil de l'API"""
+    """
+    Point d'entrée principal de l'API pour vérifier l'état du système et fournir des informations
+    de base sur les services configurés.
+
+    :return: Un dictionnaire contenant un message d'accueil, la version de l'API, des liens vers
+        la documentation et les contrôles de santé, ainsi qu'une description des services
+        interconnectés.
+    :rtype: dict
+    """
     return {
         "message": "Message API v2.0 - Architecture Séparée ",
         "version": "2.0.0",
@@ -102,7 +123,22 @@ async def root():
 
 @app.get("/health", tags=["Health"])
 async def health_check():
-    """Vérification de santé complète"""
+    """
+    Vérifie l'état de santé de l'application.
+
+    Cette fonction asynchrone retourne un état de santé détaillé de l'application,
+    y compris le statut de l'API, la disponibilité d'un chemin backend, le nombre
+    de sessions actives et plusieurs méta-informations importantes.
+
+    :param backend_path: Chemin vers le répertoire du backend Python.
+    :param backend_accessible: Indique si le chemin backend est accessible ou non.
+    :param active_sessions: Nombre total de sessions actives retournées par le
+        magasin de messages.
+
+    :return: Un dictionnaire contenant les informations du statut de santé de
+        l'application.
+    :rtype: dict
+    """
     backend_path = "../backend_python"
     backend_accessible = os.path.exists(backend_path)
 
@@ -125,7 +161,19 @@ async def health_check():
 @app.post("/api/v1/messages", response_model=SuccessResponse, tags=["Messages"])
 async def create_message(message: MessageRequest):
     """
-    Créer un nouveau message (utilisé par le Backend Python chatbot_wrapper.py)
+    Crée un message basé sur les données fournies dans la requête. Cette méthode est
+    généralement utilisée pour ajouter des messages à partir d'une session active
+    dans le backend. Elle enregistre les messages associés à une session donnée et
+    renvoie une réponse indiquant le succès ou l'échec de l'opération.
+
+    :param message: Les détails du message à ajouter, incluant le type, le
+        contenu et les métadonnées associés à une session spécifique.
+    :type message: MessageRequest
+    :return: Une réponse confirmant le succès ou l'échec de l'opération d'ajout
+        du message.
+    :rtype: SuccessResponse
+    :raises HTTPException: Exception HTTP levée en cas d'erreur serveur lors
+        de l'ajout du message dans le stockage.
     """
     try:
         await message_store.add_message(message.sessionId, {
@@ -152,7 +200,22 @@ async def get_messages(
         since: Optional[float] = Query(0, description="Timestamp depuis lequel récupérer les messages")
 ):
     """
-    Récupérer les messages d'une session (utilisé par le Frontend React)
+    Récupère les messages correspondant à une session donnée. Cette fonction permet de
+    récupérer soit tous les messages de la session ou, si un timestamp `since` est fourni,
+    uniquement les messages postérieurs à ce moment-là.
+
+    :param session_id: L'identifiant unique de la session pour laquelle les messages
+        doivent être récupérés.
+    :type session_id: str
+    :param since: Timestamp Unix optionnel (en secondes) représentant le moment depuis
+        lequel les messages seront récupérés. Si omis ou égal à 0, tous les messages
+        de la session seront retournés. La valeur par défaut est 0.
+    :type since: Optional[float]
+    :return: Une instance de `MessagesResponse` contenant les messages récents de la session,
+        le timestamp actuel, et le nombre total des messages inclus dans la réponse.
+    :rtype: MessagesResponse
+    :raises HTTPException: Si une erreur se produit lors de la récupération des messages,
+        une exception avec le code 500 et le détail de l'erreur est levée.
     """
     try:
         if since > 0:
@@ -175,7 +238,16 @@ async def get_messages(
 @app.delete("/api/v1/messages/{session_id}", response_model=SuccessResponse, tags=["Messages"])
 async def delete_session(session_id: str):
     """
-    Supprimer une session et ses messages
+    Supprime une session donnée identifiée par un `session_id` et retourne une réponse
+    indiquant le succès ou non de l'opération. Si la session n'existe plus, un message
+    approprié est également retourné. En cas d'erreur imprévue, une exception HTTP
+    avec le code 500 est levée.
+
+    :param session_id: L'identifiant unique de la session à supprimer.
+    :type session_id: str
+    :return: Une instance de `SuccessResponse` indiquant le succès de l'opération.
+    :rtype: SuccessResponse
+    :raises HTTPException: Exception levée avec un code d'état 500 en cas d'erreur interne.
     """
     try:
         success = await message_store.clear_session(session_id)
@@ -203,7 +275,24 @@ async def delete_session(session_id: str):
 
 @app.get("/api/v1/sessions", tags=["Debug"])
 async def list_sessions():
-    """Liste toutes les sessions actives"""
+    """
+    Récupère une liste de toutes les sessions disponibles.
+
+    Cette fonction interroge le magasin de messages pour obtenir toutes les
+    sessions actuellement disponibles et renvoie leur liste, accompagnée
+    du nombre total de sessions et d'un timestamp indiquant quand l'action
+    a été exécutée.
+
+    :param message_store: L'objet responsable de la gestion et du stockage
+        des messages. Il doit fournir une méthode pour récupérer toutes
+        les sessions.
+    :return: Un dictionnaire contenant la liste des sessions, le nombre
+        total de sessions et un timestamp en temps réel.
+    :rtype: dict
+    :raises HTTPException: Si une erreur se produit pendant la récupération
+        des sessions, une exception `HTTPException` avec un code d'état
+        HTTP 500 est levée.
+    """
     try:
         sessions = await message_store.get_all_sessions()
         return {
@@ -218,7 +307,22 @@ async def list_sessions():
 
 @app.get("/api/v1/sessions/{session_id}/info", tags=["Debug"])
 async def get_session_info(session_id: str):
-    """Récupérer les informations détaillées d'une session"""
+    """
+    Récupère les informations d'une session spécifique.
+
+    Cette fonction permet d'obtenir les détails associés à une session identifiée
+    par son identifiant unique. Si la session est introuvable, une exception HTTP
+    avec un statut 404 est levée. En cas d'erreur inattendue, une exception avec un
+    statut 500 est levée.
+
+    :param session_id: Identifiant unique de la session
+    :type session_id: str
+    :return: Les informations de la session sous forme de dictionnaire ou autre
+             format correspondant
+    :rtype: dict
+    :raises HTTPException: Si la session est introuvable (404) ou en cas d'erreur
+                           interne du serveur (500)
+    """
     try:
         info = await message_store.get_session_info(session_id)
         if info:
@@ -234,7 +338,15 @@ async def get_session_info(session_id: str):
 
 @app.get("/api/v1/backend/status", tags=["Debug"])
 async def backend_status():
-    """Vérifier le statut du backend"""
+    """
+    Vérifie l'état du backend et retourne des informations sur son accessibilité,
+    l'existence du script associé et la version de Python utilisée.
+
+    :return: Un dictionnaire contenant les informations sur le chemin du backend,
+        l'existence du script, le chemin du script, l'accessibilité du backend
+        et la version actuelle de Python.
+    :rtype: dict
+    """
     backend_path = "../backend_python"
     script_path = os.path.join(backend_path, "chatbot_wrapper.py")
 
@@ -250,7 +362,21 @@ async def backend_status():
 # ROUTE DE CONNEXION
 @app.post("/api/v1/auth/login", response_model=LoginResponse, tags=["Authentication"])
 async def login(login_data: LoginRequest):
-    """Connexion utilisateur avec JWT"""
+    """
+    Gère l'authentification de l'utilisateur en validant les informations
+    d'identification fournies (email et mot de passe). Si les informations
+    d'identification sont correctes, un jeton d'accès (access_token) est généré
+    et des informations détaillées sur l'utilisateur sont renvoyées. Le jeton a
+    une durée d'expiration définie.
+
+    :param login_data: Les données de connexion contenant l'email et le mot de passe de l'utilisateur.
+    :type login_data: LoginRequest
+    :return: Une réponse contenant le jeton d'accès généré, son type, les informations
+             de l'utilisateur validées et le temps d'expiration du jeton en secondes.
+    :rtype: LoginResponse
+    :raises HTTPException: Retourne une exception HTTP avec un code d'erreur 401 si
+                             les informations d'identification sont incorrectes.
+    """
     user = authenticate_user(login_data.email, login_data.password)
     if not user:
         raise HTTPException(
@@ -284,14 +410,36 @@ from fastapi import Depends
 # ROUTE DE DECONNEXION
 @app.post("/api/v1/auth/logout", tags=["Authentication"])
 async def logout(current_user: dict = Depends(get_current_user)):
-    """Déconnexion (côté client)"""
+    """
+    Déconnecte l'utilisateur actuellement authentifié.
+
+    Cette fonction met fin à la session de l'utilisateur en cours
+    et retourne un message confirmant la déconnexion réussie.
+
+    :param current_user: Les informations de l'utilisateur authentifié.
+    :type current_user: dict
+    :return: Un message confirmant la déconnexion réussie.
+    :rtype: dict
+    """
     return {"message": f"Utilisateur {current_user['username']} déconnecté avec succès"}
 
 
 # Route profil utilisateur
 @app.get("/api/v1/auth/me", response_model=User, tags=["Authentication"])
 async def get_me(current_user: dict = Depends(get_current_user)):
-    """Récupérer le profil de l'utilisateur connecté"""
+    """
+    Récupère les informations de l'utilisateur actuellement authentifié.
+
+    Cette fonction utilise une dépendance pour récupérer les informations de
+    l'utilisateur courant et retourne un objet utilisateur structuré. Elle est
+    conçue pour les API REST et est annotée en tant que point de terminaison
+    GET avec une réponse modélisée.
+
+    :param current_user: Dictionnaire contenant les informations de l'utilisateur
+        récupérées via la fonction de dépendance ``get_current_user``.
+    :return: Une instance de l’objet ``User`` contenant les détails de
+        l'utilisateur actuellement authentifié.
+    """
     return User(
         username=current_user["username"],
         email=current_user["email"],
@@ -309,7 +457,28 @@ async def start_processing(
         current_user: dict = Depends(get_current_user)
 ):
     """
-    Démarrer le traitement
+    Débute le traitement d'un chatbot en validant les permissions de l'utilisateur, en
+    vérifiant les prérequis et en appelant les scripts backend nécessaires.
+
+    Cette fonction vérifie d'abord si l'utilisateur actuel dispose des permissions
+    requises pour exécuter cette opération. Si toutes les validations sont réussies,
+    elle initialise un identifiant de session, envoie un message de progression via
+    un message_store et déclenche le backend via une interaction avec un serveur MCP.
+    Elle retourne une confirmation de démarrage du traitement, accompagnée des données
+    d'utilisateur et de session.
+
+    :param request: Paramètre JSON contenant les données de requête, notamment une clé
+        "question" en tant que message utilisateur initialement fourni.
+    :type request: dict
+    :param current_user: Dictionnaire contenant les détails de l'utilisateur actuellement connecté.
+        Doit inclure des informations comme le rôle, le nom, les permissions, etc.
+    :type current_user: dict
+    :return: Détails sur l'état de démarrage du traitement, identifiant de session et informations
+        sur l'utilisateur validé.
+    :rtype: dict
+    :raises HTTPException: Cette fonction peut renvoyer des exceptions HTTPException dans
+        plusieurs situations, comme l'absence de permission (403), absence de question requise (400),
+        backend inaccessible ou non trouvé (500), ou échec de connexion au serveur MCP (502).
     """
     try:
         # Vérifier permission de chat
@@ -404,7 +573,17 @@ async def start_processing(
 # Route pour tester les permissions
 @app.get("/api/v1/permissions/test", tags=["Debug"])
 async def test_permissions(current_user: dict = Depends(get_current_user)):
-    """Test des permissions utilisateur"""
+    """
+    Teste les permissions de l'utilisateur actuel et retourne ses informations, son rôle,
+    ses permissions et ses capacités spécifiques en fonction de ses autorisations.
+
+    :param current_user: Utilisateur actuel, obtenu via le middleware d'authentification.
+    :type current_user: dict
+    :return: Dictionnaire contenant les informations sur l'utilisateur, son rôle, ses permissions
+        et des indicateurs sur ses capacités à lire les documents publics, lire les documents internes,
+        et gérer les utilisateurs.
+    :rtype: dict
+    """
     return {
         "user": current_user['username'],
         "role": current_user['role'],
@@ -418,7 +597,19 @@ async def test_permissions(current_user: dict = Depends(get_current_user)):
 # Route admin seulement
 @app.get("/api/v1/admin/users", tags=["Admin"])
 async def list_users(current_user: dict = Depends(require_permission("manage_users"))):
-    """Liste des utilisateurs (admin seulement)"""
+    """
+    Récupère une liste d'utilisateurs avec leurs informations associées ainsi que le
+    nombre total d'utilisateurs. Cette fonction est uniquement accessible aux administrateurs
+    ayant la permission "manage_users".
+
+    :param current_user: Un dictionnaire fournissant les informations de l'utilisateur
+        actuel après vérification des permissions.
+    :type current_user: dict
+    :return: Un dictionnaire contenant une liste d'utilisateurs avec leurs informations
+        (email, username, role, nom complet, département) ainsi que le nombre total
+        d'utilisateurs.
+    :rtype: dict
+    """
     users = []
     for email, user_data in USERS_DATABASE.items():
         users.append({
@@ -458,6 +649,22 @@ class TokenExchangeRequest(BaseModel):
 
 @app.get("/api/v1/auth/keycloak/login-url", response_model=KeycloakAuthUrl, tags=["Keycloak"])
 async def get_keycloak_auth_url(redirect_uri: str | None = Query(None)):
+    """
+    Retourne l'URL d'authentification pour Keycloak.
+
+    Cette fonction génère et retourne l'URL d'authentification à utiliser pour
+    se connecter à Keycloak. Le paramètre optionnel `redirect_uri` peut être fourni
+    pour indiquer une URL spécifique vers laquelle l'utilisateur doit être redirigé
+    après l'authentification.
+
+    :param redirect_uri: URI vers laquelle l'utilisateur sera redirigé après
+                         l'authentification (optionnel).
+                         Si non spécifié, une URI par défaut sera utilisée.
+    :type redirect_uri: str | None
+    :return: Un dictionnaire contenant l'URL d'authentification générée pour
+             Keycloak.
+    :rtype: dict
+    """
     # si le front fournit ?redirect_uri=..., on le respecte
     auth_url = get_keycloak_login_url(redirect_uri=redirect_uri)
     return {"auth_url": auth_url}
@@ -469,19 +676,48 @@ from fastapi import Request
 # Route pour échanger le code OAuth2 contre un token (POST)
 @app.post("/api/v1/auth/keycloak/callback", tags=["Keycloak"])
 async def keycloak_callback_post(request: TokenExchangeRequest):
-    """Callback POST après connexion Keycloak"""
+    """
+    Gère le point d'entrée de rappel Keycloak pour l'échange de jetons.
+
+    Cette méthode est utilisée pour traiter les rappels de Keycloak
+    lorsque l'utilisateur a été redirigé après une authentification
+    réussie. Elle extrait et transmet les informations nécessaires
+    pour compléter la procédure d'échange de jetons.
+
+    :param request: La requête contenant le code d'autorisation et l'URI de
+        redirection fournis par Keycloak dans le cadre du rappel.
+    :type request: TokenExchangeRequest
+
+    :return: Le résultat du traitement du rappel, généralement un objet ou une
+             réponse indiquant si l'opération a réussi.
+    :rtype: Depends du résultat de `process_keycloak_callback`
+    """
     return await process_keycloak_callback(request.code, request.redirect_uri)
 
 
 # Route pour gérer les GET sur callback (redirection navigateur)
 @app.get("/api/v1/auth/keycloak/callback", tags=["Keycloak"])
 async def keycloak_callback_get(request: Request):
-    """Callback GET - redirection depuis navigateur"""
+    """
+    Gère le callback de Keycloak lors de l'authentification.
+
+    Ce point de terminaison est appelé après que l'utilisateur a été redirigé depuis
+    Keycloak avec un code d'autorisation. Il vérifie si le code est présent dans les
+    paramètres de la requête et appelle la fonction de traitement pour effectuer les
+    étapes nécessaires d'échange de code ou validation.
+
+    :param request: Requête HTTP asynchrone contenant les données transmises par
+        Keycloak après la redirection utilisateur.
+    :type request: Request
+    :return: Résultat du traitement du callback Keycloak.
+    :rtype: dict
+    :raises HTTPException: Si le code requis n'est pas fourni dans la requête,
+        renvoie une erreur HTTP avec un code de statut 400 ("Code manquant").
+    """
     code = request.query_params.get("code")
     if not code:
         raise HTTPException(status_code=400, detail="Code manquant")
 
-    # IMPORTANT: le redirect_uri doit être le même que celui utilisé au login
     redirect_uri = "http://localhost:8000/api/v1/auth/keycloak/callback"
 
     return await process_keycloak_callback(code, redirect_uri)
@@ -489,7 +725,24 @@ async def keycloak_callback_get(request: Request):
 
 # Fonction commune pour traiter le callback
 async def process_keycloak_callback(code: str, redirect_uri: str):
-    """Traitement commun du callback Keycloak"""
+    """
+    Traite le rappel de Keycloak après l'approbation de l'utilisateur et le redirige
+    en fonction des informations incluses dans le token généré par Keycloak.
+
+    Ce processus comprend l'échange du code d'autorisation contre un token, le décodage
+    de ce dernier pour extraire les informations utilisateur, la conversion des rôles
+    Keycloak au format utilisé dans l'application, et la création d'une réponse utilisateur.
+
+    :param code: Le code d'autorisation reçu via le rappel Keycloak
+    :type code: str
+    :param redirect_uri: L'URI de redirection configurée pour le client dans Keycloak
+    :type redirect_uri: str
+    :return: Un objet LoginResponse contenant le token d'accès, son type, des informations
+    utilisateur associées, ainsi que la durée de validité du token en secondes.
+    :rtype: LoginResponse
+    :raises HTTPException: Lorsque le processus de rappel échoue, une exception est levée avec
+    un message d'erreur approprié et un statut HTTP 400.
+    """
     try:
         # Échanger le code contre un token
         token_response = exchange_code_for_token(code, redirect_uri)
@@ -544,7 +797,19 @@ async def process_keycloak_callback(code: str, redirect_uri: str):
 # Route pour tester Keycloak (identique à ton /api/v1/auth/me mais avec Keycloak)
 @app.get("/api/v1/auth/keycloak/me", response_model=User, tags=["Keycloak"])
 async def get_me_keycloak(current_user: dict = Depends(get_current_user_keycloak)):
-    """Profil utilisateur Keycloak (même format que l'existant)"""
+    """
+    Récupère les détails de l'utilisateur actuellement authentifié via Keycloak.
+
+    Cette fonction interagit avec le système Keycloak pour obtenir les informations
+    associées à l'utilisateur actuellement connecté. Les informations incluent le
+    nom d'utilisateur, l'adresse email, le rôle, les permissions, le nom complet et
+    le département. Ces données sont ensuite utilisées pour retourner un objet de
+    type `User`.
+
+    :param current_user: Le dictionnaire contenant les informations de l'utilisateur
+        authentifié, fourni par la dépendance Keycloak.
+    :return: Un objet `User` représentant l'utilisateur actuellement connecté.
+    """
     return User(
         username=current_user["username"],
         email=current_user["email"],
@@ -561,7 +826,27 @@ async def start_processing_keycloak(
         request: dict,
         current_user: dict = Depends(get_current_user_keycloak)
 ):
-    """Version Keycloak de start-processing"""
+    """
+    Démarre le traitement IA Keycloak pour l'utilisateur authentifié. Cette
+    fonction effectue une vérification des permissions, génère un identifiant
+    de session unique et initialise la communication avec le backend MCP.
+    Elle enregistre également un message de progression initial.
+
+    :param request: Dictionnaire contenant les données de la requête. Doit
+        inclure une clé "question" de type chaîne de caractères.
+    :type request: dict
+    :param current_user: Dictionnaire contenant les informations de
+        l'utilisateur connecté. Passé automatiquement via la dépendance
+        `get_current_user_keycloak`.
+    :type current_user: dict
+    :return: Un dictionnaire contenant l'identifiant de session unique,
+        l'état du démarrage, un message de confirmation et des informations
+        sur l'utilisateur.
+    :rtype: dict
+    :raises HTTPException: Si l'utilisateur n'a pas les permissions
+        nécessaires, si la clé "question" est manquante ou vide, ou en cas
+        d'erreur de communication avec le backend MCP.
+    """
     try:
         if not check_permission_keycloak(current_user, "chat_basic"):
             raise HTTPException(

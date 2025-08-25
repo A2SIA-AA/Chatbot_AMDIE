@@ -209,7 +209,6 @@ class MessageStore:
 # Instance partagée globale
 message_store = MessageStore()
 
-# Pour compatibilité avec l'ancien code
 sessions = message_store.session_metadata
 
 

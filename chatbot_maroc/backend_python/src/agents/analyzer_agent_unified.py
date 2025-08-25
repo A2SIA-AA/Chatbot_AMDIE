@@ -999,7 +999,7 @@ SOURCES_UTILISEES: [sources]
                         temperature=0.1,
                         candidate_count=1,
                         max_output_tokens=8192,
-                        thinking_config=types.ThinkingConfig(include_thoughts=False)
+                        thinking_config=types.ThinkingConfig(include_thoughts=True)
                     )
                 )
                 if response and response.candidates:

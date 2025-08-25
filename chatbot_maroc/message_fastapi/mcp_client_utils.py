@@ -171,7 +171,17 @@ class MCPCommunicator:
         self.session_id = session_id
 
     async def send_progress(self, message: str) -> bool:
-        """Envoie un message de progression"""
+        """
+        Envoie une mise à jour de progression à l'aide de la session MCP. Cette fonction est asynchrone et utilise
+        la méthode ``mcp_send_progress`` pour transmettre le message spécifié. En cas de problème lors de l'envoi,
+        une erreur sera capturée, affichée dans la sortie standard et une valeur ``False`` sera retournée.
+
+        :param message: Le message de progression à envoyer. Ce message doit décrire l'état actuel ou les
+                        progrès d'une tâche en cours.
+        :type message: str
+        :return: Retourne ``True`` si le message a été envoyé avec succès ; sinon ``False``.
+        :rtype: bool
+        """
         try:
             result = await mcp_send_progress(self.session_id, message)
             return result.get("ok", False)
@@ -180,7 +190,19 @@ class MCPCommunicator:
             return False
 
     async def send_final(self, response: str) -> bool:
-        """Envoie la réponse finale"""
+        """
+        Envoie une réponse finale via le protocole de communication MCP. Cette fonction utilise une tâche
+        asynchrone pour envoyer un message final et récupérer l'état de l'envoi.
+
+        :param response: La réponse finale sous forme de chaîne de caractères à envoyer.
+        :type response: str
+
+        :return: Retourne un booléen indiquant si l'envoi a réussi ("ok" dans le résultat).
+        :rtype: bool
+
+        :raises Exception: Une exception est levée avec un message d'erreur si une erreur survient
+                           lors de l'envoi du message.
+        """
         try:
             result = await mcp_send_final(self.session_id, response)
             return result.get("ok", False)
@@ -189,7 +211,17 @@ class MCPCommunicator:
             return False
 
     async def send_error(self, error: str) -> bool:
-        """Envoie un message d'erreur"""
+        """
+        Envoie un message d'erreur asynchrone à un serveur MCP en fonction de l'ID de session actuel.
+        L'opération retourne un indicateur booléen pour confirmer si l'envoi a été correctement
+        traité par le serveur MCP. Toute exception rencontrée durant l'envoi est capturée et
+        signalée dans les journaux d'erreurs.
+
+        :param error:
+            Chaîne représentant le message d'erreur à envoyer.
+        :return:
+            Booléen indiquant si l'envoi de l'erreur a été réussi ou non.
+        """
         try:
             result = await mcp_send_error(self.session_id, error)
             return result.get("ok", False)
@@ -198,7 +230,18 @@ class MCPCommunicator:
             return False
 
     async def send_log(self, log_message: str, log_level: str = "INFO") -> bool:
-        """Envoie un log détaillé"""
+        """
+        Envoie un message de journalisation à l'aide d'une méthode asynchrone spécifique. Cette méthode
+        permet de transmettre des messages de journalisation à un service distant, en spécifiant
+        le message et le niveau de journalisation.
+
+        :param log_message: Le message de journalisation à envoyer.
+        :type log_message: str
+        :param log_level: Le niveau de journalisation associé au message. Par défaut, "INFO".
+        :type log_level: str
+        :return: Indique si l'envoi du message de journalisation a été réussi ou non.
+        :rtype: bool
+        """
         try:
             result = await mcp_send_log(self.session_id, log_message, log_level)
             return result.get("ok", False)
