@@ -1,4 +1,4 @@
-#  Notice Utilisateur – Profil Salarié
+#  Notice Utilisateur - Profil Salarié
 
 ##  Objectif
 Cette interface permet à un salarié de poser des questions au chatbot et d’obtenir des réponses à partir de documents **publics et internes**.
