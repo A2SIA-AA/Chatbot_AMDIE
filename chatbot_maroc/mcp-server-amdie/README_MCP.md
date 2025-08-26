@@ -1,4 +1,4 @@
-## `mcp-server-amdie/` – Serveur MCP pour le lancement du backend
+## `mcp-server-amdie/` - Serveur MCP pour le lancement du backend
 
 Ce module contient le **serveur MCP** utilisé pour déclencher dynamiquement le backend IA du chatbot à chaque nouvelle requête utilisateur. Il constitue le **point central d’orchestration** entre l’interface utilisateur, l’API FastAPI, et les agents IA intégrés dans le backend LangGraph.
 
@@ -9,7 +9,7 @@ Ce module contient le **serveur MCP** utilisé pour déclencher dynamiquement le
 * Recevoir une requête de l’API FastAPI (question, session, rôle, permissions).
 * **Lancer dynamiquement le backend** du chatbot via la fonction `start_backend`.
 * Transmettre la réponse finale à l’API, enrichie et contextualisée.
-* Servir de **connecteur central** entre le frontend, la base vectorielle et le LLM Gemini.
+* Servir de **connecteur central** entre l'API, la base vectorielle et le LLM Gemini.
 
 ---
 
@@ -29,7 +29,7 @@ Dans un terminal distinct :
 
 ```bash
 cd message_fastapi
-uvicorn main:app --reload --port 8000
+python main.py
 ```
 
 Accessible sur : [http://localhost:8000/docs](http://localhost:8000/docs)
@@ -85,8 +85,7 @@ async def start_backend(question: str, session_id: str, permissions_csv: str, ro
 | --------------------------- | ---------------------------------------------------------------------------------------- |
 | `mcp_backend_server.py`     | Configuration du serveur MCP et fonction `start_backend`.                                |
 | `serveur.json`              | Fichier de configuration (optionnel, utilisé par MCP Instructor pour simuler des appels) |
-| `__init__.py`               | Initialisation du module                                                                 |
-| `pyproject.toml`, `uv.lock` | Fichiers de dépendances (si gestion par poetry/pipenv)                                   |
+| `__init__.py`               | Initialisation du module                                                                |                                |
 
 ---
 
@@ -102,6 +101,8 @@ graph TD
   LangGraph --> Gemini[LLM Gemini]
   Gemini --> RéponseFinale[Réponse formatée]
   RéponseFinale --> MCP
+  MCP --> API
+  API --> UI
 ```
 
 >  Tous les échanges passent par le **serveur MCP** : le backend n'est **jamais directement invoqué** par le frontend ou l’API.
@@ -121,4 +122,4 @@ Possibilité de tester localement le serveur via **MCP Instructor** :
 ##  Auteur
 
 Projet conçu et développé par **Assia AIT TALEB**,
-Stage ingénieur – INSA Rouen Normandie – AMDIE (2025)
+Stage ingénieur - INSA Rouen Normandie - AMDIE (2025)
