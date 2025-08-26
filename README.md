@@ -1,4 +1,4 @@
-# Chatbot RAG — AMDIE
+# Chatbot RAG - AMDIE
 
 ## Présentation
 
