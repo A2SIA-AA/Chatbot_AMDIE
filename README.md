@@ -42,10 +42,10 @@ sequenceDiagram
 
 | Composant        | Technologie                                       |
 | ---------------- | ------------------------------------------------- |
-| LLM              | Gemini (via MCP - Streamable HTTP)                |
+| LLM              | Gemini                                            |
 | Backend IA       | Python + LangGraph                                |
-| Agents           | RAG, Sélecteur, Analyseur, Code, Synthèse, Pandas |
-| Authentification | Keycloak (OAuth2)                                 |
+| Agents           | RAG, Sélecteur, Analyseur, Code, Synthèse         |
+| Authentification | Keycloak                                          |
 | Base vectorielle | ChromaDB                                          |
 | API REST         | FastAPI                                           |
 | Frontend         | Next.js + Tailwind + Shadcn                       |
@@ -58,8 +58,8 @@ sequenceDiagram
 chatbot_maroc/
 ├── backend_python/        # Agents IA, LangGraph, embeddings
 ├── message_fastapi/       # API REST (authentification, sessions)
-├── mcp-server-amdie/      # Serveur MCP (exécution Gemini)
-├── frontend/              # Interface utilisateur (Next.js)
+├── mcp-server-amdie/      # Serveur MCP
+├── frontend_nextjs/       # Interface utilisateur (Next.js)
 ├── data/                  # Fichiers sources par niveau d’accès
 ├── output/                # JSON extraits et indexés
 ├── docs/                  # Documentation générée avec pdoc
@@ -71,14 +71,15 @@ chatbot_maroc/
 ## Lancement
 
 ### 1. Authentification (Keycloak)
+Installe Keycloak au préalable ([Keycloak](https://www.keycloak.org/))
 
 ```bash
 cd keycloak/bin
 ./kc.sh start-dev --http-port 8080
 ```
 
-* Utilisateurs : `admin`, `employee`, `public`
-* Authentification OAuth2 + vérification JWT dans l’API
+* Utilisateurs: `admin`, `employee`, `public`
+* Authentification + vérification JWT dans l’API
 
 ---
 
@@ -86,7 +87,7 @@ cd keycloak/bin
 
 ```bash
 cd message_fastapi
-uvicorn main:app --reload --port 8000
+python main.py
 ```
 
 * Documentation Swagger : [http://localhost:8000/docs](http://localhost:8000/docs)
