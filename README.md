@@ -71,7 +71,7 @@ chatbot_maroc/
 ## Lancement
 
 ### 1. Authentification (Keycloak)
-Installe Keycloak au préalable ([Keycloak](https://www.keycloak.org/))
+Installer Keycloak au préalable ([Keycloak](https://www.keycloak.org/))
 
 ```bash
 cd keycloak/bin
