@@ -1,4 +1,4 @@
-# `chatbot_maroc/` — Frontend (Next.js) du Chatbot AMDIE
+# `chatbot_maroc/` - Frontend (Next.js) du Chatbot AMDIE
 
 Ce dossier contient l’interface utilisateur du chatbot RAG développé à l’AMDIE. Conçu avec **Next.js**, **React**, **Tailwind CSS** et la bibliothèque **Shadcn/ui**, ce frontend assure une expérience fluide, moderne et responsive pour les utilisateurs.
 
@@ -18,7 +18,7 @@ L’interface permet aux utilisateurs :
 
 ##  Technologies utilisées
 
-* **Next.js** (App Router)
+* **Next.js** 
 * **React 18**
 * **Tailwind CSS**
 * **Shadcn/ui** (composants pré-stylés)
@@ -43,7 +43,7 @@ L’interface permet aux utilisateurs :
 
 
 * **Node.js** (v18 recommandé)
-* **pnpm** ou **npm** ou **yarn**
+* **npm**
 * Une instance **Keycloak** opérationnelle
 * L’URL de l’**API FastAPI** (lancée sur `localhost:8000` par défaut)
 
@@ -87,17 +87,8 @@ Le frontend s’appuie sur **Keycloak** pour sécuriser l’accès :
 4. **Réponse finale**
 
    * Affichage de la réponse générée par le backend (Gemini)
-   * Citations des sources (documents PDF, Excel…)
+   * Citations des sources (documents PDF, Excel)
 
-
----
-
-## Test
-
-Actuellement, aucun test automatisé n’est intégré. Pour l’ajouter :
-
-* `jest` pour les tests unitaires
-* `cypress` pour les tests end-to-end
 
 ---
 
@@ -112,5 +103,5 @@ Actuellement, aucun test automatisé n’est intégré. Pour l’ajouter :
 ## Auteur
 
 Projet conçu et développé par **Assia AIT TALEB**
-Stage ingénieur – INSA Rouen Normandie – AMDIE (2025)
+Stage ingénieur - INSA Rouen Normandie - AMDIE (2025)
 
