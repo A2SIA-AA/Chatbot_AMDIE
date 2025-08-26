@@ -112,9 +112,9 @@ class SynthesisAgent:
                 source = tableau.get('fichier_source', 'N/A')
                 sources_utilisees.append(f"• {titre} ({source})")
 
-        if state.get('sources_pdf'):
-            for source_pdf in state['sources_pdf']:
-                sources_utilisees.append(f"• {source_pdf}")
+        if state.get('pdfs_pour_upload'):
+            for source_pdf in state['pdfs_pour_upload']:
+                sources_utilisees.append(f"• {source_pdf.get('pdf_path')}")
 
         # 4. GÉNÉRATION D'UNE RÉPONSE UNIFIÉE ET NATURELLE
         try:
@@ -133,14 +133,13 @@ class SynthesisAgent:
     {f"DONNÉES EXCEL: {contenu_excel}" if contenu_excel else ""}
     {f"DONNÉES PDF: {contenu_pdf}" if contenu_pdf else ""}
 
-    SOURCES: {chr(10).join(sources_utilisees) if sources_utilisees else "Aucune source disponible"}
 
     INSTRUCTIONS CRITIQUES:
     1. Réponds DIRECTEMENT à la question de manière naturelle
     2. NE MENTIONNE PAS les types de sources (Excel, PDF) dans ta réponse
     3. Utilise TOUTES les informations pertinentes de manière fluide
     4. Si aucune information ne répond à la question, dis-le clairement
-    5. Cite les sources à la fin sans mentionner leur format
+    5. Cite les sources à la fin sans mentionner leur format : {sources_utilisees if sources_utilisees else "Aucune source disponible."}
     6. Tiens compte de l'historique si pertinent
 
     RÉPONSE:"""
@@ -148,9 +147,6 @@ class SynthesisAgent:
             response = self.gemini_model.generate_content(prompt_unifie)
             reponse_unifiee = response.text
 
-            # Ajouter les sources de manière discrète
-            if sources_utilisees:
-                reponse_unifiee += f"\n\nSources consultées :\n{chr(10).join(sources_utilisees)}"
 
             state['reponse_finale'] = reponse_unifiee
 
