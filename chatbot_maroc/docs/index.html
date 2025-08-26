@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot AMDIE Documentation</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fafafa;
+        }
+
+        header {
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: #0074d9;
+        }
+
+        .module-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .module-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+            padding: 20px;
+            border-radius: 3px;
+        }
+
+        .module-item h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+            font-weight: 400;
+        }
+
+        .module-item h3 a {
+            color: #0074d9;
+            text-decoration: none;
+        }
+
+        .module-item h3 a:hover {
+            text-decoration: underline;
+        }
+
+        .module-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .module-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .module-link {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-radius: 3px;
+        }
+
+        .module-link:hover {
+            background-color: #e9ecef;
+            color: #0074d9;
+        }
+
+        .quick-nav {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 3px;
+        }
+
+        .quick-nav h2 {
+            margin: 0 0 15px 0;
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 400;
+        }
+
+        .quick-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .quick-nav a {
+            color: #0074d9;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .quick-nav a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            border-top: 1px solid #e0e0e0;
+            margin-top: 40px;
+            padding-top: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .module-links {
+                flex-direction: column;
+            }
+
+            .quick-nav ul {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Chatbot AMDIE Documentation</h1>
+        <p class="subtitle">Documentation générée avec pdoc3</p>
+    </header>
+
+    <div class="quick-nav">
+        <h2>Navigation rapide</h2>
+        <ul>
+            <li><a href="backend_python/index.html">Backend</a></li>
+            <li><a href="mcp-server-amdie/index.html">Serveur MCP</a></li>
+            <li><a href="message_fastapi/index.html">API REST</a></li>
+        </ul>
+    </div>
+    <footer>
+        <p>Projet effectué dans le cadre d'un stage de 4ème année</span></p>
+    </footer>
+
+    <script>
+        // Recherche simple
+        const searchBox = document.getElementById('searchBox');
+        const moduleItems = document.querySelectorAll('.module-item');
+
+        searchBox.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+
+            moduleItems.forEach(item => {
+                const keywords = item.dataset.keywords || '';
+                const title = item.querySelector('h3').textContent.toLowerCase();
+                const description = item.querySelector('.module-description').textContent.toLowerCase();
+
+                const matches = keywords.includes(searchTerm) ||
+                               title.includes(searchTerm) ||
+                               description.includes(searchTerm);
+
+                item.style.display = (matches || searchTerm === '') ? 'block' : 'none';
+            });
+        });
+
+        // Date actuelle
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('fr-FR');
+    </script>
+</body>
+</html>
