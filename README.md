@@ -27,7 +27,7 @@ sequenceDiagram
   CB->>RAG: documents pertinents
   CB->>SEL: sélection des fichiers
   alt Analyse textuelle
-    CB->>ANA: analyse sémantique
+    CB->>ANA: analyse par similitude
   else Analyse tabulaire
     CB->>CODE: génération de code
   end
