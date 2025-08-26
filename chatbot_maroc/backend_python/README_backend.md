@@ -134,6 +134,8 @@ graph TD
   LangGraph --> Gemini[LLM Gemini]
   Gemini --> Résultat[Réponse enrichie avec sources]
   Résultat --> MCP
+  MCP --> API
+  API --> UI
 ```
 
 ---
