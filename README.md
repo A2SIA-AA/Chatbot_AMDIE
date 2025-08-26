@@ -8,9 +8,14 @@ L’objectif est de **centraliser les connaissances** issues de fichiers hétér
 
 Projet réalisé dans le cadre d’un **stage de 4ᵉ année d’ingénieur** à l’AMDIE (INSA Rouen - Génie Mathématiques).
 
+
 <div align="center">
-![Interface de connexion](chatbot_maroc/image_Readme/interface_connexion.png "Interface de connexion")
+  <img src="https://github.com/A2SIA-AA/Chatbot_AMDIE/blob/5019aff10f6f2216d2723cda5aa229011ce4b24e/chatbot_maroc/image_Readme/interface_connexion.png">
 </div>
+
+<p align="center">
+![Interface de connexion](chatbot_maroc/image_Readme/interface_connexion.png "Interface de connexion")
+</p>
 
 ---
 
