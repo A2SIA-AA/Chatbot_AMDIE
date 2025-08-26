@@ -8,9 +8,9 @@ L’objectif est de **centraliser les connaissances** issues de fichiers hétér
 
 Projet réalisé dans le cadre d’un **stage de 4ᵉ année d’ingénieur** à l’AMDIE (INSA Rouen - Génie Mathématiques).
 
-
-![Interface de connexion](chatbot_maroc/image_Readme/interface_connexion.png "Interface de connexion")
-
+<div align="center">
+  ![Interface de connexion](chatbot_maroc/image_Readme/interface_connexion.png "Interface de connexion")
+</div>
 
 ---
 
