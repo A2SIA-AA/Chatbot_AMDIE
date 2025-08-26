@@ -1,6 +1,4 @@
-##  `README_API.md` – API d'orchestration FastAPI
-
-# API FastAPI – Chatbot AMDIE
+# API FastAPI - Chatbot AMDIE
 
 ##  Objectif
 Ce module expose une API REST centralisée qui :
@@ -19,7 +17,7 @@ Ce module expose une API REST centralisée qui :
 message_fastapi/
 ├── main.py                # Entrée principale FastAPI
 ├── auth.py                # Authentification JWT classique
-├── auth_keycloack.py      # Authentification OAuth2 (Keycloak)
+├── auth_keycloack.py      # Authentification via Keycloak
 ├── models.py              # Schémas Pydantic (utilisateur, message…)
 ├── message_store.py       # Stockage partagé des messages de session
 ├── mcp_client_utils.py    # Fonctions pour communiquer avec le serveur MCP
@@ -36,7 +34,6 @@ message_fastapi/
 - FastAPI
 - Uvicorn
 - MCP client compatible
-- Clé publique Keycloak disponible si OAuth2 activé
 
 ###  Lancer le serveur
 ```bash
@@ -54,7 +51,7 @@ Accessible sur : [http://localhost:8000/docs](http://localhost:8000/docs)
 * Route : `/api/v1/auth/login`
 * Permissions par rôle (`admin`, `employee`, `public`)
 
-### Keycloak (OAuth2)
+### Keycloak
 
 * Route de connexion : `/api/v1/auth/keycloak/login-url`
 * Route de callback : `/api/v1/auth/keycloak/callback`
@@ -114,9 +111,9 @@ Exemples :
 
 ##  Debug & Monitoring
 
-* `GET /api/v1/permissions/test` – vérifie les permissions actuelles
-* `GET /api/v1/admin/users` – accessible uniquement aux administrateurs
-* `GET /api/v1/auth/me` – profil utilisateur connecté
+* `GET /api/v1/permissions/test` - vérifie les permissions actuelles
+* `GET /api/v1/admin/users` - accessible uniquement aux administrateurs
+* `GET /api/v1/auth/me` - profil utilisateur connecté
 
 ---
 
@@ -132,5 +129,5 @@ Exemples :
 ##  Auteur
 
 Projet conçu et développé par **Assia AIT TALEB**,
-Stage ingénieur 4A – INSA Rouen Normandie – AMDIE (2025).
+Stage ingénieur 4A - INSA Rouen Normandie - AMDIE (2025).
 
