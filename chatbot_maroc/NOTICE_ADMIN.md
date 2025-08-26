@@ -1,4 +1,4 @@
-#  Notice Utilisateur – Profil Administrateur
+#  Notice Utilisateur - Profil Administrateur
 
 ## Objectif
 Cette interface permet à un administrateur d’interroger le chatbot sur **l’ensemble des documents indexés**, y compris ceux marqués comme **confidentiels**.
