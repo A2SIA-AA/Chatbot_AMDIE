@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>message_fastapi.main API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>message_fastapi.main</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="message_fastapi.main.backend_status"><code class="name flex">
+<span>async def <span class="ident">backend_status</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vérifie l'état du backend et retourne des informations sur son accessibilité,
+l'existence du script associé et la version de Python utilisée.</p>
+<p>:return: Un dictionnaire contenant les informations sur le chemin du backend,
+l'existence du script, le chemin du script, l'accessibilité du backend
+et la version actuelle de Python.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.create_message"><code class="name flex">
+<span>async def <span class="ident">create_message</span></span>(<span>message: models.MessageRequest)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Crée un message basé sur les données fournies dans la requête. Cette méthode est
+généralement utilisée pour ajouter des messages à partir d'une session active
+dans le backend. Elle enregistre les messages associés à une session donnée et
+renvoie une réponse indiquant le succès ou l'échec de l'opération.</p>
+<p>:param message: Les détails du message à ajouter, incluant le type, le
+contenu et les métadonnées associés à une session spécifique.
+:type message: MessageRequest
+:return: Une réponse confirmant le succès ou l'échec de l'opération d'ajout
+du message.
+:rtype: SuccessResponse
+:raises HTTPException: Exception HTTP levée en cas d'erreur serveur lors
+de l'ajout du message dans le stockage.</p></div>
+</dd>
+<dt id="message_fastapi.main.delete_session"><code class="name flex">
+<span>async def <span class="ident">delete_session</span></span>(<span>session_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Supprime une session donnée identifiée par un <code>session_id</code> et retourne une réponse
+indiquant le succès ou non de l'opération. Si la session n'existe plus, un message
+approprié est également retourné. En cas d'erreur imprévue, une exception HTTP
+avec le code 500 est levée.</p>
+<p>:param session_id: L'identifiant unique de la session à supprimer.
+:type session_id: str
+:return: Une instance de <code>SuccessResponse</code> indiquant le succès de l'opération.
+:rtype: SuccessResponse
+:raises HTTPException: Exception levée avec un code d'état 500 en cas d'erreur interne.</p></div>
+</dd>
+<dt id="message_fastapi.main.get_keycloak_auth_url"><code class="name flex">
+<span>async def <span class="ident">get_keycloak_auth_url</span></span>(<span>redirect_uri: str | None = Query(None))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Retourne l'URL d'authentification pour Keycloak.</p>
+<p>Cette fonction génère et retourne l'URL d'authentification à utiliser pour
+se connecter à Keycloak. Le paramètre optionnel <code>redirect_uri</code> peut être fourni
+pour indiquer une URL spécifique vers laquelle l'utilisateur doit être redirigé
+après l'authentification.</p>
+<p>:param redirect_uri: URI vers laquelle l'utilisateur sera redirigé après
+l'authentification (optionnel).
+Si non spécifié, une URI par défaut sera utilisée.
+:type redirect_uri: str | None
+:return: Un dictionnaire contenant l'URL d'authentification générée pour
+Keycloak.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.get_me"><code class="name flex">
+<span>async def <span class="ident">get_me</span></span>(<span>current_user: dict = Depends(get_current_user))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère les informations de l'utilisateur actuellement authentifié.</p>
+<p>Cette fonction utilise une dépendance pour récupérer les informations de
+l'utilisateur courant et retourne un objet utilisateur structuré. Elle est
+conçue pour les API REST et est annotée en tant que point de terminaison
+GET avec une réponse modélisée.</p>
+<p>:param current_user: Dictionnaire contenant les informations de l'utilisateur
+récupérées via la fonction de dépendance <code>get_current_user</code>.
+:return: Une instance de l’objet <code>User</code> contenant les détails de
+l'utilisateur actuellement authentifié.</p></div>
+</dd>
+<dt id="message_fastapi.main.get_me_keycloak"><code class="name flex">
+<span>async def <span class="ident">get_me_keycloak</span></span>(<span>current_user: dict = Depends(get_current_user_keycloak))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère les détails de l'utilisateur actuellement authentifié via Keycloak.</p>
+<p>Cette fonction interagit avec le système Keycloak pour obtenir les informations
+associées à l'utilisateur actuellement connecté. Les informations incluent le
+nom d'utilisateur, l'adresse email, le rôle, les permissions, le nom complet et
+le département. Ces données sont ensuite utilisées pour retourner un objet de
+type <code>User</code>.</p>
+<p>:param current_user: Le dictionnaire contenant les informations de l'utilisateur
+authentifié, fourni par la dépendance Keycloak.
+:return: Un objet <code>User</code> représentant l'utilisateur actuellement connecté.</p></div>
+</dd>
+<dt id="message_fastapi.main.get_messages"><code class="name flex">
+<span>async def <span class="ident">get_messages</span></span>(<span>session_id: str, since: float | None = Query(0))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère les messages correspondant à une session donnée. Cette fonction permet de
+récupérer soit tous les messages de la session ou, si un timestamp <code>since</code> est fourni,
+uniquement les messages postérieurs à ce moment-là.</p>
+<p>:param session_id: L'identifiant unique de la session pour laquelle les messages
+doivent être récupérés.
+:type session_id: str
+:param since: Timestamp Unix optionnel (en secondes) représentant le moment depuis
+lequel les messages seront récupérés. Si omis ou égal à 0, tous les messages
+de la session seront retournés. La valeur par défaut est 0.
+:type since: Optional[float]
+:return: Une instance de <code>MessagesResponse</code> contenant les messages récents de la session,
+le timestamp actuel, et le nombre total des messages inclus dans la réponse.
+:rtype: MessagesResponse
+:raises HTTPException: Si une erreur se produit lors de la récupération des messages,
+une exception avec le code 500 et le détail de l'erreur est levée.</p></div>
+</dd>
+<dt id="message_fastapi.main.get_session_info"><code class="name flex">
+<span>async def <span class="ident">get_session_info</span></span>(<span>session_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère les informations d'une session spécifique.</p>
+<p>Cette fonction permet d'obtenir les détails associés à une session identifiée
+par son identifiant unique. Si la session est introuvable, une exception HTTP
+avec un statut 404 est levée. En cas d'erreur inattendue, une exception avec un
+statut 500 est levée.</p>
+<p>:param session_id: Identifiant unique de la session
+:type session_id: str
+:return: Les informations de la session sous forme de dictionnaire ou autre
+format correspondant
+:rtype: dict
+:raises HTTPException: Si la session est introuvable (404) ou en cas d'erreur
+interne du serveur (500)</p></div>
+</dd>
+<dt id="message_fastapi.main.health_check"><code class="name flex">
+<span>async def <span class="ident">health_check</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Vérifie l'état de santé de l'application.</p>
+<p>Cette fonction asynchrone retourne un état de santé détaillé de l'application,
+y compris le statut de l'API, la disponibilité d'un chemin backend, le nombre
+de sessions actives et plusieurs méta-informations importantes.</p>
+<p>:param backend_path: Chemin vers le répertoire du backend Python.
+:param backend_accessible: Indique si le chemin backend est accessible ou non.
+:param active_sessions: Nombre total de sessions actives retournées par le
+magasin de messages.</p>
+<p>:return: Un dictionnaire contenant les informations du statut de santé de
+l'application.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.keycloak_callback_get"><code class="name flex">
+<span>async def <span class="ident">keycloak_callback_get</span></span>(<span>request: starlette.requests.Request)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gère le callback de Keycloak lors de l'authentification.</p>
+<p>Ce point de terminaison est appelé après que l'utilisateur a été redirigé depuis
+Keycloak avec un code d'autorisation. Il vérifie si le code est présent dans les
+paramètres de la requête et appelle la fonction de traitement pour effectuer les
+étapes nécessaires d'échange de code ou validation.</p>
+<p>:param request: Requête HTTP asynchrone contenant les données transmises par
+Keycloak après la redirection utilisateur.
+:type request: Request
+:return: Résultat du traitement du callback Keycloak.
+:rtype: dict
+:raises HTTPException: Si le code requis n'est pas fourni dans la requête,
+renvoie une erreur HTTP avec un code de statut 400 ("Code manquant").</p></div>
+</dd>
+<dt id="message_fastapi.main.keycloak_callback_post"><code class="name flex">
+<span>async def <span class="ident">keycloak_callback_post</span></span>(<span>request: <a title="message_fastapi.main.TokenExchangeRequest" href="#message_fastapi.main.TokenExchangeRequest">TokenExchangeRequest</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gère le point d'entrée de rappel Keycloak pour l'échange de jetons.</p>
+<p>Cette méthode est utilisée pour traiter les rappels de Keycloak
+lorsque l'utilisateur a été redirigé après une authentification
+réussie. Elle extrait et transmet les informations nécessaires
+pour compléter la procédure d'échange de jetons.</p>
+<p>:param request: La requête contenant le code d'autorisation et l'URI de
+redirection fournis par Keycloak dans le cadre du rappel.
+:type request: TokenExchangeRequest</p>
+<p>:return: Le résultat du traitement du rappel, généralement un objet ou une
+réponse indiquant si l'opération a réussi.
+:rtype: Depends du résultat de <code><a title="message_fastapi.main.process_keycloak_callback" href="#message_fastapi.main.process_keycloak_callback">process_keycloak_callback()</a></code></p></div>
+</dd>
+<dt id="message_fastapi.main.list_sessions"><code class="name flex">
+<span>async def <span class="ident">list_sessions</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère une liste de toutes les sessions disponibles.</p>
+<p>Cette fonction interroge le magasin de messages pour obtenir toutes les
+sessions actuellement disponibles et renvoie leur liste, accompagnée
+du nombre total de sessions et d'un timestamp indiquant quand l'action
+a été exécutée.</p>
+<p>:param message_store: L'objet responsable de la gestion et du stockage
+des messages. Il doit fournir une méthode pour récupérer toutes
+les sessions.
+:return: Un dictionnaire contenant la liste des sessions, le nombre
+total de sessions et un timestamp en temps réel.
+:rtype: dict
+:raises HTTPException: Si une erreur se produit pendant la récupération
+des sessions, une exception <code>HTTPException</code> avec un code d'état
+HTTP 500 est levée.</p></div>
+</dd>
+<dt id="message_fastapi.main.list_users"><code class="name flex">
+<span>async def <span class="ident">list_users</span></span>(<span>current_user: dict = Depends(permission_checker))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère une liste d'utilisateurs avec leurs informations associées ainsi que le
+nombre total d'utilisateurs. Cette fonction est uniquement accessible aux administrateurs
+ayant la permission "manage_users".</p>
+<p>:param current_user: Un dictionnaire fournissant les informations de l'utilisateur
+actuel après vérification des permissions.
+:type current_user: dict
+:return: Un dictionnaire contenant une liste d'utilisateurs avec leurs informations
+(email, username, role, nom complet, département) ainsi que le nombre total
+d'utilisateurs.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.log_requests"><code class="name flex">
+<span>async def <span class="ident">log_requests</span></span>(<span>request, call_next)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mesure et journalisation du temps d'exécution des requêtes HTTP. Ce middleware
+enregistre les informations concernant la requête HTTP, telles que la méthode,
+l'URL, le statut HTTP de la réponse, et le temps de traitement de la requête.
+De plus, le temps de traitement est inclus dans les en-têtes de la réponse.</p>
+<p>:param request: Objet représentant la requête HTTP entrante.
+:type request: starlette.requests.Request
+:param call_next: Fonction utilisée pour exécuter la prochaine étape du flux de traitement
+de la requête, qui retourne une réponse HTTP.
+:type call_next: typing.Callable
+:return: Réponse HTTP modifiée avec des informations supplémentaires dans l'en-tête.
+:rtype: starlette.responses.Response</p></div>
+</dd>
+<dt id="message_fastapi.main.login"><code class="name flex">
+<span>async def <span class="ident">login</span></span>(<span>login_data: models.LoginRequest)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gère l'authentification de l'utilisateur en validant les informations
+d'identification fournies (email et mot de passe). Si les informations
+d'identification sont correctes, un jeton d'accès (access_token) est généré
+et des informations détaillées sur l'utilisateur sont renvoyées. Le jeton a
+une durée d'expiration définie.</p>
+<p>:param login_data: Les données de connexion contenant l'email et le mot de passe de l'utilisateur.
+:type login_data: LoginRequest
+:return: Une réponse contenant le jeton d'accès généré, son type, les informations
+de l'utilisateur validées et le temps d'expiration du jeton en secondes.
+:rtype: LoginResponse
+:raises HTTPException: Retourne une exception HTTP avec un code d'erreur 401 si
+les informations d'identification sont incorrectes.</p></div>
+</dd>
+<dt id="message_fastapi.main.logout"><code class="name flex">
+<span>async def <span class="ident">logout</span></span>(<span>current_user: dict = Depends(get_current_user))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Déconnecte l'utilisateur actuellement authentifié.</p>
+<p>Cette fonction met fin à la session de l'utilisateur en cours
+et retourne un message confirmant la déconnexion réussie.</p>
+<p>:param current_user: Les informations de l'utilisateur authentifié.
+:type current_user: dict
+:return: Un message confirmant la déconnexion réussie.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.process_keycloak_callback"><code class="name flex">
+<span>async def <span class="ident">process_keycloak_callback</span></span>(<span>code: str, redirect_uri: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Traite le rappel de Keycloak après l'approbation de l'utilisateur et le redirige
+en fonction des informations incluses dans le token généré par Keycloak.</p>
+<p>Ce processus comprend l'échange du code d'autorisation contre un token, le décodage
+de ce dernier pour extraire les informations utilisateur, la conversion des rôles
+Keycloak au format utilisé dans l'application, et la création d'une réponse utilisateur.</p>
+<p>:param code: Le code d'autorisation reçu via le rappel Keycloak
+:type code: str
+:param redirect_uri: L'URI de redirection configurée pour le client dans Keycloak
+:type redirect_uri: str
+:return: Un objet LoginResponse contenant le token d'accès, son type, des informations
+utilisateur associées, ainsi que la durée de validité du token en secondes.
+:rtype: LoginResponse
+:raises HTTPException: Lorsque le processus de rappel échoue, une exception est levée avec
+un message d'erreur approprié et un statut HTTP 400.</p></div>
+</dd>
+<dt id="message_fastapi.main.root"><code class="name flex">
+<span>async def <span class="ident">root</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Point d'entrée principal de l'API pour vérifier l'état du système et fournir des informations
+de base sur les services configurés.</p>
+<p>:return: Un dictionnaire contenant un message d'accueil, la version de l'API, des liens vers
+la documentation et les contrôles de santé, ainsi qu'une description des services
+interconnectés.
+:rtype: dict</p></div>
+</dd>
+<dt id="message_fastapi.main.start_processing"><code class="name flex">
+<span>async def <span class="ident">start_processing</span></span>(<span>request: dict, current_user: dict = Depends(get_current_user))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Débute le traitement d'un chatbot en validant les permissions de l'utilisateur, en
+vérifiant les prérequis et en appelant les scripts backend nécessaires.</p>
+<p>Cette fonction vérifie d'abord si l'utilisateur actuel dispose des permissions
+requises pour exécuter cette opération. Si toutes les validations sont réussies,
+elle initialise un identifiant de session, envoie un message de progression via
+un message_store et déclenche le backend via une interaction avec un serveur MCP.
+Elle retourne une confirmation de démarrage du traitement, accompagnée des données
+d'utilisateur et de session.</p>
+<p>:param request: Paramètre JSON contenant les données de requête, notamment une clé
+"question" en tant que message utilisateur initialement fourni.
+:type request: dict
+:param current_user: Dictionnaire contenant les détails de l'utilisateur actuellement connecté.
+Doit inclure des informations comme le rôle, le nom, les permissions, etc.
+:type current_user: dict
+:return: Détails sur l'état de démarrage du traitement, identifiant de session et informations
+sur l'utilisateur validé.
+:rtype: dict
+:raises HTTPException: Cette fonction peut renvoyer des exceptions HTTPException dans
+plusieurs situations, comme l'absence de permission (403), absence de question requise (400),
+backend inaccessible ou non trouvé (500), ou échec de connexion au serveur MCP (502).</p></div>
+</dd>
+<dt id="message_fastapi.main.start_processing_keycloak"><code class="name flex">
+<span>async def <span class="ident">start_processing_keycloak</span></span>(<span>request: dict, current_user: dict = Depends(get_current_user_keycloak))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Démarre le traitement IA Keycloak pour l'utilisateur authentifié. Cette
+fonction effectue une vérification des permissions, génère un identifiant
+de session unique et initialise la communication avec le backend MCP.
+Elle enregistre également un message de progression initial.</p>
+<p>:param request: Dictionnaire contenant les données de la requête. Doit
+inclure une clé "question" de type chaîne de caractères.
+:type request: dict
+:param current_user: Dictionnaire contenant les informations de
+l'utilisateur connecté. Passé automatiquement via la dépendance
+<code>get_current_user_keycloak</code>.
+:type current_user: dict
+:return: Un dictionnaire contenant l'identifiant de session unique,
+l'état du démarrage, un message de confirmation et des informations
+sur l'utilisateur.
+:rtype: dict
+:raises HTTPException: Si l'utilisateur n'a pas les permissions
+nécessaires, si la clé "question" est manquante ou vide, ou en cas
+d'erreur de communication avec le backend MCP.</p></div>
+</dd>
+<dt id="message_fastapi.main.test_permissions"><code class="name flex">
+<span>async def <span class="ident">test_permissions</span></span>(<span>current_user: dict = Depends(get_current_user))</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Teste les permissions de l'utilisateur actuel et retourne ses informations, son rôle,
+ses permissions et ses capacités spécifiques en fonction de ses autorisations.</p>
+<p>:param current_user: Utilisateur actuel, obtenu via le middleware d'authentification.
+:type current_user: dict
+:return: Dictionnaire contenant les informations sur l'utilisateur, son rôle, ses permissions
+et des indicateurs sur ses capacités à lire les documents publics, lire les documents internes,
+et gérer les utilisateurs.
+:rtype: dict</p></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="message_fastapi.main.KeycloakAuthUrl"><code class="flex name class">
+<span>class <span class="ident">KeycloakAuthUrl</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><div class="admonition abstract">
+<p class="admonition-title">Usage Documentation</p>
+<p><a href="../concepts/models.md">Models</a></p>
+</div>
+<p>A base class for creating Pydantic models.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>__class_vars__</code></strong></dt>
+<dd>The names of the class variables defined on the model.</dd>
+<dt><strong><code>__private_attributes__</code></strong></dt>
+<dd>Metadata about the private attributes of the model.</dd>
+<dt><strong><code>__signature__</code></strong></dt>
+<dd>The synthesized <code>__init__</code> [<code>Signature</code>][inspect.Signature] of the model.</dd>
+<dt><strong><code>__pydantic_complete__</code></strong></dt>
+<dd>Whether model building is completed, or if there are still undefined fields.</dd>
+<dt><strong><code>__pydantic_core_schema__</code></strong></dt>
+<dd>The core schema of the model.</dd>
+<dt><strong><code>__pydantic_custom_init__</code></strong></dt>
+<dd>Whether the model has a custom <code>__init__</code> function.</dd>
+<dt><strong><code>__pydantic_decorators__</code></strong></dt>
+<dd>Metadata containing the decorators defined on the model.
+This replaces <code>Model.__validators__</code> and <code>Model.__root_validators__</code> from Pydantic V1.</dd>
+<dt><strong><code>__pydantic_generic_metadata__</code></strong></dt>
+<dd>Metadata for generic models; contains data used for a similar purpose to
+<strong>args</strong>, <strong>origin</strong>, <strong>parameters</strong> in typing-module generics. May eventually be replaced by these.</dd>
+<dt><strong><code>__pydantic_parent_namespace__</code></strong></dt>
+<dd>Parent namespace of the model, used for automatic rebuilding of models.</dd>
+<dt><strong><code>__pydantic_post_init__</code></strong></dt>
+<dd>The name of the post-init method for the model, if defined.</dd>
+<dt><strong><code>__pydantic_root_model__</code></strong></dt>
+<dd>Whether the model is a [<code>RootModel</code>][pydantic.root_model.RootModel].</dd>
+<dt><strong><code>__pydantic_serializer__</code></strong></dt>
+<dd>The <code>pydantic-core</code> <code>SchemaSerializer</code> used to dump instances of the model.</dd>
+<dt><strong><code>__pydantic_validator__</code></strong></dt>
+<dd>The <code>pydantic-core</code> <code>SchemaValidator</code> used to validate instances of the model.</dd>
+<dt><strong><code>__pydantic_fields__</code></strong></dt>
+<dd>A dictionary of field names and their corresponding [<code>FieldInfo</code>][pydantic.fields.FieldInfo] objects.</dd>
+<dt><strong><code>__pydantic_computed_fields__</code></strong></dt>
+<dd>A dictionary of computed field names and their corresponding [<code>ComputedFieldInfo</code>][pydantic.fields.ComputedFieldInfo] objects.</dd>
+<dt><strong><code>__pydantic_extra__</code></strong></dt>
+<dd>A dictionary containing extra values, if [<code>extra</code>][pydantic.config.ConfigDict.extra]
+is set to <code>'allow'</code>.</dd>
+<dt><strong><code>__pydantic_fields_set__</code></strong></dt>
+<dd>The names of fields explicitly set during instantiation.</dd>
+<dt><strong><code>__pydantic_private__</code></strong></dt>
+<dd>Values of private attributes set on the model instance.</dd>
+</dl>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<code>ValidationError</code>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><code>self</code> is explicitly positional-only to allow <code>self</code> as a field name.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pydantic.main.BaseModel</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="message_fastapi.main.KeycloakAuthUrl.auth_url"><code class="name">var <span class="ident">auth_url</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="message_fastapi.main.KeycloakAuthUrl.model_config"><code class="name">var <span class="ident">model_config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="message_fastapi.main.TokenExchangeRequest"><code class="flex name class">
+<span>class <span class="ident">TokenExchangeRequest</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><div class="admonition abstract">
+<p class="admonition-title">Usage Documentation</p>
+<p><a href="../concepts/models.md">Models</a></p>
+</div>
+<p>A base class for creating Pydantic models.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>__class_vars__</code></strong></dt>
+<dd>The names of the class variables defined on the model.</dd>
+<dt><strong><code>__private_attributes__</code></strong></dt>
+<dd>Metadata about the private attributes of the model.</dd>
+<dt><strong><code>__signature__</code></strong></dt>
+<dd>The synthesized <code>__init__</code> [<code>Signature</code>][inspect.Signature] of the model.</dd>
+<dt><strong><code>__pydantic_complete__</code></strong></dt>
+<dd>Whether model building is completed, or if there are still undefined fields.</dd>
+<dt><strong><code>__pydantic_core_schema__</code></strong></dt>
+<dd>The core schema of the model.</dd>
+<dt><strong><code>__pydantic_custom_init__</code></strong></dt>
+<dd>Whether the model has a custom <code>__init__</code> function.</dd>
+<dt><strong><code>__pydantic_decorators__</code></strong></dt>
+<dd>Metadata containing the decorators defined on the model.
+This replaces <code>Model.__validators__</code> and <code>Model.__root_validators__</code> from Pydantic V1.</dd>
+<dt><strong><code>__pydantic_generic_metadata__</code></strong></dt>
+<dd>Metadata for generic models; contains data used for a similar purpose to
+<strong>args</strong>, <strong>origin</strong>, <strong>parameters</strong> in typing-module generics. May eventually be replaced by these.</dd>
+<dt><strong><code>__pydantic_parent_namespace__</code></strong></dt>
+<dd>Parent namespace of the model, used for automatic rebuilding of models.</dd>
+<dt><strong><code>__pydantic_post_init__</code></strong></dt>
+<dd>The name of the post-init method for the model, if defined.</dd>
+<dt><strong><code>__pydantic_root_model__</code></strong></dt>
+<dd>Whether the model is a [<code>RootModel</code>][pydantic.root_model.RootModel].</dd>
+<dt><strong><code>__pydantic_serializer__</code></strong></dt>
+<dd>The <code>pydantic-core</code> <code>SchemaSerializer</code> used to dump instances of the model.</dd>
+<dt><strong><code>__pydantic_validator__</code></strong></dt>
+<dd>The <code>pydantic-core</code> <code>SchemaValidator</code> used to validate instances of the model.</dd>
+<dt><strong><code>__pydantic_fields__</code></strong></dt>
+<dd>A dictionary of field names and their corresponding [<code>FieldInfo</code>][pydantic.fields.FieldInfo] objects.</dd>
+<dt><strong><code>__pydantic_computed_fields__</code></strong></dt>
+<dd>A dictionary of computed field names and their corresponding [<code>ComputedFieldInfo</code>][pydantic.fields.ComputedFieldInfo] objects.</dd>
+<dt><strong><code>__pydantic_extra__</code></strong></dt>
+<dd>A dictionary containing extra values, if [<code>extra</code>][pydantic.config.ConfigDict.extra]
+is set to <code>'allow'</code>.</dd>
+<dt><strong><code>__pydantic_fields_set__</code></strong></dt>
+<dd>The names of fields explicitly set during instantiation.</dd>
+<dt><strong><code>__pydantic_private__</code></strong></dt>
+<dd>Values of private attributes set on the model instance.</dd>
+</dl>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises [<code>ValidationError</code>][pydantic_core.ValidationError] if the input data cannot be
+validated to form a valid model.</p>
+<p><code>self</code> is explicitly positional-only to allow <code>self</code> as a field name.</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pydantic.main.BaseModel</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="message_fastapi.main.TokenExchangeRequest.code"><code class="name">var <span class="ident">code</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="message_fastapi.main.TokenExchangeRequest.model_config"><code class="name">var <span class="ident">model_config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="message_fastapi.main.TokenExchangeRequest.redirect_uri"><code class="name">var <span class="ident">redirect_uri</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="message_fastapi" href="index.html">message_fastapi</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="message_fastapi.main.backend_status" href="#message_fastapi.main.backend_status">backend_status</a></code></li>
+<li><code><a title="message_fastapi.main.create_message" href="#message_fastapi.main.create_message">create_message</a></code></li>
+<li><code><a title="message_fastapi.main.delete_session" href="#message_fastapi.main.delete_session">delete_session</a></code></li>
+<li><code><a title="message_fastapi.main.get_keycloak_auth_url" href="#message_fastapi.main.get_keycloak_auth_url">get_keycloak_auth_url</a></code></li>
+<li><code><a title="message_fastapi.main.get_me" href="#message_fastapi.main.get_me">get_me</a></code></li>
+<li><code><a title="message_fastapi.main.get_me_keycloak" href="#message_fastapi.main.get_me_keycloak">get_me_keycloak</a></code></li>
+<li><code><a title="message_fastapi.main.get_messages" href="#message_fastapi.main.get_messages">get_messages</a></code></li>
+<li><code><a title="message_fastapi.main.get_session_info" href="#message_fastapi.main.get_session_info">get_session_info</a></code></li>
+<li><code><a title="message_fastapi.main.health_check" href="#message_fastapi.main.health_check">health_check</a></code></li>
+<li><code><a title="message_fastapi.main.keycloak_callback_get" href="#message_fastapi.main.keycloak_callback_get">keycloak_callback_get</a></code></li>
+<li><code><a title="message_fastapi.main.keycloak_callback_post" href="#message_fastapi.main.keycloak_callback_post">keycloak_callback_post</a></code></li>
+<li><code><a title="message_fastapi.main.list_sessions" href="#message_fastapi.main.list_sessions">list_sessions</a></code></li>
+<li><code><a title="message_fastapi.main.list_users" href="#message_fastapi.main.list_users">list_users</a></code></li>
+<li><code><a title="message_fastapi.main.log_requests" href="#message_fastapi.main.log_requests">log_requests</a></code></li>
+<li><code><a title="message_fastapi.main.login" href="#message_fastapi.main.login">login</a></code></li>
+<li><code><a title="message_fastapi.main.logout" href="#message_fastapi.main.logout">logout</a></code></li>
+<li><code><a title="message_fastapi.main.process_keycloak_callback" href="#message_fastapi.main.process_keycloak_callback">process_keycloak_callback</a></code></li>
+<li><code><a title="message_fastapi.main.root" href="#message_fastapi.main.root">root</a></code></li>
+<li><code><a title="message_fastapi.main.start_processing" href="#message_fastapi.main.start_processing">start_processing</a></code></li>
+<li><code><a title="message_fastapi.main.start_processing_keycloak" href="#message_fastapi.main.start_processing_keycloak">start_processing_keycloak</a></code></li>
+<li><code><a title="message_fastapi.main.test_permissions" href="#message_fastapi.main.test_permissions">test_permissions</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="message_fastapi.main.KeycloakAuthUrl" href="#message_fastapi.main.KeycloakAuthUrl">KeycloakAuthUrl</a></code></h4>
+<ul class="">
+<li><code><a title="message_fastapi.main.KeycloakAuthUrl.auth_url" href="#message_fastapi.main.KeycloakAuthUrl.auth_url">auth_url</a></code></li>
+<li><code><a title="message_fastapi.main.KeycloakAuthUrl.model_config" href="#message_fastapi.main.KeycloakAuthUrl.model_config">model_config</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="message_fastapi.main.TokenExchangeRequest" href="#message_fastapi.main.TokenExchangeRequest">TokenExchangeRequest</a></code></h4>
+<ul class="">
+<li><code><a title="message_fastapi.main.TokenExchangeRequest.code" href="#message_fastapi.main.TokenExchangeRequest.code">code</a></code></li>
+<li><code><a title="message_fastapi.main.TokenExchangeRequest.model_config" href="#message_fastapi.main.TokenExchangeRequest.model_config">model_config</a></code></li>
+<li><code><a title="message_fastapi.main.TokenExchangeRequest.redirect_uri" href="#message_fastapi.main.TokenExchangeRequest.redirect_uri">redirect_uri</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

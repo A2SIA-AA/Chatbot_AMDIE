@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>backend_python.src.rag.indexer_pdf API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>backend_python.src.rag.indexer_pdf</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="backend_python.src.rag.indexer_pdf.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Classe principale pour la gestion et le traitement des documents PDF en vue d'une conversion
+en représentations chromatiques. Cette classe intègre également une gestion des niveaux
+d'accès basés sur différents rôles.</p>
+<p>Méthodes :
+- traiter_tous_les_pdfs : Méthode permettant de traiter un ensemble de fichiers PDF
+à partir d'un répertoire donné.
+- stats_collection : Méthode permettant d'afficher les statistiques associées
+au traitement des fichiers PDF.
+- tester_acces_par_role : Méthode utilisée pour tester les autorisations d'accès
+basées sur les rôles d'utilisateur ou les niveaux d'autorisation.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma"><code class="flex name class">
+<span>class <span class="ident">PDFToChroma</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cette classe est conçue pour traiter les documents PDF afin de déterminer leur
+niveau d'accès, générer des résumés à l'aide d'une API Gemini et les ajouter à
+une base de données existante sous forme de vecteurs d'embedding.</p>
+<p>La classe facilite également la gestion des contenus PDF au sein d'une
+collection ChromaDB, tout en créant des fichiers JSON structurés pour chaque document.</p>
+<p>:ivar client: Instance du client utilisé pour communiquer avec l'API Gemini.
+:type client: genai.Client
+:ivar chroma_client: Instance du client persistant pour accéder à ChromaDB.
+:type chroma_client: chromadb.PersistentClient
+:ivar collection: Collection ChromaDB utilisée pour enregistrer les données liées aux documents PDF.
+:type collection: chromadb.collection.Collection
+:ivar embedding_model: Modèle utilisé pour générer des embeddings de texte basés sur le contenu des documents.
+:type embedding_model: SentenceTransformer</p>
+<p>Cette classe configure et initialise les composants nécessaires pour un chatbot.
+Elle est responsable de la configuration du client Gemini, de l'accès à ChromaDB,
+et de l'initialisation du modèle d'embeddings de phrases.</p>
+<h2 id="attributs">Attributs</h2>
+<p>client : genai.Client
+Un client configuré pour interagir avec le service Gemini.
+chroma_client : chromadb.PersistentClient
+Client configuré pour l'accès à une base ChromaDB persistante.
+collection : chromadb.Collection
+Collection accessible dans ChromaDB contenant les données existantes.
+embedding_model : SentenceTransformer
+Modèle utilisé pour générer des embeddings à partir de phrases.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.ajouter_a_chromadb"><code class="name flex">
+<span>def <span class="ident">ajouter_a_chromadb</span></span>(<span>self, json_data)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Ajoute un document PDF et ses métadonnées à une collection ChromaDB. Cette méthode
+génère une description textuelle basée sur les données du document, crée un embedding
+avec un modèle d'encodage fourni, et enregistre les métadonnées ainsi que le contenu
+associé dans la base de données.</p>
+<p>:param json_data: Un dictionnaire contenant les informations concernant le
+fichier PDF à traiter et à ajouter dans la base de données.
+:type json_data: dict
+:return: L'identifiant unique (ID) généré pour le document ajouté dans ChromaDB.
+:rtype: str</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.creer_json_resume"><code class="name flex">
+<span>def <span class="ident">creer_json_resume</span></span>(<span>self, pdf_path, access_level, resume_gemini)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Génère un fichier JSON résumant les informations d'un fichier PDF donné, en incluant
+des métadonnées telles que le chemin d'accès, la taille du fichier, le niveau d'accès
+et un résumé fourni.</p>
+<p>:param pdf_path: Chemin du fichier PDF source. Doit être de type Path.
+:type pdf_path: Path
+:param access_level: Niveau d'accès associé au PDF.
+:type access_level: str
+:param resume_gemini: Résumé du document donné sous forme de chaîne de caractères.
+:type resume_gemini: str
+:return: Dictionnaire contenant les métadonnées et informations générées pour le JSON.
+:rtype: dict</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.rechercher_pdfs"><code class="name flex">
+<span>def <span class="ident">rechercher_pdfs</span></span>(<span>self, query, user_role='public', n_results=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rechercher des fichiers PDF dans une collection en fonction d'une requête donnée,
+du rôle utilisateur et du nombre de résultats souhaités. Les résultats retournés
+sont filtrés en fonction du niveau d'accès autorisé pour le rôle spécifié.</p>
+<p>:param query: La requête de recherche sous forme de texte.
+:type query: str
+:param user_role: Le rôle de l'utilisateur effectuant la recherche (public, internal,
+admin). Par défaut, il est défini sur "public".
+:type user_role: str
+:param n_results: Le nombre de résultats à retourner après filtrage basé sur le
+rôle utilisateur. Par défaut, 5 résultats sont retournés.
+:type n_results: int
+:return: Une liste des résultats filtrés contenant des informations sur les fichiers
+trouvés, telles que le nom du fichier, le type du document, le niveau
+d'accès, la pertinence et le dossier source. Si aucun résultat n'est trouvé,
+retourne une liste vide.
+:rtype: list[dict]</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.stats_collection"><code class="name flex">
+<span>def <span class="ident">stats_collection</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcule et affiche des statistiques sur une collection de documents.</p>
+<p>Cette méthode permet de collecter des statistiques sur la répartition des types
+de documents et les niveaux d'accès associés dans une collection donnée.
+Les informations sont extraites des métadonnées des documents.</p>
+<p>:return: Rien. Cette méthode imprime directement les statistiques dans la console.
+:rtype: None</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.tester_acces_par_role"><code class="name flex">
+<span>def <span class="ident">tester_acces_par_role</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Effectue un test des niveaux d'accès à une fonctionnalité de recherche de PDF selon
+des rôles spécifiques.</p>
+<p>Le test est effectué pour les rôles suivants : 'public', 'internal' et 'admin'.
+Pour chacun de ces rôles, une recherche est réalisée avec un mot-clé donné, et les
+résultats sont imprimés pour inspection. Cette méthode sert à évaluer si les restrictions
+d'accès basées sur les rôles fonctionnent correctement.</p>
+<p>:param query_test: La chaîne de recherche utilisée pour tester la fonctionnalité.
+:type query_test: str</p>
+<p>:return: Aucun retour. Les résultats sont affichés dans la sortie standard.</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_pdf_avec_gemini"><code class="name flex">
+<span>def <span class="ident">traiter_pdf_avec_gemini</span></span>(<span>self, pdf_path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Traite un document PDF en utilisant l'API Gemini pour en générer un résumé en français. Cette
+fonction télécharge un fichier PDF, utilise le modèle Gemini pour générer un texte résumé en
+fonction d'une invite, et supprime ensuite le fichier distant pour optimiser l'espace.</p>
+<p>:param pdf_path: Le chemin du fichier PDF à traiter.
+:type pdf_path: str
+:return: Le résumé du document PDF, ou None si une erreur s'est produite ou que la génération
+ne contient pas de texte.
+:rtype: str, optional
+:raises Exception: Exception générique si une erreur survient lors du processus.</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_tous_les_pdfs"><code class="name flex">
+<span>def <span class="ident">traiter_tous_les_pdfs</span></span>(<span>self, dossier='data')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Traite tous les fichiers PDF dans un dossier donné, génère des résumés,
+et les stocke dans une base de données avec un niveau d'accès spécifié.
+Cette méthode utilise un flux de traitement qui comprend la recherche des PDF,
+leur analyse via un outil de résumé, la création de métadonnées adéquates et
+l'ajout à une base de données.</p>
+<p>Le traitement effectue les étapes suivantes :
+- Recherche des PDF dans un dossier, avec identification de leur niveau d'accès.
+- Création de résumés pour chaque fichier PDF.
+- Création de documents JSON contenant les résumés et leurs métadonnées associées.
+- Insertion des documents JSON dans une collection d'une base de données.</p>
+<p>Cette méthode fournit un résumé détaillé sur les statistiques des fichiers PDF analysés
+et donne un aperçu final des données ajoutées dans la base.</p>
+<p>:param dossier: Chemin du dossier contenant les fichiers PDF à traiter. Par défaut, "data".
+:type dossier: str
+:return: Aucune valeur n'est retournée. Les opérations de traitement sont réalisées en place.
+:rtype: None</p></div>
+</dd>
+<dt id="backend_python.src.rag.indexer_pdf.PDFToChroma.trouver_pdfs"><code class="name flex">
+<span>def <span class="ident">trouver_pdfs</span></span>(<span>self, dossier='data')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Analyse un dossier donné et recherche récursivement tous les fichiers PDF
+dans celui-ci et ses sous-dossiers. La fonction détermine également un
+niveau d'accès pour chaque fichier PDF trouvé. Les résultats incluent le
+chemin complet du fichier et son niveau d'accès.</p>
+<p>:param dossier: Le chemin du dossier dans lequel rechercher les fichiers PDF.
+:type dossier: str, optionnel
+:return: Une liste de tuples contenant pour chaque fichier PDF trouvé son chemin
+et son niveau d'accès (sous forme de chaîne).
+:rtype: list[tuple[Path, str]]</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="backend_python.src.rag" href="index.html">backend_python.src.rag</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="backend_python.src.rag.indexer_pdf.main" href="#backend_python.src.rag.indexer_pdf.main">main</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma" href="#backend_python.src.rag.indexer_pdf.PDFToChroma">PDFToChroma</a></code></h4>
+<ul class="">
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.ajouter_a_chromadb" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.ajouter_a_chromadb">ajouter_a_chromadb</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.creer_json_resume" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.creer_json_resume">creer_json_resume</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.rechercher_pdfs" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.rechercher_pdfs">rechercher_pdfs</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.stats_collection" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.stats_collection">stats_collection</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.tester_acces_par_role" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.tester_acces_par_role">tester_acces_par_role</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_pdf_avec_gemini" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_pdf_avec_gemini">traiter_pdf_avec_gemini</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_tous_les_pdfs" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.traiter_tous_les_pdfs">traiter_tous_les_pdfs</a></code></li>
+<li><code><a title="backend_python.src.rag.indexer_pdf.PDFToChroma.trouver_pdfs" href="#backend_python.src.rag.indexer_pdf.PDFToChroma.trouver_pdfs">trouver_pdfs</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

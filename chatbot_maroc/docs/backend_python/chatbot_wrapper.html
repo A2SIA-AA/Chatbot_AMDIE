@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>backend_python.chatbot_wrapper API documentation</title>
+<meta name="description" content="Backend IA Chatbot - Architecture avec MCP">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>backend_python.chatbot_wrapper</code></h1>
+</header>
+<section id="section-intro">
+<p>Backend IA Chatbot - Architecture avec MCP</p>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="backend_python.chatbot_wrapper.initialize_chatbot_with_permissions"><code class="name flex">
+<span>async def <span class="ident">initialize_chatbot_with_permissions</span></span>(<span>session_id: str, user_permissions: List[str] | None, user_role: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Initialise un chatbot avec les permissions utilisateur, en validant les entrées et configurant
+les modules nécessaires pour permettre une interaction basée sur le rôle et les autorisations.</p>
+<p>:param session_id: Identifiant unique de session.
+:type session_id: str
+:param user_permissions: Liste des permissions utilisateur associées à la session. Si aucune
+valeur n'est fournie ou si elle est invalide, une valeur par défaut sera utilisée.
+:type user_permissions: List[str], optional
+:param user_role: Rôle utilisateur spécifié, parmi les options suivantes: 'public', 'employee',
+ou 'admin'. Si le rôle fourni est invalide ou manquant, une valeur par défaut sera attribuée.
+:type user_role: str
+:return: Une instance de Chatbot configurée selon les permissions et rôle utilisateur.
+:rtype: ChatbotMarocV2Simplified
+:raises FileNotFoundError: Si la base vectorielle (Chroma DB) ne peut pas être localisée.
+:raises ImportError: Si les modules requis pour l'IA ne sont pas trouvés dans le projet.
+:raises Exception: Pour toute erreur non spécifiée qui survient durant l'initialisation du
+chatbot.</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Lance le programme principal. Cette fonction initialise une boucle événementielle
+asynchrone, exécute la fonction principale asynchrone et gère les exceptions
+critiques, le cas échéant.</p>
+<p>:raises Exception: Si une erreur critique survient lors de l'exécution du code
+asynchrone ou de la configuration de la boucle.
+:return: Aucun</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.main_async"><code class="name flex">
+<span>async def <span class="ident">main_async</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fonction asynchrone principale qui orchestre le traitement backend avec gestion des permissions,
+historique utilisateur, et communication via MCP ou fallback HTTP. Valide les arguments JWT,
+initialise les composants nécessaires comme le chatbot avec permissions, traite les messages
+en tenant compte de l'historique, et gère la communication des réponses progressives et finales.</p>
+<p>La fonction inclut également une gestion robuste des erreurs et un nettoyage de l'environnement
+systématique en cas d'exception.</p>
+<p>:return: Un booléen indiquant le succès ou l'échec du traitement global
+:rtype: bool</p>
+<p>:raises Exception: En cas d'erreur inattendue pendant l'exécution</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.process_question_with_permissions"><code class="name flex">
+<span>async def <span class="ident">process_question_with_permissions</span></span>(<span>chatbot,<br>question: str,<br>session_id: str,<br>user_permissions: List[str] | None,<br>username: str = None,<br>email: str = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Traite une question en utilisant les permissions utilisateur et un historique
+associé. Cette fonction permet une gestion adaptative des entrées manquantes
+et fait appel à la méthode <code>poser_question_with_permissions</code> du chatbot
+fourni.</p>
+<p>:param chatbot: Instance de chatbot, contenant la méthode
+<code>poser_question_with_permissions</code>.
+:type chatbot: objet
+:param question: Question textuelle à traiter.
+:type question: str
+:param session_id: Identifiant unique de session utilisé pour le suivi et les
+logs.
+:type session_id: str
+:param user_permissions: Liste optionnelle des permissions utilisateur qui
+déterminent les autorisations disponibles. Si elle est <code>None</code>, une valeur
+par défaut de <code>["read_public_docs"]</code> sera appliquée.
+:type user_permissions: Optional[List[str]]
+:param username: Nom d'utilisateur facultatif associé à la requête. Si absent,
+un nom par défaut sera généré basé sur l'identifiant de session.
+:type username: str, optional
+:param email: Adresse email facultative de l'utilisateur. Si absente, une valeur
+par défaut sera construite à partir du nom d'utilisateur.
+:type email: str, optional
+:return: Réponse textuelle générée par le chatbot en fonction des données et
+permissions fournies.
+:rtype: str</p>
+<p>:raises ValueError: Si la question est vide ou invalide.
+:raises AttributeError: Si le chatbot ne contient pas la méthode
+<code>poser_question_with_permissions</code>.
+:raises Exception: Pour toute autre erreur non prévue durant le traitement de
+la question ou l'exécution de la méthode du chatbot.</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.send_error"><code class="name flex">
+<span>async def <span class="ident">send_error</span></span>(<span>session_id: str, error: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Envoie un message d'erreur pour une session donnée. Cette fonction utilise le service MCP, et en cas
+d'indisponibilité ou d'échec de MCP, elle effectue un fallback HTTP pour transmettre l'erreur.</p>
+<p>:param session_id: L'identifiant de session pour laquelle envoyer le message d'erreur.
+:type session_id: str
+:param error: Le message d'erreur à transmettre.
+:type error: str
+:return: Renvoie True si l'envoi réussit (via MCP ou fallback HTTP), sinon False.
+:rtype: bool
+:raises Exception: Exception levée si une erreur survient durant le processus MCP.</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.send_final"><code class="name flex">
+<span>async def <span class="ident">send_final</span></span>(<span>session_id: str, message: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Envoie un message final à une session donnée en utilisant MCP si disponible, sinon
+utilise un système de repli basé sur HTTP. Cette fonction gère les erreurs et
+les exceptions pour assurer une méthode d'envoi fiable.</p>
+<p>:param session_id: Identifiant unique de la session.
+:type session_id: str
+:param message: Message à envoyer, limité à 50 caractères pour l'affichage.
+:type message: str
+:return: Retourne True si l'envoi a réussi, False sinon.
+:rtype: bool
+:raises Exception: Si une erreur est rencontrée lors de la tentative d'envoi via MCP.</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.send_log"><code class="name flex">
+<span>async def <span class="ident">send_log</span></span>(<span>session_id: str, log_message: str, log_level: str = 'INFO') ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Envoie un message de log à un service MCP ou à stderr si MCP n'est pas
+disponible. Cette fonction permet de journaliser les messages d'une session
+avec un certain niveau de gravité.</p>
+<p>:param session_id: Identifiant unique de la session.
+:type session_id: str
+:param log_message: Message à enregistrer dans les logs.
+:type log_message: str
+:param log_level: Niveau de gravité du log (par défaut : "INFO").
+:type log_level: str
+:return: True si le message a été enregistré avec succès, False en cas
+d’échec.
+:rtype: bool</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.send_progress"><code class="name flex">
+<span>async def <span class="ident">send_progress</span></span>(<span>session_id: str, message: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cette fonction envoie un message de progression associé à une session donnée en utilisant
+le protocole MCP si disponible. Si MCP est indisponible ou que l'envoi échoue, un fallback
+via HTTP est utilisé.</p>
+<p>:param session_id: L'identifiant de la session associée au message.
+:type session_id: str
+:param message: Le message de progression à envoyer, limité à 50 caractères pour l'affichage.
+:type message: str
+:return: True si l'envoi a été un succès via MCP ou fallback HTTP, False sinon.
+:rtype: bool
+:raises Exception: Si une erreur inattendue survient durant l'envoi via MCP, qui mène
+ensuite au fallback HTTP.</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.send_via_http_fallback"><code class="name flex">
+<span>async def <span class="ident">send_via_http_fallback</span></span>(<span>session_id: str, message_type: str, content: str) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Envoie un message via une méthode de repli HTTP (fallback) à une URL spécifiée. </p>
+<p>Cette fonction utilise une requête HTTP POST pour transmettre un message
+spécifié avec un type et un contenu donnés, ainsi qu'un identifiant de session.
+Elle permet de gérer des alternatives de communication via une configuration
+de secours HTTP. Les données incluent également des métadonnées ajoutées pour le
+suivi et l'identification de la source.</p>
+<p>:param session_id: Identifiant unique de la session.
+:type session_id: str
+:param message_type: Type du message qui est transmis (par exemple "texte" ou "notification").
+:type message_type: str
+:param content: Contenu du message qui doit être envoyé.
+:type content: str</p>
+<p>:return: Un booléen qui indique si l'envoi via HTTP fallback a réussi.
+:rtype: bool</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.setup_environment"><code class="name flex">
+<span>def <span class="ident">setup_environment</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configure l'environnement pour l'exécution du projet.</p>
+<p>Cette fonction charge les variables d'environnement à partir d'un fichier
+.env s'il est disponible. Elle ajuste le répertoire courant si le
+répertoire du projet est défini dans les variables d'environnement,
+et configure le système de logging pour des journaux d'informations
+plus détaillés. Si une erreur se produit lors de la configuration,
+un message d'erreur est affiché, et la valeur de retour sera <code>None</code>.</p>
+<p>:return: Le chemin d'origine du répertoire courant avant tout changement
+effectué par la fonction, ou <code>None</code> en cas d'erreur.
+:rtype: Optional[str]</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.setup_mcp_path"><code class="name flex">
+<span>def <span class="ident">setup_mcp_path</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configure le chemin pour le module <code>mcp_client_utils</code>.</p>
+<p>Cette fonction cherche le fichier <code>mcp_client_utils.py</code> dans différents répertoires
+parents du répertoire actuel et, si trouvé, ajoute automatiquement son chemin
+au <code>sys.path</code> pour permettre son importation. Cela facilite le chargement d'un module
+qui peut ne pas être dans le chemin courant ou sur le chemin par défaut de Python.</p>
+<p>:raises FileNotFoundError: Si le fichier <code>mcp_client_utils.py</code> n'est pas trouvé
+dans les répertoires spécifiés ou dans l'emplacement défini en dur.</p>
+<p>:return: Un booléen indiquant si le fichier <code>mcp_client_utils.py</code> a été trouvé
+et le chemin correctement ajouté au <code>sys.path</code>.
+:rtype: bool</p></div>
+</dd>
+<dt id="backend_python.chatbot_wrapper.valider_arguments_jwt"><code class="name flex">
+<span>def <span class="ident">valider_arguments_jwt</span></span>(<span>args)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Valide les arguments fournis pour JWT et structure les données en fonction des paramètres
+saisis. Cette fonction assure la robustesse de la validation et structure également les
+permissions, rôles et données associés à l'utilisateur, tels que le nom d'utilisateur et
+l'email.</p>
+<p>La méthode accepte les paramètres transmis dans une liste d'arguments et renvoie un
+dictionnaire contenant des informations validées ainsi qu'un indicateur d'erreur en
+cas d'échec.</p>
+<p>Sections du traitement:
+- Validation et extraction de la question utilisateur.
+- Validation de l'identifiant de session (<code>session_id</code>).
+- Parsing et validation des permissions associées à l'utilisateur.
+- Validation et résolution du rôle utilisateur.
+- Gestion des cas où le nom d'utilisateur ou l'email ne sont pas valides ou manquent.</p>
+<p>:param args: Liste des arguments. Elle doit inclure au minimum les informations suivantes
+(dans cet ordre): la question utilisateur (<code>&lt;question&gt;</code>), l'identifiant de session
+(<code>&lt;session_id&gt;</code>), les permissions utilisateur (<code>&lt;permissions&gt;</code>), le rôle utilisateur
+(<code>&lt;role&gt;</code>), le nom de l'utilisateur (<code>&lt;username&gt;</code>) et l'email (<code>&lt;email&gt;</code>).
+:type args: list</p>
+<p>:return: Dictionnaire contenant les informations validées ou un message d'erreur.
+:rtype: dict</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="backend_python" href="index.html">backend_python</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="backend_python.chatbot_wrapper.initialize_chatbot_with_permissions" href="#backend_python.chatbot_wrapper.initialize_chatbot_with_permissions">initialize_chatbot_with_permissions</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.main" href="#backend_python.chatbot_wrapper.main">main</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.main_async" href="#backend_python.chatbot_wrapper.main_async">main_async</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.process_question_with_permissions" href="#backend_python.chatbot_wrapper.process_question_with_permissions">process_question_with_permissions</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.send_error" href="#backend_python.chatbot_wrapper.send_error">send_error</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.send_final" href="#backend_python.chatbot_wrapper.send_final">send_final</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.send_log" href="#backend_python.chatbot_wrapper.send_log">send_log</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.send_progress" href="#backend_python.chatbot_wrapper.send_progress">send_progress</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.send_via_http_fallback" href="#backend_python.chatbot_wrapper.send_via_http_fallback">send_via_http_fallback</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.setup_environment" href="#backend_python.chatbot_wrapper.setup_environment">setup_environment</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.setup_mcp_path" href="#backend_python.chatbot_wrapper.setup_mcp_path">setup_mcp_path</a></code></li>
+<li><code><a title="backend_python.chatbot_wrapper.valider_arguments_jwt" href="#backend_python.chatbot_wrapper.valider_arguments_jwt">valider_arguments_jwt</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

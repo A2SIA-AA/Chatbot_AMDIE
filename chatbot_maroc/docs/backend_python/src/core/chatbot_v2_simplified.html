@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>backend_python.src.core.chatbot_v2_simplified API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>backend_python.src.core.chatbot_v2_simplified</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified"><code class="flex name class">
+<span>class <span class="ident">ChatbotMarocV2Simplified</span></span>
+<span>(</span><span>rag_index,<br>user_permissions: List[str] = None,<br>user_role: str = 'guest',<br>settings=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Classe représentant un chatbot avancé avec une architecture simplifiée et une gestion
+unifiée pour les flux Excel et PDF. Ce chatbot est conçu pour offrir une expérience
+utilisateur personnalisée en fonction des permissions et du rôle des utilisateurs.</p>
+<p>:ivar settings: Configuration globale utilisée par le chatbot.
+:type settings: dict
+:ivar rag: Index RAG existant pour gérer les données de type Retrieval-Augmented Generation.
+:type rag: RAGIndex
+:ivar logger: Instance de journalisation pour les événements du chatbot.
+:type logger: Logger
+:ivar perf_logger: Instance utilisée pour enregistrer les performances.
+:type perf_logger: PerformanceLogger
+:ivar gemini_model: Modèle generatif Gemini utilisé pour le traitement des données et les réponses.
+:type gemini_model: GenerativeModel
+:ivar user_permissions: Liste des permissions utilisateur actuellement en cours.
+:type user_permissions: list[str]
+:ivar user_role: Rôle de l'utilisateur (exemple: public, employé, administrateur).
+:type user_role: str
+:ivar pandas_agent: Agent Panda pour intégrer la manipulation de dataframe avec Gemini.
+:type pandas_agent: SimplePandasAgent
+:ivar rag_agent: Agent RAG utilisé pour la récupération et le traitement des informations.
+:type rag_agent: RAGAgentUnified
+:ivar selector_agent: Agent de sélection unifié pour les documents et les informations.
+:type selector_agent: SelectorAgentUnified
+:ivar analyzer_agent: Agent d'analyse unifié pour traiter les données complexes.
+:type analyzer_agent: AnalyzerAgentUnified
+:ivar code_agent: Agent de génération de code pour exécuter des calculs nécessaires.
+:type code_agent: CodeAgent
+:ivar synthesis_agent: Agent de synthèse pour générer des réponses finales après traitement.
+:type synthesis_agent: SynthesisAgent
+:ivar graph: Graphe ultra-simplifié représentant le flux de travail entre agents.
+:type graph: StateGraph</p>
+<p>Initialise une instance de Chatbot V2 Simplifié avec les agents et
+configurations nécessaires pour fournir des fonctionnalités unifiées
+et robustes. Le système inclut la gestion des permissions utilisateur
+ainsi qu'une configuration adaptative basée sur les paramètres fournis.</p>
+<h2 id="attributes">Attributes</h2>
+<p>rag_index : Objet RAG utilisé comme index principal dans les agents
+du chatbot.
+user_permissions : Liste des permissions accordées à l'utilisateur.
+Si aucune permission n'est spécifiée, une valeur par défaut sera
+utilisée.
+user_role : Rôle de l'utilisateur, déterminant ses privilèges au sein
+du système. Le rôle par défaut est "guest".
+settings : Configuration à inclure pour le système. Si non spécifiée,
+une configuration par défaut sera générée.
+:param rag_index: Index RAG utilisé pour différentes opérations.
+:param user_permissions: Liste des permissions autorisées pour l'utilisation.
+Peut être <code>None</code>, dans ce cas une valeur par défaut sera appliquée.
+:param user_role: Rôle de l'utilisateur sous forme de chaîne de caractères,
+comme "admin", "editor", ou "guest". La valeur par défaut est "guest".
+:param settings: Configuration système optionnelle. Si non fournie, une
+configuration générée dynamiquement sera utilisée.</p></div>
+<h3>Methods</h3>
+<dl>
+<dt id="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.get_user_conversation_history"><code class="name flex">
+<span>def <span class="ident">get_user_conversation_history</span></span>(<span>self, username: str, email: str, limit: int = 10) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Récupère l'historique des conversations d'un utilisateur dans les dernières 24 heures, ainsi que
+les statistiques et le contexte pour une IA. Si une erreur se produit, retourne des données par
+défaut avec un message d'erreur.</p>
+<p>:param username: Identifiant de l'utilisateur pour lequel récupérer les données
+:param email: Adresse e-mail de l'utilisateur
+:param limit: Nombre maximum de conversations à retourner (par défaut : 10)
+:type username: str
+:type email: str
+:type limit: int
+:return: Dictionnaire contenant les informations suivantes :
+- username : Identifiant de l'utilisateur
+- email : Adresse e-mail de l'utilisateur
+- conversations : Liste des conversations de l'utilisateur
+- stats : Statistiques des conversations, incluant le nombre total
+et celui des dernières 24 heures
+- context_for_ai : Contexte condensé des conversations pour une IA
+- total_returned : Nombre total de conversations retournées
+- error : Message d'erreur en cas de problème
+:rtype: dict</p></div>
+</dd>
+<dt id="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question"><code class="name flex">
+<span>def <span class="ident">poser_question</span></span>(<span>self, question: str, username: str = None, email: str = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pose une question en vérifiant les permissions et les informations de l'utilisateur.</p>
+<p>La méthode permet de poser une question en optionnant les informations associées,
+comme le nom d'utilisateur ou l'e-mail. L'interaction sous-jacente contrôle les
+permissions et agit en conséquence pour admettre ou refuser l'opération.</p>
+<p>:param question: Question à poser.
+:type question: str
+:param username: Nom d'utilisateur facultatif. Si présent, il est utilisé pour
+associer la question à ce compte.
+:type username: str, optionnel
+:param email: Adresse e-mail facultative. Peut être utilisée pour contacter ou
+identifier le demandeur.
+:type email: str, optionnel
+:return: Une chaîne représentant la réponse du système ou une confirmation.
+:rtype: str</p></div>
+</dd>
+<dt id="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_id"><code class="name flex">
+<span>def <span class="ident">poser_question_id</span></span>(<span>self,<br>question: str,<br>session_id: str = None,<br>username: str = None,<br>email: str = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pose une question en tenant compte des autorisations de l'utilisateur.</p>
+<p>Cette méthode enrobe un appel à une méthode interne en fournissant les autorisations
+de l'utilisateur pour poser une question. Elle permet de passer divers paramètres
+liés à la question et à l'utilisateur.</p>
+<p>:param question: La question à poser.
+:type question: str
+:param session_id: Identifiant de session, optionnel.
+:type session_id: str, optionnel
+:param username: Nom d'utilisateur, optionnel.
+:type username: str, optionnel
+:param email: Adresse email de l'utilisateur, optionnelle.
+:type email: str, optionnel
+:return: Une chaîne représentant le statut ou le résultat de la question posée.
+:rtype: str</p></div>
+</dd>
+<dt id="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_with_permissions"><code class="name flex">
+<span>def <span class="ident">poser_question_with_permissions</span></span>(<span>self,<br>question: str,<br>session_id: str = None,<br>user_permissions: List[str] = None,<br>username: str = None,<br>email: str = None) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Fournit une réponse enrichie à une question en utilisant les permissions
+et les informations spécifiques à l'utilisateur. Cette méthode prend en compte
+des données sensibles comme le rôle de l'utilisateur et ses permissions, et
+met en œuvre une analyse approfondie avant de générer une réponse finale.
+Elle permet également de sauvegarder les conversations dans une base de
+données si les informations d'utilisateur sont fournies.</p>
+<p>:param question: La question posée par l'utilisateur.
+:type question: str
+:param session_id: Identifiant de session pour suivre l'interaction.
+:type session_id: str, facultatif
+:param user_permissions: Liste des permissions utilisateur à utiliser.
+Si non spécifié, les permissions par défaut de l'utilisateur sont utilisées.
+:type user_permissions: List[str], facultatif
+:param username: Nom d'utilisateur de l'individu interactant avec le système.
+:type username: str, facultatif
+:param email: Adresse e-mail de l'utilisateur permettant de sauvegarder
+l'historique des conversations.
+:type email: str, facultatif
+:return: Une réponse enrichie basée sur la question et le contexte utilisateur.
+:rtype: str
+:raises Exception: Peut lever une exception en cas d'erreur dans le traitement
+ou la sauvegarde des données de conversation.</p></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="backend_python.src.core" href="index.html">backend_python.src.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified" href="#backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified">ChatbotMarocV2Simplified</a></code></h4>
+<ul class="">
+<li><code><a title="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.get_user_conversation_history" href="#backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.get_user_conversation_history">get_user_conversation_history</a></code></li>
+<li><code><a title="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question" href="#backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question">poser_question</a></code></li>
+<li><code><a title="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_id" href="#backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_id">poser_question_id</a></code></li>
+<li><code><a title="backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_with_permissions" href="#backend_python.src.core.chatbot_v2_simplified.ChatbotMarocV2Simplified.poser_question_with_permissions">poser_question_with_permissions</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

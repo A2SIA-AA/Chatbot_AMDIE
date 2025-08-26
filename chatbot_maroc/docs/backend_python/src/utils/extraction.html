@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>backend_python.src.utils.extraction API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>backend_python.src.utils.extraction</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="backend_python.src.utils.extraction.analyze_directory_structure"><code class="name flex">
+<span>def <span class="ident">analyze_directory_structure</span></span>(<span>data_dir: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Analyse la structure d'un répertoire pour catégoriser les fichiers Excel (.xlsx) en
+fonction de leur niveau d'accès, type de document, et permissions requises.</p>
+<p>Cette fonction scanne le répertoire spécifié et détecte les fichiers Excel. Elle analyse
+chaque fichier pour déterminer son niveau d'accès, son type et ses attributs, puis regroupe
+ces informations dans un dictionnaire structuré. Elle affiche également une vue d'ensemble
+de cette structure avec le nombre de fichiers pour chaque niveau d'accès.</p>
+<p>:param data_dir: Chemin du répertoire à analyser
+:type data_dir: str
+:returns: Un dictionnaire contenant les fichiers catégorisés par niveau d'accès.
+Chaque clé représente un niveau d'accès et associe une liste de dictionnaires contenant
+des informations détaillées sur les fichiers.
+:rtype: dict[str, list[dict[str, str]]]</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.assign_titles_to_tables"><code class="name flex">
+<span>def <span class="ident">assign_titles_to_tables</span></span>(<span>sheet, blocks)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Assigne des titres aux tableaux extraits d'une feuille à partir des blocs
+fournis en paramètre. Cette fonction analyse et traite les blocs pour associer
+un contexte de titre à chaque tableau correspondant.</p>
+<p>:param sheet: La feuille de calcul (workbook) à analyser, contenant
+les données sources.
+:type sheet: Any
+:param blocks: Une liste de blocs décrivant les zones d’intérêt dans la
+feuille. Chaque bloc doit inclure des clés telles que 'min_row',
+'max_row', 'min_col' et 'max_col'.
+:type blocks: list[dict]
+:return: Une liste de dictionnaires représentant chaque tableau avec :
+- 'titre': Le titre contextuel associé au tableau, s'il est disponible.
+- 'tableau': Le tableau extrait de la feuille de calcul.
+- 'coordonnees': Les coordonnées (row et col) des limites des zones du
+tableau.
+:rtype: list[dict]</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.detect_access_level_from_path"><code class="name flex">
+<span>def <span class="ident">detect_access_level_from_path</span></span>(<span>file_path: str) ‑> tuple</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Détecte le niveau d'accès associé à un chemin de fichier, en se basant sur des règles prédéfinies.</p>
+<p>Ce module permet d'analyser un chemin donné pour en extraire un certain niveau d'accès,
+un type de document et une liste de permissions requises. Il traite à la fois les dossiers
+clés et cherche des correspondances avec des mots-clés dans les chemins normalisés.</p>
+<p>:param file_path: Le chemin complet du fichier à analyser.
+:type file_path: str
+:return: Une tupla contenant le niveau d'accès détecté (e.g. "public", "internal", "confidential"),
+le type de document associé (e.g. "public_data", "admin_data") ainsi que la liste
+des permissions nécessaires pour accéder au document.
+:rtype: tuple
+:raises ValueError: Une exception si le chemin fourni est invalide ou mal formé.</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.enrich_metadata_with_permissions"><code class="name flex">
+<span>def <span class="ident">enrich_metadata_with_permissions</span></span>(<span>metadata: dict, file_path: str) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cette fonction enrichit un dictionnaire de métadonnées prédéfini en y ajoutant des informations
+liées aux permissions ainsi que des données contextuelles extraites du chemin du fichier.</p>
+<p>:param metadata: Le dictionnaire contenant les métadonnées de base.
+:type metadata: dict
+:param file_path: Le chemin absolu du fichier utilisé pour déterminer les permissions
+associées et les métadonnées complémentaires.
+:type file_path: str
+:return: Un dictionnaire contenant les métadonnées originales augmentées avec des champs
+relatifs aux permissions et des informations contextuelles.
+:rtype: dict</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.extract_all_files_in_directory"><code class="name flex">
+<span>def <span class="ident">extract_all_files_in_directory</span></span>(<span>data_dir: str, output_base: str = 'output')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extrait tous les fichiers Excel d'un répertoire donné, les traite et enregistre les résultats
+au format JSON dans un répertoire de sortie spécifié. Cette fonction recherche
+de manière récursive les fichiers ayant une extension <code>.xlsx</code> dans le répertoire de données.</p>
+<p>L'extraction de chaque fichier est réalisée en appelant une autre fonction,
+et tout problème lors du traitement des fichiers individuels sera signalé
+sans interrompre l'exécution de la fonction pour les autres fichiers.</p>
+<p>:param data_dir: Chemin du répertoire contenant les fichiers Excel à extraire.
+:param output_base: Chemin de base où les fichiers JSON extraits seront générés. Par défaut "output".
+:return: Aucun retour de valeur. Les résultats sont enregistrés dans le répertoire de sortie.</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.extract_pdf_text"><code class="name flex">
+<span>def <span class="ident">extract_pdf_text</span></span>(<span>pdf_path)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extrait le texte des fichiers PDF dans un répertoire donné, en résumant leur contenu et
+enrichissant les données avec des métadonnées comme le niveau d'accès, le type de document et
+les permissions nécessaires.</p>
+<p>Cette fonction analyse chaque fichier PDF présent dans le chemin fourni, génère un résumé
+structuré en format JSON, et l'enregistre sur disque avec les métadonnées pertinentes.</p>
+<p>:param pdf_path: Chemin du répertoire à analyser. Seuls les fichiers PDF présents dans ce
+répertoire seront traités.
+:type pdf_path: str
+:return: Une chaîne indiquant que l'extraction des PDF est terminée.
+:rtype: str
+:raises Exception: Si une erreur survient lors du traitement des fichiers PDF ou de la
+génération des résumés.</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.extract_table"><code class="name flex">
+<span>def <span class="ident">extract_table</span></span>(<span>sheet, block)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Extrait une table d'une feuille donnée en fonction des limites définies par un bloc.
+La fonction lit les cellules correspondantes dans la feuille et retourne une liste
+représentant la table.</p>
+<p>:param sheet: Objet représentant la feuille depuis laquelle la table sera extraite.
+Devrait fournir un accès aux cellules grâce à une méthode cell().
+:param block: Dictionnaire contenant les limites de la table à extraire. Les clefs
+attendues sont "min_row", "max_row", "min_col", "max_col".
+:return: Liste représentant la table extraite. Chaque sous-liste représente une ligne
+de la table, remplie par les valeurs des cellules correspondantes.</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.find_blocks"><code class="name flex">
+<span>def <span class="ident">find_blocks</span></span>(<span>matrix)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Analyse une matrice pour identifier des blocs connectés et renvoie des informations
+sur les positions et les limites de ces blocs. Un bloc est défini comme un groupe
+de cellules connectées adjacentes (horizontalement, verticalement ou en diagonale).</p>
+<p>:param matrix: Une matrice binaire où les cellules valorisées à 1 représentent des
+éléments d'un bloc.
+:type matrix: numpy.ndarray
+:return: Une liste de dictionnaires représentant chaque bloc. Chaque dictionnaire
+contient les informations suivantes :
+- "min_row" : L'indice de la première ligne occupée par le bloc.
+- "max_row" : L'indice de la dernière ligne occupée par le bloc.
+- "min_col" : L'indice de la première colonne occupée par le bloc.
+- "max_col" : L'indice de la dernière colonne occupée par le bloc.
+- "positions" : Un tableau numpy contenant les positions (lignes, colonnes)
+de chaque cellule du bloc.
+:rtype: list[dict]</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.full_extraction_to_json"><code class="name flex">
+<span>def <span class="ident">full_extraction_to_json</span></span>(<span>xlsx_path, output_base)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Effectue l'extraction complète de données d'un fichier Excel au format JSON dans un
+répertoire de base donné. Les feuilles, tableaux, et métadonnées associées sont
+analysés et sauvegardés en conséquence. En outre, un index global est généré, avec
+des statistiques sur le niveau d'accès détecté.</p>
+<p>:param xlsx_path: Chemin vers le fichier Excel source
+:param output_base: Répertoire de base où les fichiers JSON extraits seront sauvegardés
+:return: Aucun</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.is_title_block"><code class="name flex">
+<span>def <span class="ident">is_title_block</span></span>(<span>table)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Détermine si un tableau donné peut être considéré comme un bloc de titre.</p>
+<p>Cette fonction permet d'identifier si un tableau spécifique contient une rangée unique qui
+peut être interprétée comme un bloc de titre, en se basant sur les critères suivants :
+- Le tableau doit comporter une seule ligne.
+- Chaque cellule de cette ligne, si elle contient une chaîne, doit avoir une longueur
+minimale une fois les espaces inutiles supprimés.</p>
+<p>:param table: Liste bidimensionnelle représentant un tableau. Chaque entrée de la liste
+externe représente une ligne, et chaque élément dans cette ligne représente
+une cellule.
+:type table: list[list[Any]]
+:return: Retourne True si le tableau est un bloc de titre, sinon False.
+:rtype: bool</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.nettoyer_json"><code class="name flex">
+<span>def <span class="ident">nettoyer_json</span></span>(<span>texte)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Nettoie un texte en supprimant les délimitations spécifiques des blocs
+de code JSON (<code>json et les</code>) ainsi que les espaces ou lignes vides
+supplémentaires autour du contenu.</p>
+<p>Cela permet d'extraire uniquement le contenu JSON brut pour un traitement
+ultérieur.</p>
+<p>:param texte: Chaîne de caractères contenant potentiellement un bloc de
+code JSON entouré de délimitations <code>json ou</code> à nettoyer.
+:returns: Chaîne de caractères représentant le contenu JSON nettoyé,
+sans délimitations ni espaces superflus.</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.safe_filename"><code class="name flex">
+<span>def <span class="ident">safe_filename</span></span>(<span>s)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Renvoie une version sécurisée d'une chaîne donnée à utiliser comme nom de fichier.
+Supprime ou remplace les caractères non valides afin de garantir la compatibilité du nom avec
+les systèmes de fichiers.</p>
+<p>:param s: La chaîne d'entrée à sécuriser.
+:type s: str
+:return: Une version sécurisée de la chaîne d'entrée contenant uniquement des caractères alphanumériques,
+des espaces, des points (.), des traits d'union (-) et des traits de soulignement (_).
+:rtype: str</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.save_table_json"><code class="name flex">
+<span>def <span class="ident">save_table_json</span></span>(<span>table, meta, output_dir, idx)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sauvegarde une table et ses métadonnées au format JSON dans un répertoire
+donné. Cette fonction génère un fichier JSON spécifique pour chaque table
+et inclut un indicateur visuel basé sur le niveau d'accès des métadonnées.</p>
+<p>:param table: Les données de la table à sauvegarder dans le fichier JSON.
+:type table: dict
+:param meta: Les métadonnées associées à la table, contenant au minimum le
+champ "access_level" avec des valeurs possibles telles que
+"public", "internal" ou "confidential".
+:type meta: dict
+:param output_dir: Le répertoire où le fichier JSON doit être sauvegardé.
+:type output_dir: str
+:param idx: Indice utilisé pour nommer le fichier, sous un format à trois
+chiffres (ex : 001, 002&hellip;).
+:type idx: int
+:return: Chemin complet du fichier JSON généré.
+:rtype: str</p></div>
+</dd>
+<dt id="backend_python.src.utils.extraction.sheet_to_presence_matrix"><code class="name flex">
+<span>def <span class="ident">sheet_to_presence_matrix</span></span>(<span>sheet)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Convertit une feuille de calcul en une matrice de présence.</p>
+<p>La fonction parcourt chaque cellule d'une feuille de calcul et crée une matrice
+de présence où chaque cellule contenant une valeur non nulle ou non vide est
+représentée par un <code>1</code> et les autres par un <code>0</code>.</p>
+<p>:param sheet: La feuille de calcul à convertir.
+:type sheet: openpyxl.worksheet.worksheet.Worksheet
+:return: Une matrice de présence (tableau Numpy) représentant les données
+de la feuille.
+:rtype: numpy.ndarray</p></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="backend_python.src.utils" href="index.html">backend_python.src.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="backend_python.src.utils.extraction.analyze_directory_structure" href="#backend_python.src.utils.extraction.analyze_directory_structure">analyze_directory_structure</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.assign_titles_to_tables" href="#backend_python.src.utils.extraction.assign_titles_to_tables">assign_titles_to_tables</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.detect_access_level_from_path" href="#backend_python.src.utils.extraction.detect_access_level_from_path">detect_access_level_from_path</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.enrich_metadata_with_permissions" href="#backend_python.src.utils.extraction.enrich_metadata_with_permissions">enrich_metadata_with_permissions</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.extract_all_files_in_directory" href="#backend_python.src.utils.extraction.extract_all_files_in_directory">extract_all_files_in_directory</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.extract_pdf_text" href="#backend_python.src.utils.extraction.extract_pdf_text">extract_pdf_text</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.extract_table" href="#backend_python.src.utils.extraction.extract_table">extract_table</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.find_blocks" href="#backend_python.src.utils.extraction.find_blocks">find_blocks</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.full_extraction_to_json" href="#backend_python.src.utils.extraction.full_extraction_to_json">full_extraction_to_json</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.is_title_block" href="#backend_python.src.utils.extraction.is_title_block">is_title_block</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.nettoyer_json" href="#backend_python.src.utils.extraction.nettoyer_json">nettoyer_json</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.safe_filename" href="#backend_python.src.utils.extraction.safe_filename">safe_filename</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.save_table_json" href="#backend_python.src.utils.extraction.save_table_json">save_table_json</a></code></li>
+<li><code><a title="backend_python.src.utils.extraction.sheet_to_presence_matrix" href="#backend_python.src.utils.extraction.sheet_to_presence_matrix">sheet_to_presence_matrix</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

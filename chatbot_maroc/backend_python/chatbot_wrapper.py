@@ -19,6 +19,8 @@ from typing import List, Optional
 # ========================================
 # CONFIGURATION ET SETUP
 # ========================================
+def __init__():
+    pass
 
 def setup_environment():
     """
