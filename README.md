@@ -6,7 +6,7 @@ Ce projet est un **assistant intelligent à base d’IA**, conçu pour répondre
 
 L’objectif est de **centraliser les connaissances** issues de fichiers hétérogènes (PDF, Excel) afin de **réduire la charge des équipes** tout en garantissant des réponses traçables, sécurisées et adaptées au rôle de l’utilisateur.
 
-Projet réalisé dans le cadre d’un **stage de 4ᵉ année ingénieur** à l’AMDIE (INSA Rouen – Génie Mathématiques).
+Projet réalisé dans le cadre d’un **stage de 4ᵉ année d’ingénieur** à l’AMDIE (INSA Rouen - Génie Mathématiques).
 
 
 ---
