@@ -1,12 +1,12 @@
-# `backend_python/` — Backend IA du Chatbot AMDIE
+# `backend_python/` - Backend IA du Chatbot AMDIE
 
-Ce module constitue la **colonne vertébrale intelligente** du projet de chatbot RAG développé à l’AMDIE. Il s'appuie sur une **architecture multi-agent** orchestrée par **LangGraph** pour traiter dynamiquement les requêtes utilisateur, en exploitant un LLM (**Gemini**) et une base vectorielle (**ChromaDB**).
+Ce module constitue la **colonne vertébrale intelligente** du projet de chatbot RAG. Il s'appuie sur une **architecture multi-agent** orchestrée par **LangGraph** pour traiter dynamiquement les requêtes utilisateur, en exploitant un LLM (**Gemini**) et une base vectorielle (**ChromaDB**).
 
 Le backend est exécuté **à la demande** via le **serveur MCP**, et il s’adapte automatiquement :
 
 * aux **droits d’accès** de l’utilisateur (`public`, `salarie`, `admin`),
-* à la **typologie des fichiers rencontrés** (PDF, Excel, Word, HTML…),
-* au **contexte métier** de la requête posée.
+* à la **typologie des fichiers rencontrés** (PDF, Excel),
+* au **contexte** de la requête posée.
 
 ---
 
@@ -19,7 +19,7 @@ Avant de pouvoir exécuter le backend, les éléments suivants doivent être ins
 * **ChromaDB** (serveur local ou intégré)
 * **SentenceTransformers** (`all-MiniLM-L6-v2` pour les embeddings)
 * **Google Generative AI SDK** (Gemini)
-* **pandas**, **numpy**, **PyMuPDF**, **python-docx**, **beautifulsoup4** (pour l’analyse de fichiers)
+* **pandas**, **numpy**, **PyMuPDF**
 * **SQLite** (utilisé via `memory_store.py`)
 * **Clé API Gemini** 
 * **Connexion avec le serveur MCP** opérationnelle (`mcp.run(...)`)
@@ -27,7 +27,7 @@ Avant de pouvoir exécuter le backend, les éléments suivants doivent être ins
 Installation des dépendances :
 
 ```bash
-pip install -r requirements.txt
+pip install -r ../requirements.txt
 ```
 
 ---
@@ -36,7 +36,7 @@ pip install -r requirements.txt
 
 Ce backend permet :
 
-* L’analyse sémantique ou tabulaire de documents hétérogènes.
+* L’analyse par similitude de documents hétérogènes.
 * L’indexation structurée dans **ChromaDB**, enrichie de métadonnées.
 * La **génération de réponses contextuelles**, fiables, et traçables.
 * Le **filtrage d’accès par permissions**, à chaque étape du pipeline.
@@ -51,9 +51,9 @@ Le cœur du backend est défini dans `chatbot_v2_simplified.py`, avec un **graph
 
 | Agent                  | Rôle                                                             |
 | ---------------------- | ---------------------------------------------------------------- |
-| `RAGAgentUnified`      | Recherche sémantique vectorielle dans ChromaDB                   |
+| `RAGAgentUnified`      | Recherche par similitude vectorielle dans ChromaDB               |
 | `SelectorAgentUnified` | Sélection des documents ou tableaux pertinents                   |
-| `AnalyzerAgentUnified` | Analyse sémantique de texte ou de tableaux Excel                 |
+| `AnalyzerAgentUnified` | Analyse sémantique de texte et/ou de tableaux Excel              |
 | `CodeAgent`            | Génération de code Python (via LLM) pour traitement personnalisé |
 | `SimplePandasAgent`    | Exécution de traitements numériques simples sur les tableaux     |
 | `SynthesisAgent`       | Rédaction finale de la réponse enrichie des sources (Gemini)     |
@@ -72,7 +72,7 @@ Le cœur du backend est défini dans `chatbot_v2_simplified.py`, avec un **graph
 | `pandas_agent.py`           | Exécution via pandas des formules ou calculs simples             |
 | `synthesis_agent.py`        | Agent de synthèse finale (réponse contextualisée avec sources)   |
 | `memory_store.py`           | Historisation des échanges dans `conversations.db`               |
-| `data/`                     | Fichiers bruts (`PDF`, `XLSX`, etc.), classés par niveau d’accès |
+| `data/`                     | Fichiers bruts (`PDF`, `XLSX`), classés par niveau d’accès       |
 | `output/`                   | Données structurées extraites au format `.json`                  |
 | `logs/`                     | Traces de traitement, erreurs et messages systèmes               |
 | `config/`                   | Configuration générale et du logger                              |
@@ -151,4 +151,4 @@ graph TD
 ## Auteur
 
 Projet conçu et développé par **Assia AIT TALEB**
-Stage ingénieur 4A – INSA Rouen Normandie – AMDIE (2025)
+Stage ingénieur 4A - INSA Rouen Normandie - AMDIE (2025)
