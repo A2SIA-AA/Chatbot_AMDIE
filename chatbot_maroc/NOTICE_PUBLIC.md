@@ -1,4 +1,4 @@
-#  Notice Utilisateur – Profil Public
+#  Notice Utilisateur - Profil Public
 
 ##  Objectif
 Cette interface permet à un utilisateur public d'accéder à un chatbot intelligent qui répond à des questions à partir de documents publics indexés automatiquement.
