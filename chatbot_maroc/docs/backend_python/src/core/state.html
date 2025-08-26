@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.6">
+<title>backend_python.src.core.state API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source > summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible;min-width:max-content}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin:1em 0}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+/* Collapse source docstrings */
+setTimeout(() => {
+[...document.querySelectorAll('.hljs.language-python > .hljs-string')]
+.filter(el => el.innerHTML.length > 200 && ['"""', "'''"].includes(el.innerHTML.substring(0, 3)))
+.forEach(el => {
+let d = document.createElement('details');
+d.classList.add('hljs-string');
+d.innerHTML = '<summary>"""</summary>' + el.innerHTML.substring(3);
+el.replaceWith(d);
+});
+}, 100);
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>backend_python.src.core.state</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="backend_python.src.core.state.ChatbotState"><code class="flex name class">
+<span>class <span class="ident">ChatbotState</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Représente l'état d'un chatbot avec les données pertinentes pour les interactions
+et calculs associés.</p>
+<p>Cette classe modélise les informations nécessaires pour l'interaction d'un chatbot
+avec l'utilisateur, y compris les questions posées, les documents pertinents
+trouvés, les calculs optionnels à réaliser, les réponses produites, ainsi que
+les données liées à l'historique et aux permissions utilisateur.</p>
+<p>:ivar question_utilisateur: Question originale posée par l'utilisateur.
+:type question_utilisateur: str
+:ivar tableaux_pertinents: Liste des 10 tableaux identifiés comme pertinents
+dans une recherche RAG.
+:type tableaux_pertinents: List[Dict]
+:ivar pdfs_pertinents: Liste des PDF identifiés comme pertinents pour la réponse.
+:type pdfs_pertinents: List[Dict]
+:ivar tableaux_charges: Données complètes des tableaux chargés pour utilisation.
+:type tableaux_charges: List[Dict]
+:ivar pdfs_charges: Données complètes des PDF chargés pour utilisation.
+:type pdfs_charges: List[Dict]
+:ivar tableaux_pour_upload: Tableaux sélectionnés pour être uploadés (entre 3 et 5).
+:type tableaux_pour_upload: List[Dict]
+:ivar pdfs_pour_upload: PDF sélectionnés pour être uploadés.
+:type pdfs_pour_upload: List[Dict]
+:ivar tableaux_reference: Liste complète de tous les tableaux trouvés qui peuvent
+être utilisés comme référence.
+:type tableaux_reference: List[Dict]
+:ivar explication_selection: Justification de la sélection des ressources par
+le mécanisme Gemini.
+:type explication_selection: Optional[str]
+:ivar reponse_analyseur_brute: Réponse brute produite par l'analyseur.
+:type reponse_analyseur_brute: Optional[str]
+:ivar reponse_analyseur_texte_brut: Version texte brut de la réponse de l'analyseur.
+:type reponse_analyseur_texte_brut: Optional[str]
+:ivar besoin_calculs: Indique si des calculs pandas sont nécessaires ou non.
+:type besoin_calculs: bool
+:ivar instruction_calcul: Instructions spécifiques pour effectuer les calculs pandas.
+:type instruction_calcul: Optional[str]
+:ivar code_pandas: Code pandas généré automatiquement par l'agent pour
+effectuer les calculs requis.
+:type code_pandas: Optional[str]
+:ivar algo_genere: Algorithme généré par l'agent d'analyse.
+:type algo_genere: Optional[str]
+:ivar dataframes: Liste des DataFrames pandas utilisés pour le traitement.
+:type dataframes: List[pd.DataFrame]
+:ivar resultat_pandas: Résultat de l'exécution du code pandas.
+:type resultat_pandas: Optional[Any]
+:ivar erreur_pandas: Message d'erreur produit si une exécution pandas échoue.
+:type erreur_pandas: Optional[str]
+:ivar reponse_finale: Réponse finale générée par le chatbot pour l'utilisateur.
+:type reponse_finale: str
+:ivar historique: Liste des étapes et logs pour une analyse de débogage.
+:type historique: List[str]
+:ivar fichiers_gemini: Liste des fichiers destinés à être uploadés au service Gemini.
+:type fichiers_gemini: List[Any]
+:ivar fichiers_csvs_local: Fichiers locaux utilisés pour faciliter le téléchargement
+vers Gemini.
+:type fichiers_csvs_local: List[Any]
+:ivar documents_trouves: Liste de tous les documents trouvés qui pourraient
+être pertinents.
+:type documents_trouves: List[Dict]
+:ivar documents_selectionnes: Liste des documents sélectionnés pour traitement,
+quel que soit leur type.
+:type documents_selectionnes: List[Dict]
+:ivar tableau_pour_calcul: Tableau spécifique sélectionné pour exécuter des calculs
+pandas.
+:type tableau_pour_calcul: Optional[Dict]
+:ivar pdfs_pour_contexte: Liste des PDF spécifiques sélectionnés pour fournir
+du contexte.
+:type pdfs_pour_contexte: List[Dict]
+:ivar session_id: Identifiant unique de la session en cours pour tracer les interactions.
+:type session_id: str
+:ivar user_role: Rôle de l'utilisateur basé sur la sécurité JWT, tels que 'public',
+'employee' ou 'admin'.
+:type user_role: Optional[str]
+:ivar user_permissions: Liste des permissions utilisateur spécifiques dérivées
+du JWT.
+:type user_permissions: Optional[List[str]]
+:ivar username: Nom d'utilisateur attribué dans Keycloak, utilisé pour l'historique.
+:type username: Optional[str]
+:ivar email: Adresse e-mail de l'utilisateur utilisée pour tracer l'historique
+des interactions.
+:type email: Optional[str]
+:ivar documents_pdf: Liste des documents PDF trouvés lors des recherches.
+:type documents_pdf: List[Dict]
+:ivar documents_excel: Liste des documents Excel trouvés lors des recherches.
+:type documents_excel: List[Dict]
+:ivar processing_mode: Mode de traitement des documents, tel que 'excel_only',
+'pdf_only', 'both', ou 'no_documents'.
+:type processing_mode: str
+:ivar reponse_finale_pdf: Réponse finale spécifique générée à l'aide des documents PDF.
+:type reponse_finale_pdf: str
+:ivar sources_pdf: Liste des sources PDF référencées.
+:type sources_pdf: List[str]
+:ivar excel_empty: Indique l'absence éventuelle de données dans un document Excel.
+:type excel_empty: str</p></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.dict</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="backend_python.src.core.state.ChatbotState.algo_genere"><code class="name">var <span class="ident">algo_genere</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.besoin_calculs"><code class="name">var <span class="ident">besoin_calculs</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.code_pandas"><code class="name">var <span class="ident">code_pandas</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.dataframes"><code class="name">var <span class="ident">dataframes</span> : List[pandas.core.frame.DataFrame]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.documents_excel"><code class="name">var <span class="ident">documents_excel</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.documents_pdf"><code class="name">var <span class="ident">documents_pdf</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.documents_selectionnes"><code class="name">var <span class="ident">documents_selectionnes</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.documents_trouves"><code class="name">var <span class="ident">documents_trouves</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.email"><code class="name">var <span class="ident">email</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.erreur_pandas"><code class="name">var <span class="ident">erreur_pandas</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.excel_empty"><code class="name">var <span class="ident">excel_empty</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.explication_selection"><code class="name">var <span class="ident">explication_selection</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.fichiers_csvs_local"><code class="name">var <span class="ident">fichiers_csvs_local</span> : List[Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.fichiers_gemini"><code class="name">var <span class="ident">fichiers_gemini</span> : List[Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.historique"><code class="name">var <span class="ident">historique</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.instruction_calcul"><code class="name">var <span class="ident">instruction_calcul</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.pdfs_charges"><code class="name">var <span class="ident">pdfs_charges</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.pdfs_pertinents"><code class="name">var <span class="ident">pdfs_pertinents</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.pdfs_pour_contexte"><code class="name">var <span class="ident">pdfs_pour_contexte</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.pdfs_pour_upload"><code class="name">var <span class="ident">pdfs_pour_upload</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.processing_mode"><code class="name">var <span class="ident">processing_mode</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.question_utilisateur"><code class="name">var <span class="ident">question_utilisateur</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.reponse_analyseur_brute"><code class="name">var <span class="ident">reponse_analyseur_brute</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.reponse_analyseur_texte_brut"><code class="name">var <span class="ident">reponse_analyseur_texte_brut</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.reponse_finale"><code class="name">var <span class="ident">reponse_finale</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.reponse_finale_pdf"><code class="name">var <span class="ident">reponse_finale_pdf</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.resultat_pandas"><code class="name">var <span class="ident">resultat_pandas</span> : Any | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.session_id"><code class="name">var <span class="ident">session_id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.sources_pdf"><code class="name">var <span class="ident">sources_pdf</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.tableau_pour_calcul"><code class="name">var <span class="ident">tableau_pour_calcul</span> : Dict | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.tableaux_charges"><code class="name">var <span class="ident">tableaux_charges</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.tableaux_pertinents"><code class="name">var <span class="ident">tableaux_pertinents</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.tableaux_pour_upload"><code class="name">var <span class="ident">tableaux_pour_upload</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.tableaux_reference"><code class="name">var <span class="ident">tableaux_reference</span> : List[Dict]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.user_permissions"><code class="name">var <span class="ident">user_permissions</span> : List[str] | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.user_role"><code class="name">var <span class="ident">user_role</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="backend_python.src.core.state.ChatbotState.username"><code class="name">var <span class="ident">username</span> : str | None</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="backend_python.src.core" href="index.html">backend_python.src.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="backend_python.src.core.state.ChatbotState" href="#backend_python.src.core.state.ChatbotState">ChatbotState</a></code></h4>
+<ul class="">
+<li><code><a title="backend_python.src.core.state.ChatbotState.algo_genere" href="#backend_python.src.core.state.ChatbotState.algo_genere">algo_genere</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.besoin_calculs" href="#backend_python.src.core.state.ChatbotState.besoin_calculs">besoin_calculs</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.code_pandas" href="#backend_python.src.core.state.ChatbotState.code_pandas">code_pandas</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.dataframes" href="#backend_python.src.core.state.ChatbotState.dataframes">dataframes</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.documents_excel" href="#backend_python.src.core.state.ChatbotState.documents_excel">documents_excel</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.documents_pdf" href="#backend_python.src.core.state.ChatbotState.documents_pdf">documents_pdf</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.documents_selectionnes" href="#backend_python.src.core.state.ChatbotState.documents_selectionnes">documents_selectionnes</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.documents_trouves" href="#backend_python.src.core.state.ChatbotState.documents_trouves">documents_trouves</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.email" href="#backend_python.src.core.state.ChatbotState.email">email</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.erreur_pandas" href="#backend_python.src.core.state.ChatbotState.erreur_pandas">erreur_pandas</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.excel_empty" href="#backend_python.src.core.state.ChatbotState.excel_empty">excel_empty</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.explication_selection" href="#backend_python.src.core.state.ChatbotState.explication_selection">explication_selection</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.fichiers_csvs_local" href="#backend_python.src.core.state.ChatbotState.fichiers_csvs_local">fichiers_csvs_local</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.fichiers_gemini" href="#backend_python.src.core.state.ChatbotState.fichiers_gemini">fichiers_gemini</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.historique" href="#backend_python.src.core.state.ChatbotState.historique">historique</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.instruction_calcul" href="#backend_python.src.core.state.ChatbotState.instruction_calcul">instruction_calcul</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.pdfs_charges" href="#backend_python.src.core.state.ChatbotState.pdfs_charges">pdfs_charges</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.pdfs_pertinents" href="#backend_python.src.core.state.ChatbotState.pdfs_pertinents">pdfs_pertinents</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.pdfs_pour_contexte" href="#backend_python.src.core.state.ChatbotState.pdfs_pour_contexte">pdfs_pour_contexte</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.pdfs_pour_upload" href="#backend_python.src.core.state.ChatbotState.pdfs_pour_upload">pdfs_pour_upload</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.processing_mode" href="#backend_python.src.core.state.ChatbotState.processing_mode">processing_mode</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.question_utilisateur" href="#backend_python.src.core.state.ChatbotState.question_utilisateur">question_utilisateur</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.reponse_analyseur_brute" href="#backend_python.src.core.state.ChatbotState.reponse_analyseur_brute">reponse_analyseur_brute</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.reponse_analyseur_texte_brut" href="#backend_python.src.core.state.ChatbotState.reponse_analyseur_texte_brut">reponse_analyseur_texte_brut</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.reponse_finale" href="#backend_python.src.core.state.ChatbotState.reponse_finale">reponse_finale</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.reponse_finale_pdf" href="#backend_python.src.core.state.ChatbotState.reponse_finale_pdf">reponse_finale_pdf</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.resultat_pandas" href="#backend_python.src.core.state.ChatbotState.resultat_pandas">resultat_pandas</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.session_id" href="#backend_python.src.core.state.ChatbotState.session_id">session_id</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.sources_pdf" href="#backend_python.src.core.state.ChatbotState.sources_pdf">sources_pdf</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.tableau_pour_calcul" href="#backend_python.src.core.state.ChatbotState.tableau_pour_calcul">tableau_pour_calcul</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.tableaux_charges" href="#backend_python.src.core.state.ChatbotState.tableaux_charges">tableaux_charges</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.tableaux_pertinents" href="#backend_python.src.core.state.ChatbotState.tableaux_pertinents">tableaux_pertinents</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.tableaux_pour_upload" href="#backend_python.src.core.state.ChatbotState.tableaux_pour_upload">tableaux_pour_upload</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.tableaux_reference" href="#backend_python.src.core.state.ChatbotState.tableaux_reference">tableaux_reference</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.user_permissions" href="#backend_python.src.core.state.ChatbotState.user_permissions">user_permissions</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.user_role" href="#backend_python.src.core.state.ChatbotState.user_role">user_role</a></code></li>
+<li><code><a title="backend_python.src.core.state.ChatbotState.username" href="#backend_python.src.core.state.ChatbotState.username">username</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.6</a>.</p>
+</footer>
+</body>
+</html>

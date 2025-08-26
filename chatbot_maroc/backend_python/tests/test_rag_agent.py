@@ -1,13 +1,13 @@
 from unittest.mock import Mock
 
-from src.agents.rag_agent import RAGAgent
+from ..src.agents.rag_agent_unified import RAGAgentUnified
 
 
 def test_rag_agent_execute(mock_rag, sample_state):
     """Test de l'agent RAG"""
     # Setup
     chatbot_mock = Mock()
-    agent = RAGAgent(mock_rag, chatbot_mock)
+    agent = RAGAgentUnified(mock_rag, chatbot_mock)
 
     # Execute
     result = agent.execute(sample_state)
@@ -20,7 +20,7 @@ def test_rag_agent_execute(mock_rag, sample_state):
 
 def test_valider_donnees_tableau():
     """Test validation des données"""
-    agent = RAGAgent(Mock(), Mock())
+    agent = RAGAgentUnified(Mock(), Mock())
 
     # Données valides
     valid_data = {
@@ -39,7 +39,7 @@ def test_valider_donnees_tableau():
 def test_rag_agent_question_vide(mock_rag, sample_state):
     """Test avec question vide"""
     chatbot_mock = Mock()
-    agent = RAGAgent(mock_rag, chatbot_mock)
+    agent = RAGAgentUnified(mock_rag, chatbot_mock)
 
     # Question vide
     sample_state['question_utilisateur'] = ""
@@ -58,7 +58,7 @@ def test_rag_agent_aucun_resultat(sample_state):
     mock_rag.rechercher_tableaux.return_value = {'tableaux': []}
 
     chatbot_mock = Mock()
-    agent = RAGAgent(mock_rag, chatbot_mock)
+    agent = RAGAgentUnified(mock_rag, chatbot_mock)
 
     result = agent.execute(sample_state)
 
