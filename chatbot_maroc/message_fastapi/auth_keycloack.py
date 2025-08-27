@@ -258,7 +258,7 @@ def get_keycloak_login_url(redirect_uri: str | None = None) -> str:
     :rtype: str
     """
     if not redirect_uri:
-        # valeur par défaut (si tu veux garder le flow côté API)
+        # valeur par défaut
         redirect_uri = "http://localhost:8000/api/v1/auth/keycloak/callback"
 
     return keycloak_openid.auth_url(
