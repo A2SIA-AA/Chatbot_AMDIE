@@ -82,7 +82,7 @@ git clone https://github.com/A2SIA-AA/Chatbot_AMDIE.git
 ### 2. installer les dépendances nécessaires
 
 ```
-cd chatbot_maroc
+cd Chatbot_AMDIE/chatbot_maroc
 pip install -r requirements.txt
 ```
 
