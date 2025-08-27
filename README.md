@@ -1,12 +1,11 @@
 # Chatbot RAG - AMDIE
 
-## À propos du projet
 
 <div align="center">
   <img src="https://github.com/A2SIA-AA/Chatbot_AMDIE/blob/5019aff10f6f2216d2723cda5aa229011ce4b24e/chatbot_maroc/image_Readme/interface_connexion.png">
 </div>
 
-
+## Présentation
 
 Ce projet est un **assistant intelligent à base d’IA**, conçu pour répondre de manière fiable et contextualisée aux demandes des utilisateurs de l’AMDIE. Il s’appuie sur une architecture de type **RAG** (Retrieval-Augmented Generation) permettant d’interroger automatiquement une **base vectorielle de documents internes**.
 
