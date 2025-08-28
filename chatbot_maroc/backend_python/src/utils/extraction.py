@@ -453,7 +453,9 @@ def extract_pdf_text(pdf_path):
     :raises Exception: Si une erreur survient lors du traitement des fichiers PDF ou de la
         génération des résumés.
     """
-    client = genai.Client(api_key="AIzaSyAlgDF_78gtHpOVYcQ5-ucU6wp47vIc8Ns")
+    load_dotenv()
+    API_KEY = os.getenv("GEMINI_API_KEY")
+    client = genai.Client(api_key=API_KEY)
     data_file = Path(pdf_path)
 
     for file in data_file.iterdir():
