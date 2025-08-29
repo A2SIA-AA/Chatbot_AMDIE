@@ -16,11 +16,11 @@ from ..src.core.memory_store import conversation_memory
 def test_memory_system():
     """Test complet du système de mémoire"""
 
-    print("🧪 Test du système d'historique SQLite")
+    print(" Test du système d'historique SQLite")
     print("=" * 50)
 
     # Test 1: Vérification de la santé de la DB
-    print("\n📊 1. Vérification de la santé de la base de données")
+    print("\n 1. Vérification de la santé de la base de données")
     health = conversation_memory.check_database_health()
     print(f"   Status: {health['status']}")
     print(f"   Chemin: {health['database_path']}")
@@ -31,12 +31,9 @@ def test_memory_system():
     test_users = [
         ("admin_user", "admin@amdie.ma"),
         ("employee_user", "employee@amdie.ma"),
-        ("public_user", "public@amdie.ma"),
-        ("keycloak_john", "john.doe@amdie.ma"),
-        ("keycloak_marie", "marie.dupont@amdie.ma")
     ]
 
-    print("\n💬 2. Ajout de conversations de test")
+    print("\n 2. Ajout de conversations de test")
     for i, (username, email) in enumerate(test_users):
         # Ajouter quelques conversations
         questions = [
@@ -59,14 +56,14 @@ def test_memory_system():
             )
 
             if success:
-                print(f"   ✅ Conversation {j + 1} sauvegardée pour {username}")
+                print(f"    Conversation {j + 1} sauvegardée pour {username}")
             else:
-                print(f"   ❌ Erreur pour {username}")
+                print(f"    Erreur pour {username}")
 
     # Test 3: Récupération de l'historique
-    print("\n📜 3. Test de récupération d'historique")
+    print("\n 3. Test de récupération d'historique")
     for username, email in test_users[:2]:  # Test sur 2 users
-        print(f"\n   👤 Historique pour {username}:")
+        print(f"\n    Historique pour {username}:")
 
         # Stats
         stats = conversation_memory.get_conversation_stats(username, email)
@@ -84,11 +81,11 @@ def test_memory_system():
             print(f"      Aperçu: {context[:100]}...")
 
     # Test 4: Fonctionnalités admin
-    print("\n🔧 4. Test des fonctionnalités admin")
+    print("\n 4. Test des fonctionnalités admin")
 
     # Liste des utilisateurs
     all_users = conversation_memory.get_all_users()
-    print(f"   👥 Utilisateurs dans la base: {len(all_users)}")
+    print(f"    Utilisateurs dans la base: {len(all_users)}")
     for username, email in all_users[:5]:  # Afficher les 5 premiers
         print(f"      - {username} ({email})")
 
@@ -96,10 +93,10 @@ def test_memory_system():
     if all_users:
         username, email = all_users[0]
         export_data = conversation_memory.export_user_conversations(username, email)
-        print(f"   📤 Export pour {username}: {len(export_data)} conversations")
+        print(f"    Export pour {username}: {len(export_data)} conversations")
 
     # Test 5: Simulation d'utilisation avec l'IA
-    print("\n🤖 5. Simulation d'utilisation avec les agents IA")
+    print("\n 5. Simulation d'utilisation avec les agents IA")
 
     # Simuler une conversation avec historique
     test_username = "keycloak_test_user"
@@ -134,11 +131,11 @@ def test_memory_system():
 
     # Récupérer le contexte pour l'IA
     context_for_ai = conversation_memory.format_history_for_context(test_username, test_email)
-    print(f"   📝 Contexte IA généré: {len(context_for_ai)} caractères")
-    print(f"   📋 Aperçu du contexte:\n{context_for_ai[:300]}...")
+    print(f"    Contexte IA généré: {len(context_for_ai)} caractères")
+    print(f"    Aperçu du contexte:\n{context_for_ai[:300]}...")
 
     # Test 6: Nettoyage (optionnel)
-    print("\n🧹 6. Test de nettoyage (simulation)")
+    print("\n 6. Test de nettoyage (simulation)")
 
     # Simuler des conversations anciennes
     old_conversation = conversation_memory.save_conversation(
@@ -149,17 +146,17 @@ def test_memory_system():
         session_id="old_session"
     )
 
-    print(f"   🗓️ Conversation ancienne créée: {old_conversation}")
+    print(f"    Conversation ancienne créée: {old_conversation}")
 
     # NE PAS VRAIMENT NETTOYER pour garder les données de test
-    print("   ⚠️ Nettoyage automatique désactivé pour préserver les données de test")
+    print("    Nettoyage automatique désactivé pour préserver les données de test")
 
     # Résumé final
     print("\n" + "=" * 50)
-    print("✅ Test du système d'historique terminé")
+    print(" Test du système d'historique terminé")
 
     final_health = conversation_memory.check_database_health()
-    print(f"📊 État final:")
+    print(f" État final:")
     print(f"   - Total conversations: {final_health.get('total_conversations', 0)}")
     print(f"   - Total utilisateurs: {final_health.get('total_users', 0)}")
     print(f"   - Conversations 24h: {final_health.get('conversations_24h', 0)}")
@@ -171,7 +168,7 @@ def test_memory_system():
 def demo_historique_context():
     """Démo spécifique du contexte historique pour les agents"""
 
-    print("\n🎭 DÉMO: Contexte historique pour les agents IA")
+    print("\nDÉMO: Contexte historique pour les agents IA")
     print("=" * 50)
 
     # Créer un utilisateur démo
@@ -212,41 +209,37 @@ def demo_historique_context():
         )
 
         if success:
-            print(f"✅ Conversation {i + 1} ajoutée")
+            print(f" Conversation {i + 1} ajoutée")
 
     # Maintenant simuler une nouvelle question qui fait référence à l'historique
-    print("\n📝 Nouvelle question: 'Rappelle-moi le taux de Rabat qu'on a vu'")
+    print("\n Nouvelle question: 'Rappelle-moi le taux de Rabat qu'on a vu'")
 
     # Récupérer le contexte comme le ferait l'agent analyseur
     context = conversation_memory.format_history_for_context(demo_user, demo_email)
 
-    print("\n📋 CONTEXTE QUI SERA ENVOYÉ AUX AGENTS IA:")
+    print("\n CONTEXTE QUI SERA ENVOYÉ AUX AGENTS IA:")
     print("-" * 50)
     print(context)
     print("-" * 50)
 
     # Simuler ce que l'agent ferait avec ce contexte
-    print("\n🤖 RÉPONSE SIMULÉE DE L'AGENT (avec historique):")
+    print("\n RÉPONSE SIMULÉE DE L'AGENT (avec historique):")
     simulated_response = """D'après notre conversation précédente, le taux de femmes étudiantes en ingénierie 
 à Rabat-Salé-Kénitra est de 38%. Pour rappel, cette région compte 12,000 étudiants en ingénierie au total, 
 et se positionne en deuxième place après Casablanca-Settat (42%) mais devant Fès-Meknès (31%)."""
 
     print(simulated_response)
 
-    print(f"\n✅ Démo terminée. L'historique permet à l'IA de répondre avec le contexte complet!")
+    print(f"\n Démo terminée. L'historique permet à l'IA de répondre avec le contexte complet!")
 
 
 def cleanup_test_data():
     """Nettoie les données de test (optionnel)"""
-    print("\n🧹 Nettoyage des données de test")
+    print("\n Nettoyage des données de test")
 
     test_users = [
         ("admin_user", "admin@amdie.ma"),
         ("employee_user", "employee@amdie.ma"),
-        ("public_user", "public@amdie.ma"),
-        ("keycloak_john", "john.doe@amdie.ma"),
-        ("keycloak_marie", "marie.dupont@amdie.ma"),
-        ("keycloak_test_user", "test@amdie.ma"),
         ("demo_keycloak", "demo@amdie.ma"),
         ("old_user", "old@amdie.ma")
     ]
@@ -256,9 +249,9 @@ def cleanup_test_data():
         deleted = conversation_memory.delete_user_conversations(username, email)
         total_deleted += deleted
         if deleted > 0:
-            print(f"   🗑️ {deleted} conversations supprimées pour {username}")
+            print(f"    {deleted} conversations supprimées pour {username}")
 
-    print(f"\n✅ Nettoyage terminé: {total_deleted} conversations supprimées au total")
+    print(f"\n Nettoyage terminé: {total_deleted} conversations supprimées au total")
 
 
 if __name__ == "__main__":
@@ -282,6 +275,6 @@ if __name__ == "__main__":
     else:
         test_memory_system()
 
-    print(f"\n🎯 Pour tester complètement: python {__file__} --full")
-    print(f"🎭 Pour voir la démo: python {__file__} --demo")
-    print(f"🧹 Pour nettoyer: python {__file__} --cleanup")
+    print(f"\n Pour tester complètement: python {__file__} --full")
+    print(f" Pour voir la démo: python {__file__} --demo")
+    print(f" Pour nettoyer: python {__file__} --cleanup")
